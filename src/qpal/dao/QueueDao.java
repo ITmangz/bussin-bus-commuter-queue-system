@@ -1,0 +1,177 @@
+package qpal.dao;
+
+import java.sql.*;
+import java.math.BigDecimal;
+import java.util.*;
+import qpal.model.BookingData.*;
+import qpal.util.DbConnection;
+import static qpal.dao.BookingDao.*;
+
+public class QueueDao {
+    private void ensureBoardingTable(Connection c) throws SQLException {
+        try (Statement s = c.createStatement()) {
+            s.executeUpdate("CREATE TABLE IF NOT EXISTS queue_boarding ("
+                    + "queue_entry_id INT PRIMARY KEY, boarded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+                    + "FOREIGN KEY (queue_entry_id) REFERENCES queue_entries(queue_entry_id) ON DELETE CASCADE) ENGINE=InnoDB");
+        }
+    }
+
+    public List<QueueRow> boarding() throws SQLException {
+        try (Connection c = DbConnection.getConnection()) {
+            ensureBoardingTable(c);
+            qpal.util.DepartureService.reconcile(c);
+            String sql = "SELECT q.queue_entry_id,q.booking_id,q.queue_number,MIN(bp.passenger_name),r.origin,r.destination,b.bus_number,"
+                    + "t.departure_date,t.departure_time,COUNT(*) "
+                    + "FROM queue_entries q JOIN bookings bk ON bk.booking_id=q.booking_id "
+                    + "JOIN trips t ON t.trip_id=bk.trip_id JOIN routes r ON r.route_id=t.route_id "
+                    + "JOIN buses b ON b.bus_id=t.bus_id JOIN booking_passengers bp ON bp.booking_id=bk.booking_id "
+                    + "WHERE t.status='Boarding' AND q.status<>'Cancelled' AND bk.status<>'Cancelled' "
+                    + "AND NOT EXISTS (SELECT 1 FROM queue_boarding qb WHERE qb.queue_entry_id=q.queue_entry_id) "
+                    + "AND (SELECT p.status FROM payments p WHERE p.booking_id=bk.booking_id "
+                    + "ORDER BY p.payment_id DESC LIMIT 1)='Paid' "
+                    + "GROUP BY q.queue_entry_id,q.booking_id,q.queue_number,r.origin,r.destination,b.bus_number,t.departure_date,t.departure_time "
+                    + "ORDER BY t.departure_date,t.departure_time,q.queue_date,q.queue_number";
+            List<QueueRow> rows = new ArrayList<>();
+            try (PreparedStatement p = c.prepareStatement(sql); ResultSet r = p.executeQuery()) {
+                while (r.next()) rows.add(new QueueRow(r.getInt(1),r.getInt(2),r.getInt(3),
+                        r.getString(5) + " - " + r.getString(6),r.getString(7),
+                        r.getString(8) + " " + r.getString(9),r.getString(4),"Paid","Boarding",r.getInt(10)));
+            }
+            return rows;
+        }
+    }
+
+    public void completeBoarding(int queueId) throws SQLException {
+        try (Connection c = DbConnection.getConnection()) {
+            ensureBoardingTable(c);
+            c.setAutoCommit(false);
+            try {
+                try (PreparedStatement p = statement(c,
+                        "SELECT q.queue_entry_id FROM queue_entries q JOIN bookings bk ON bk.booking_id=q.booking_id "
+                        + "JOIN trips t ON t.trip_id=bk.trip_id WHERE q.queue_entry_id=? "
+                        + "AND t.status='Boarding' AND TIMESTAMP(t.departure_date,t.departure_time)>NOW() "
+                        + "AND q.status<>'Cancelled' AND bk.status<>'Cancelled' "
+                        + "AND (SELECT status FROM payments WHERE booking_id=bk.booking_id ORDER BY payment_id DESC LIMIT 1)='Paid' "
+                        + "FOR UPDATE", queueId); ResultSet r = p.executeQuery()) {
+                    if (!r.next()) throw new SQLException("This queue is no longer eligible for boarding. Refresh and try again.");
+                }
+                if (update(c,"INSERT IGNORE INTO queue_boarding(queue_entry_id) VALUES (?)",queueId)==0)
+                    throw new SQLException("Boarding has already been completed for this queue.");
+                c.commit();
+            } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
+        }
+    }
+
+    public List<QueueRow> today() throws SQLException {
+        String sql = "SELECT q.*,r.origin,r.destination,b.bus_number,t.departure_date,t.departure_time,"
+                + "(SELECT MIN(passenger_name) FROM booking_passengers WHERE booking_id=q.booking_id) AS passenger,"
+                + "(SELECT COUNT(*) FROM booking_passengers WHERE booking_id=q.booking_id) AS passengers,"
+                + "(SELECT status FROM payments WHERE booking_id=q.booking_id ORDER BY payment_id DESC LIMIT 1) AS payment "
+                + "FROM queue_entries q JOIN bookings bk ON bk.booking_id=q.booking_id JOIN trips t ON t.trip_id=bk.trip_id "
+                + "JOIN routes r ON r.route_id=t.route_id JOIN buses b ON b.bus_id=t.bus_id "
+                + "WHERE q.queue_date=CURRENT_DATE ORDER BY q.queue_number";
+        try (Connection c = DbConnection.getConnection(); PreparedStatement p = c.prepareStatement(sql); ResultSet r = p.executeQuery()) {
+            List<QueueRow> rows = new ArrayList<>();
+            while (r.next()) rows.add(new QueueRow(r.getInt("queue_entry_id"), r.getInt("booking_id"),
+                    r.getInt("queue_number"), r.getString("origin") + " - " + r.getString("destination"),
+                    r.getString("bus_number"), r.getString("departure_date") + " " + r.getString("departure_time"),
+                    r.getString("passenger"), r.getString("payment"), r.getString("status"), r.getInt("passengers")));
+            return rows;
+        }
+    }
+
+    public void act(int queueId, String action) throws SQLException {
+        try (Connection c = DbConnection.getConnection()) {
+            c.setAutoCommit(false);
+            try {
+                // The day's counter is also a mutex for admin queue transitions.
+                update(c, "INSERT INTO queue_daily_counters (queue_date,last_queue_number) VALUES (CURRENT_DATE,0) "
+                        + "ON DUPLICATE KEY UPDATE last_queue_number=last_queue_number");
+                if (action.equals("Call Next Queue") || action.equals("Recall")) {
+                    try (PreparedStatement p = c.prepareStatement("SELECT queue_entry_id FROM queue_entries "
+                            + "WHERE queue_date=CURRENT_DATE AND status='Serving' FOR UPDATE"); ResultSet r = p.executeQuery()) {
+                        if (r.next()) throw new SQLException("Complete or skip the currently serving queue first.");
+                    }
+                }
+                if (action.equals("Call Next Queue")) {
+                    try (PreparedStatement p = c.prepareStatement("SELECT queue_entry_id FROM queue_entries "
+                            + "WHERE queue_date=CURRENT_DATE AND status='Waiting' ORDER BY queue_number LIMIT 1 FOR UPDATE");
+                            ResultSet r = p.executeQuery()) {
+                        if (!r.next()) throw new SQLException("There are no waiting queues.");
+                        queueId = r.getInt(1);
+                    }
+                }
+                int booking;
+                String status;
+                try (PreparedStatement p = statement(c, "SELECT booking_id,status FROM queue_entries "
+                        + "WHERE queue_entry_id=? AND queue_date=CURRENT_DATE FOR UPDATE", queueId); ResultSet r = p.executeQuery()) {
+                    if (!r.next()) throw new SQLException("Select a queue for today first.");
+                    booking = r.getInt(1); status = r.getString(2);
+                }
+                switch (action) {
+                    case "Call Next Queue": case "Recall":
+                        if (!(status.equals("Waiting") || status.equals("Skipped"))) throw new SQLException("This queue cannot be called.");
+                        if (action.equals("Recall")) {
+                            try (PreparedStatement p = statement(c, "SELECT queue_entry_id FROM queue_entries "
+                                    + "WHERE queue_date=CURRENT_DATE AND status IN ('Waiting','Skipped') "
+                                    + "ORDER BY queue_number LIMIT 1 FOR UPDATE"); ResultSet r = p.executeQuery()) {
+                                if (!r.next() || r.getInt(1) != queueId)
+                                    throw new SQLException("Recall the earliest waiting or skipped queue first to preserve FIFO.");
+                            }
+                        }
+                        update(c, "UPDATE queue_entries SET status='Serving',called_at=NOW() WHERE queue_entry_id=?", queueId);
+                        break;
+                    case "Undo Call":
+                        if (!status.equals("Serving")) throw new SQLException("Only the current call can be undone.");
+                        update(c, "UPDATE queue_entries SET status='Waiting',called_at=NULL WHERE queue_entry_id=?", queueId);
+                        break;
+                    case "Skip Queue":
+                        if (!status.equals("Serving")) throw new SQLException("Only the serving queue can be skipped.");
+                        update(c, "UPDATE queue_entries SET status='Skipped' WHERE queue_entry_id=?", queueId);
+                        break;
+                    case "Mark as Paid":
+                        if (status.equals("Cancelled") || status.equals("Completed")) throw new SQLException("This queue is closed.");
+                        if (update(c, "UPDATE payments SET status='Paid',paid_at=NOW() WHERE booking_id=? AND status='Pending'", booking) == 0)
+                            throw new SQLException("There is no pending payment for this booking.");
+                        update(c, "UPDATE bookings SET status='Confirmed' WHERE booking_id=?", booking);
+                        break;
+                    case "Complete":
+                        if (!status.equals("Serving")) throw new SQLException("Only the serving queue can be completed.");
+                        try (PreparedStatement p = statement(c, "SELECT status FROM payments WHERE booking_id=? ORDER BY payment_id DESC LIMIT 1 FOR UPDATE", booking);
+                                ResultSet r = p.executeQuery()) {
+                            if (!r.next() || !r.getString(1).equals("Paid")) throw new SQLException("Collect and mark the payment as Paid first.");
+                        }
+                        update(c, "UPDATE queue_entries SET status='Completed',completed_at=NOW() WHERE queue_entry_id=?", queueId);
+                        update(c, "UPDATE bookings SET status='Completed' WHERE booking_id=?", booking);
+                        break;
+                    default: throw new SQLException("Unknown queue action.");
+                }
+                c.commit();
+            } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
+        }
+    }
+
+    public RevenueData revenue() throws SQLException {
+        List<Object[]> rows = new ArrayList<>();
+        int paid = 0, pending = 0;
+        BigDecimal total = BigDecimal.ZERO;
+        String sql = "SELECT p.*,b.bus_number,r.origin,r.destination,"
+                + "(SELECT COUNT(*) FROM booking_passengers bp WHERE bp.booking_id=p.booking_id) AS passengers,"
+                + "DATE(p.paid_at)=CURRENT_DATE AS paid_today FROM payments p JOIN trips t ON t.trip_id=p.trip_id "
+                + "JOIN buses b ON b.bus_id=t.bus_id JOIN routes r ON r.route_id=t.route_id ORDER BY p.created_at DESC,p.payment_id DESC";
+        try (Connection c = DbConnection.getConnection(); PreparedStatement p = c.prepareStatement(sql); ResultSet r = p.executeQuery()) {
+            while (r.next()) {
+                String status = r.getString("status");
+                BigDecimal amount = r.getBigDecimal("amount");
+                rows.add(new Object[]{r.getInt("payment_id"), r.getString("commuter_name"), r.getString("bus_number"),
+                        r.getString("origin") + " - " + r.getString("destination"), r.getString("created_at"), amount, status});
+                if (status.equals("Paid")) {
+                    paid += r.getObject("booking_id") == null ? 1 : r.getInt("passengers");
+                    if (r.getBoolean("paid_today")) total = total.add(amount);
+                }
+                if (status.equals("Pending")) pending++;
+            }
+        }
+        return new RevenueData(rows, paid, pending, total);
+    }
+}
