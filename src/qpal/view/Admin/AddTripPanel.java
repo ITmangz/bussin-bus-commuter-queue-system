@@ -273,7 +273,7 @@ public class AddTripPanel {
         btnAdd.addActionListener(e -> {
 
     if (cmbBus.getSelectedItem() == null) {
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 dialog,
                 "Please select a bus.",
                 "Warning",
@@ -282,7 +282,7 @@ public class AddTripPanel {
     }
 
     if (cmbRoute.getSelectedItem() == null) {
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 dialog,
                 "Please select a route.",
                 "Warning",
@@ -294,7 +294,7 @@ public class AddTripPanel {
     java.time.LocalTime time = (java.time.LocalTime)cmbTime.getSelectedItem();
 
     if (date.isEmpty()) {
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 dialog,
                 "Please select a departure date.",
                 "Warning",
@@ -303,7 +303,7 @@ public class AddTripPanel {
     }
 
     if (time == null) {
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 dialog,
                 "Departure Time needs an input.",
                 "Warning",
@@ -333,26 +333,26 @@ public class AddTripPanel {
                 || fare.compareTo(new java.math.BigDecimal("99999999.99")) > 0
                 || fare.stripTrailingZeros().scale() > 2) {
 
-            JOptionPane.showMessageDialog(dialog,"Enter a fare greater than zero with up to two decimal places.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(dialog,"Enter a fare greater than zero with up to two decimal places.","Warning",JOptionPane.WARNING_MESSAGE);
             return;
         }
 
     } catch(NumberFormatException ex) {
 
-        JOptionPane.showMessageDialog(dialog,"Fare needs a valid amount.","Warning",JOptionPane.WARNING_MESSAGE);
+        qpal.components.AppDialogs.showMessageDialog(dialog,"Fare needs a valid amount.","Warning",JOptionPane.WARNING_MESSAGE);
         return;
     }
     boolean success;
     try {
         success = tripDao.saveTripWithFare(trip,fare,false);
     } catch (TripDao.ScheduleConflictException ex) {
-        JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Schedule Conflict", JOptionPane.WARNING_MESSAGE);
+        qpal.components.AppDialogs.showMessageDialog(dialog, ex.getMessage(), "Schedule Conflict", JOptionPane.WARNING_MESSAGE);
         return;
     }
 
     if (success) {
 
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 dialog,
                 "Trip added successfully.",
                 "Success",
@@ -364,7 +364,7 @@ public class AddTripPanel {
 
     } else {
 
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 dialog,
                 "Failed to add trip.",
                 "Error",

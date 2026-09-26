@@ -26,7 +26,7 @@ public class EditBusPanel {
 
         if(bus == null) {
 
-            JOptionPane.showMessageDialog(
+            qpal.components.AppDialogs.showMessageDialog(
                     parent,
                     "Bus not found.",
                     "Warning",
@@ -156,7 +156,7 @@ public class EditBusPanel {
 
             if(busNumber.isEmpty()) {
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         dialog,
                         "Bus Number needs an input.",
                         "Warning",
@@ -166,14 +166,14 @@ public class EditBusPanel {
             }
 
             if (seatCapacity == null) {
-                JOptionPane.showMessageDialog(dialog, "Choose a seat capacity from 20 to 50.",
+                qpal.components.AppDialogs.showMessageDialog(dialog, "Choose a seat capacity from 20 to 50.",
                         "Warning", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             if(!busNumber.equals(bus.getBusNumber())
                     && busDao.checkBusNumber(busNumber)) {
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         dialog,
                         "Bus Number already exists.",
                         "Warning",
@@ -199,7 +199,7 @@ public class EditBusPanel {
 
             if(success) {
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         dialog,
                         "Bus updated successfully.",
                         "Success",
@@ -211,7 +211,7 @@ public class EditBusPanel {
 
             } else {
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         dialog,
                         "Unable to update bus. A bus with bookings must keep its seat capacity.",
                         "Error",

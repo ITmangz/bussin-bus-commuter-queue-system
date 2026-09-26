@@ -218,7 +218,7 @@ public class PrintTicketPanel extends JPanel {
     }
 
     private static void showPrintError(Component parent) {
-        JOptionPane.showMessageDialog(parent,
+        qpal.components.AppDialogs.showMessageDialog(parent,
                 "Unable to print. Your booking is saved and can be reprinted at the counter.",
                 "Printing unavailable",JOptionPane.WARNING_MESSAGE);
     }

@@ -283,7 +283,7 @@ public class ConfirmTripDetailsPanel extends JPanel {
 
         backbtn.addActionListener(e -> {
 
-            int choice = JOptionPane.showConfirmDialog(
+            int choice = qpal.components.AppDialogs.showConfirmDialog(
                     null,
                     "Are you sure you want to go back?",
                     "Confirmation",

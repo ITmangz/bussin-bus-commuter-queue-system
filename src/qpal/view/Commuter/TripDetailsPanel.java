@@ -94,26 +94,13 @@ public class TripDetailsPanel extends JPanel {
         styleComboBox(originbox);
         styleComboBox(destinationbox);
         styleComboBox(timebox);
-        destinationbox.setMaximumRowCount(10);
-        timebox.setMaximumRowCount(10);
+        destinationbox.setMaximumRowCount(8);
+        timebox.setMaximumRowCount(8);
 
         datebox = new JDateChooser();
         datebox.setDateFormatString("MMMM d, yyyy");
-        datebox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        datebox.setOpaque(false);
-        datebox.setBorder(new RoundedBorder());
-        JTextField dateEditor = (JTextField) datebox.getDateEditor().getUiComponent();
-        dateEditor.setEditable(false);
-        dateEditor.setBackground(Color.WHITE);
-        dateEditor.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 0));
-        JButton calendarButton = datebox.getCalendarButton();
-        calendarButton.setIcon(new ChevronIcon());
-        calendarButton.setPreferredSize(new Dimension(42, 42));
-        calendarButton.setContentAreaFilled(false);
-        calendarButton.setBorder(BorderFactory.createEmptyBorder());
-        calendarButton.setFocusPainted(false);
-        calendarButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        calendarButton.setToolTipText("Choose departure date");
+        qpal.components.FormInputStyle.styleCalendar(datebox);
+        ((JTextField) datebox.getDateEditor().getUiComponent()).setEditable(false);
 
         tripdetailspanel.add(createInputCard("Origin", "Select your departure terminal.",
                 originIconLabel, originbox, 70, 282));
@@ -175,7 +162,7 @@ public class TripDetailsPanel extends JPanel {
             @Override 
             public void actionPerformed(ActionEvent e) {
 
-                int choice = JOptionPane.showConfirmDialog(null, "Are you sure you want to go back?", "Confirmation",
+                int choice = qpal.components.AppDialogs.showConfirmDialog(null, "Are you sure you want to go back?", "Confirmation",
                         JOptionPane.YES_NO_OPTION);
 
                     if (choice == JOptionPane.YES_OPTION) {
@@ -188,7 +175,7 @@ public class TripDetailsPanel extends JPanel {
 
                     } else {
                         
-                        JOptionPane.showMessageDialog(null, "You chose not to proceed.");
+                        qpal.components.AppDialogs.showMessageDialog(null, "You chose not to proceed.");
 
                     }
             }
@@ -214,7 +201,7 @@ public class TripDetailsPanel extends JPanel {
 
                 if(isMissing(originbox) || isMissing(destinationbox) || datebox.getDate() == null || isMissing(timebox)) {
 
-                    JOptionPane.showMessageDialog(TripDetailsPanel.this,
+                    qpal.components.AppDialogs.showMessageDialog(TripDetailsPanel.this,
                             "Please select an origin, destination, date, and time before continuing.",
                             "Incomplete Trip Details", JOptionPane.WARNING_MESSAGE);
 
@@ -229,7 +216,7 @@ public class TripDetailsPanel extends JPanel {
                     continuebtn.setText("Continue  >");
                     if (!isShowing() || !search.equals(getSearch()) || isMissing(originbox)) return;
                     if (results.isEmpty()) {
-                        JOptionPane.showMessageDialog(TripDetailsPanel.this,
+                        qpal.components.AppDialogs.showMessageDialog(TripDetailsPanel.this,
                                 "No exact or nearby schedule is available for your destination on the selected date. Please choose another date or destination.",
                                 "No Schedule Available", JOptionPane.INFORMATION_MESSAGE);
                         return;
@@ -239,7 +226,7 @@ public class TripDetailsPanel extends JPanel {
                 }, ex -> {
                     continuebtn.setEnabled(true);
                     continuebtn.setText("Continue  >");
-                    if (isShowing()) JOptionPane.showMessageDialog(TripDetailsPanel.this,
+                    if (isShowing()) qpal.components.AppDialogs.showMessageDialog(TripDetailsPanel.this,
                             "Unable to check schedules. Please try again.", "Connection Error", JOptionPane.ERROR_MESSAGE);
                 });
             }
@@ -331,76 +318,9 @@ public class TripDetailsPanel extends JPanel {
     }
 
     private static void styleComboBox(JComboBox<String> combo) {
-        combo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        combo.setBackground(Color.WHITE);
-        combo.setForeground(new Color(20, 23, 28));
-        combo.setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
-            @Override
-            public void paintCurrentValueBackground(Graphics g, Rectangle bounds, boolean hasFocus) {
-                g.setColor(Color.WHITE);
-                g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-            }
-
-            @Override
-            protected JButton createArrowButton() {
-                JButton button = new JButton(new ChevronIcon());
-                button.setContentAreaFilled(false);
-                button.setBorder(BorderFactory.createEmptyBorder());
-                button.setPreferredSize(new Dimension(42, 42));
-                return button;
-            }
-        });
-        combo.setBorder(new RoundedBorder());
-        combo.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value,
-                    int index, boolean selected, boolean focused) {
-                super.getListCellRendererComponent(list, value, index, selected, focused);
-                setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 8));
-                setBackground(selected && index >= 0 ? new Color(255, 235, 240) : Color.WHITE);
-                setForeground(new Color(20, 23, 28));
-                return this;
-            }
-        });
+        qpal.components.FormInputStyle.styleCombo(combo);
     }
 
-    private static class RoundedBorder extends javax.swing.border.AbstractBorder {
-        @Override
-        public Insets getBorderInsets(Component component) {
-            return new Insets(2, 6, 2, 6);
-        }
-
-        @Override
-        public Insets getBorderInsets(Component component, Insets insets) {
-            insets.set(2, 6, 2, 6);
-            return insets;
-        }
-
-        @Override
-        public void paintBorder(Component component, Graphics graphics, int x, int y,
-                int width, int height) {
-            Graphics2D g = (Graphics2D) graphics.create();
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setColor(component.isFocusOwner() ? new Color(225, 0, 45) : new Color(203, 210, 221));
-            g.drawRoundRect(x, y, width - 1, height - 1, 9, 9);
-            g.dispose();
-        }
-    }
-
-    private static class ChevronIcon implements Icon {
-        public int getIconWidth() { return 14; }
-        public int getIconHeight() { return 10; }
-
-        public void paintIcon(Component component, Graphics graphics, int x, int y) {
-            Graphics2D g = (Graphics2D) graphics.create();
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setColor(new Color(66, 77, 91));
-            g.setStroke(new BasicStroke(1.7f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g.drawLine(x + 2, y + 2, x + 7, y + 7);
-            g.drawLine(x + 7, y + 7, x + 12, y + 2);
-            g.dispose();
-        }
-    }
     public void resetInputs() {
 
     originbox.setSelectedIndex(0);

@@ -116,7 +116,7 @@ public class ForgotPassword {
                     } else {
                         emailtxt.setText("");
                         Toolkit.getDefaultToolkit().beep();
-                        JOptionPane.showMessageDialog(null, "Email must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(null, "Email must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
                     }
                 }
             });
@@ -146,11 +146,11 @@ public class ForgotPassword {
                 String email = emailtxt.getText().trim();
 
                 if(email.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Email is required.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(null, "Email is required.", "Warning!", JOptionPane.WARNING_MESSAGE);
                     return;
 
                 }
-                JOptionPane.showMessageDialog(null, "Verification code sent successfully.", "Success!", JOptionPane.INFORMATION_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(null, "Verification code sent successfully.", "Success!", JOptionPane.INFORMATION_MESSAGE);
                 fpage.dispose();
                 new CodeVerification();
             }

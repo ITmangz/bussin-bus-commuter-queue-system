@@ -216,7 +216,7 @@ public class AvailableTripPanel extends JPanel {
             @Override 
             public void actionPerformed(ActionEvent e) {
 
-                int choice = JOptionPane.showConfirmDialog(null, "Are you sure you want to go back?", "Confirmation",
+                int choice = qpal.components.AppDialogs.showConfirmDialog(null, "Are you sure you want to go back?", "Confirmation",
                         JOptionPane.YES_NO_OPTION);
 
                     if (choice == JOptionPane.YES_OPTION) {
@@ -226,7 +226,7 @@ public class AvailableTripPanel extends JPanel {
 
                     } else {
                         
-                        JOptionPane.showMessageDialog(null, "You chose not to proceed.");
+                        qpal.components.AppDialogs.showMessageDialog(null, "You chose not to proceed.");
 
                     }
             }
@@ -252,7 +252,7 @@ public class AvailableTripPanel extends JPanel {
 
                 if (TripCardPanel.getSelectedCard() == null) {
 
-                    JOptionPane.showMessageDialog(
+                    qpal.components.AppDialogs.showMessageDialog(
                             null,
                             "Please select an available trip first.",
                             "No Trip Selected",

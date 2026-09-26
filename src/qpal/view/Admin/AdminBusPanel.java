@@ -460,7 +460,7 @@ private void editBus() {
 
     if(selectedRow == -1){
 
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 this,
                 "No selected bus to edit.",
                 "Warning",
@@ -482,7 +482,7 @@ private void deleteBus() {
 
     if(selectedRow == -1){
 
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 this,
                 "No selected bus.",
                 "Warning",
@@ -495,7 +495,7 @@ private void deleteBus() {
 
     String busNumber = model.getValueAt(selectedRow,1).toString();
 
-    int confirm = JOptionPane.showConfirmDialog(
+    int confirm = qpal.components.AppDialogs.showConfirmDialog(
             this,
             "Permanently delete " + busNumber + "?\n\nThis also deletes ALL of its trips, bookings, passengers,\nseat reservations, queue entries, and payment/revenue records.\nThis cannot be undone.",
             "Delete Bus",
@@ -508,7 +508,7 @@ private void deleteBus() {
 
         if(success){
 
-            JOptionPane.showMessageDialog(
+            qpal.components.AppDialogs.showMessageDialog(
                     this,
                     "Bus deleted successfully.",
                     "Success",
@@ -518,7 +518,7 @@ private void deleteBus() {
 
         }else{
 
-            JOptionPane.showMessageDialog(
+            qpal.components.AppDialogs.showMessageDialog(
                     this,
                     "Failed to delete bus.",
                     "Error",
@@ -538,7 +538,7 @@ private void printBuses() {
 
         if(complete){
 
-            JOptionPane.showMessageDialog(
+            qpal.components.AppDialogs.showMessageDialog(
                     this,
                     "Table printed successfully.",
                     "Print",
@@ -546,7 +546,7 @@ private void printBuses() {
 
         }else{
 
-            JOptionPane.showMessageDialog(
+            qpal.components.AppDialogs.showMessageDialog(
                     this,
                     "Printing was cancelled.",
                     "Print",
@@ -556,7 +556,7 @@ private void printBuses() {
 
     } catch (PrinterException e) {
 
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 this,
                 "Unable to print the table.",
                 "Print Error",

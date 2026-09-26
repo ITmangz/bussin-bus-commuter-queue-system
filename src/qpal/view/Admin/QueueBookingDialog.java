@@ -107,7 +107,7 @@ final class QueueBookingDialog {
                         passengers.add(new Passenger(name,type,BookingDao.seatNumber(model.getValueAt(i,2).toString())));
                     } else edited.add(new QueueBookingDao.Person(people.get(i).id(),name,type));
                 }
-            } catch (IllegalArgumentException ex) { JOptionPane.showMessageDialog(dialog,ex.getMessage(),"Check Details",JOptionPane.WARNING_MESSAGE); return; }
+            } catch (IllegalArgumentException ex) { qpal.components.AppDialogs.showMessageDialog(dialog,ex.getMessage(),"Check Details",JOptionPane.WARNING_MESSAGE); return; }
             TripOption selected=(TripOption)trip.getSelectedItem();
             String payment=(String)method.getSelectedItem();
             save.setEnabled(false); cancel.setEnabled(false); trip.setEnabled(false);
@@ -116,9 +116,9 @@ final class QueueBookingDialog {
                 new QueueBookingDao().edit(existing.bookingId(),people,edited); return null;
             }, receipt -> {
                 dialog.dispose(); parent.refreshData();
-                if (receipt!=null) JOptionPane.showMessageDialog(parent,"Booking added. Queue "+String.format("P%03d",receipt.queueNumber()));
+                if (receipt!=null) qpal.components.AppDialogs.showMessageDialog(parent,"Booking added. Queue "+String.format("P%03d",receipt.queueNumber()));
             }, ex -> { save.setEnabled(true); cancel.setEnabled(true); trip.setEnabled(true);
-                JOptionPane.showMessageDialog(dialog,ex.getMessage(),"Unable to Save",JOptionPane.WARNING_MESSAGE); });
+                qpal.components.AppDialogs.showMessageDialog(dialog,ex.getMessage(),"Unable to Save",JOptionPane.WARNING_MESSAGE); });
         });
         dialog.setContentPane(AdminFormStyle.frame(form)); dialog.pack(); dialog.setResizable(false);
         dialog.setLocationRelativeTo(parent); dialog.setVisible(true);

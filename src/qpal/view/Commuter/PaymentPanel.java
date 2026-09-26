@@ -130,7 +130,7 @@ public class PaymentPanel extends JPanel {
 
             if (selectedPayment.isEmpty()) {
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         null,
                         "Please select a payment method first.",
                         "No Payment Selected",
@@ -151,7 +151,7 @@ public class PaymentPanel extends JPanel {
             java.util.List<String> names = passengerPanel.getPassengerNames();
             java.util.List<String> seats = seatPanel.getSelectedSeatNumbers();
             if (names.size() != passengerPanel.getPassengerCount() || seats.size() != names.size()) {
-                JOptionPane.showMessageDialog(this, "Please go back and select one seat for each passenger.");
+                qpal.components.AppDialogs.showMessageDialog(this, "Please go back and select one seat for each passenger.");
                 return;
             }
             java.util.List<qpal.model.BookingData.Passenger> passengers = new java.util.ArrayList<>();
@@ -172,7 +172,7 @@ public class PaymentPanel extends JPanel {
                 continuebtn.setEnabled(true);
                 backbtn.setEnabled(true);
                 continuebtn.setText("Continue  >");
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Booking not completed", JOptionPane.WARNING_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(this, ex.getMessage(), "Booking not completed", JOptionPane.WARNING_MESSAGE);
             });
 
         });

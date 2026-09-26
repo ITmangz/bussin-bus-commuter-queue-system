@@ -40,7 +40,7 @@ public class EditTripPanel {
         Trip trip = tripDao.getTrip(tripID);
 
         if (trip == null) {
-            JOptionPane.showMessageDialog(
+            qpal.components.AppDialogs.showMessageDialog(
                     parent,
                     "Trip not found.",
                     "Warning",
@@ -306,7 +306,7 @@ public class EditTripPanel {
     String status = cmbStatus.getSelectedItem().toString();
 
     if(selectedBus == null){
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 dialog,
                 "Please select a bus.",
                 "Warning",
@@ -315,7 +315,7 @@ public class EditTripPanel {
     }
 
     if(selectedRoute == null){
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 dialog,
                 "Please select a route.",
                 "Warning",
@@ -324,7 +324,7 @@ public class EditTripPanel {
     }
 
     if(departureDate.isEmpty()){
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 dialog,
                 "Please select a departure date.",
                 "Warning",
@@ -333,7 +333,7 @@ public class EditTripPanel {
     }
 
     if(departureTime == null){
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 dialog,
                 "Departure Time needs an input.",
                 "Warning",
@@ -361,26 +361,26 @@ public class EditTripPanel {
                 || fare.compareTo(new java.math.BigDecimal("99999999.99")) > 0
                 || fare.stripTrailingZeros().scale() > 2) {
 
-            JOptionPane.showMessageDialog(dialog,"Enter a fare greater than zero with up to two decimal places.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(dialog,"Enter a fare greater than zero with up to two decimal places.","Warning",JOptionPane.WARNING_MESSAGE);
             return;
         }
 
     } catch(NumberFormatException ex) {
 
-        JOptionPane.showMessageDialog(dialog,"Fare needs a valid amount.","Warning",JOptionPane.WARNING_MESSAGE);
+        qpal.components.AppDialogs.showMessageDialog(dialog,"Fare needs a valid amount.","Warning",JOptionPane.WARNING_MESSAGE);
         return;
     }
     boolean success;
     try {
         success = tripDao.saveTripWithFare(updatedTrip,fare,true);
     } catch (TripDao.ScheduleConflictException ex) {
-        JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Schedule Conflict", JOptionPane.WARNING_MESSAGE);
+        qpal.components.AppDialogs.showMessageDialog(dialog, ex.getMessage(), "Schedule Conflict", JOptionPane.WARNING_MESSAGE);
         return;
     }
 
     if(success){
 
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 dialog,
                 "Trip updated successfully.",
                 "Success",
@@ -392,7 +392,7 @@ public class EditTripPanel {
 
     }else{
 
-        JOptionPane.showMessageDialog(
+        qpal.components.AppDialogs.showMessageDialog(
                 dialog,
                 "Unable to update trip. Booked trips must keep their bus, route and departure, and cannot be cancelled here.",
                 "Error",

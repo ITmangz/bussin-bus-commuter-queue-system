@@ -225,7 +225,7 @@ public class PassengerDetailsPanel extends JPanel {
 
                 backbtn.addActionListener(e -> {
 
-                int choice = JOptionPane.showConfirmDialog(
+                int choice = qpal.components.AppDialogs.showConfirmDialog(
                         null,
                         "Are you sure you want to go back?",
                         "Confirmation",
@@ -256,14 +256,14 @@ public class PassengerDetailsPanel extends JPanel {
 
                 updatePassengerCounter();
                 if (passengerCount == 0) {
-                    JOptionPane.showMessageDialog(this,"No seats remain. Please select another trip.",
+                    qpal.components.AppDialogs.showMessageDialog(this,"No seats remain. Please select another trip.",
                             "Bus full",JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
                 if (selectedType.isEmpty()) {
 
-                        JOptionPane.showMessageDialog(
+                        qpal.components.AppDialogs.showMessageDialog(
                                 null,
                                 "Please select a passenger type.",
                                 "Incomplete Information",

@@ -140,28 +140,28 @@ public class AddAccountPanel {
 
             if(name.isEmpty()) {
 
-                JOptionPane.showMessageDialog(dialog,"Name needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(dialog,"Name needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
 
             if(email.isEmpty()) {
 
-                JOptionPane.showMessageDialog(dialog,"Email needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(dialog,"Email needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
 
             if(password.isEmpty()) {
 
-                JOptionPane.showMessageDialog(dialog,"Password needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(dialog,"Password needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
 
             if(accountDao.CheckEmail(email)) {
 
-                JOptionPane.showMessageDialog(dialog,"Email already exists.","Warning",JOptionPane.WARNING_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(dialog,"Email already exists.","Warning",JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -179,13 +179,13 @@ public class AddAccountPanel {
 
             if(success) {
 
-                JOptionPane.showMessageDialog(dialog,"Account added successfully.","Success", JOptionPane.INFORMATION_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(dialog,"Account added successfully.","Success", JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
                 parent.loadAccounts();
 
             } else {
 
-                JOptionPane.showMessageDialog(dialog,"Failed to add account.","Error",JOptionPane.ERROR_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(dialog,"Failed to add account.","Error",JOptionPane.ERROR_MESSAGE);
             }
         });
 

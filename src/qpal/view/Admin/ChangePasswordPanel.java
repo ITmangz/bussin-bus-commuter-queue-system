@@ -64,7 +64,7 @@ public class ChangePasswordPanel {
                     } else {
 
                         Toolkit.getDefaultToolkit().beep();
-                        JOptionPane.showMessageDialog(rpage, "Password must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(rpage, "Password must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
                     }
                 }
             });
@@ -148,7 +148,7 @@ public class ChangePasswordPanel {
                     } else {
 
                         Toolkit.getDefaultToolkit().beep();
-                        JOptionPane.showMessageDialog(rpage, "Password must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(rpage, "Password must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
                     }
                 }
             });
@@ -220,22 +220,22 @@ public class ChangePasswordPanel {
 
                 if (newpassword.isEmpty() && confirmpassword.isEmpty()) {
 
-                    JOptionPane.showMessageDialog(rpage, "New Password and Confirm Password are required.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(rpage, "New Password and Confirm Password are required.", "Warning!", JOptionPane.WARNING_MESSAGE);
                     return;
 
                 } else if (newpassword.isEmpty()) {
 
-                    JOptionPane.showMessageDialog(rpage, "New Password is required.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(rpage, "New Password is required.", "Warning!", JOptionPane.WARNING_MESSAGE);
                     return;
 
                 } else if (confirmpassword.isEmpty()) {
 
-                    JOptionPane.showMessageDialog(rpage, "Confirm Password is required.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(rpage, "Confirm Password is required.", "Warning!", JOptionPane.WARNING_MESSAGE);
                     return;
 
                 } else if (!newpassword.equals(confirmpassword)) {
 
-                    JOptionPane.showMessageDialog(rpage, "Passwords do not match.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(rpage, "Passwords do not match.", "Warning!", JOptionPane.WARNING_MESSAGE);
                     confirmpasstxt.setText("");
                     return;
                 }

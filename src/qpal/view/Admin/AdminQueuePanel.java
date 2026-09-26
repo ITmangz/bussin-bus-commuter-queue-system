@@ -482,18 +482,18 @@ public class AdminQueuePanel extends JPanel {
             selected = rows.stream().filter(r -> r.status().equals("Serving")).findFirst().orElse(null);
         }
         if (selected == null && !action.equals("Call Next Queue")) {
-            JOptionPane.showMessageDialog(this, "Select a queue first."); return;
+            qpal.components.AppDialogs.showMessageDialog(this, "Select a queue first."); return;
         }
         final var row = selected;
         if (action.equals("View Details") || action.equals("Print Ticket")) {
             qpal.util.UiTask.run(() -> new qpal.dao.BookingDao().receipt(row.bookingId()), receipt -> {
                 if (action.equals("Print Ticket")) qpal.view.Commuter.PrintTicketPanel.printTicket(this, receipt.text());
                 else { JTextArea text = new JTextArea(receipt.text()); text.setEditable(false);
-                    JOptionPane.showMessageDialog(this, text, "Booking Details", JOptionPane.PLAIN_MESSAGE); }
-            }, ex -> JOptionPane.showMessageDialog(this, ex.getMessage()));
+                    qpal.components.AppDialogs.showMessageDialog(this, text, "Booking Details", JOptionPane.PLAIN_MESSAGE); }
+            }, ex -> qpal.components.AppDialogs.showMessageDialog(this, ex.getMessage()));
             return;
         }
-        if (action.equals("Mark as Paid") && JOptionPane.showConfirmDialog(this,
+        if (action.equals("Mark as Paid") && qpal.components.AppDialogs.showConfirmDialog(this,
                 "Confirm payment has been received for queue " + String.format("P%03d",row.number()) + "?", "Confirm Payment",
                 JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
         acting = true;
@@ -501,7 +501,7 @@ public class AdminQueuePanel extends JPanel {
         qpal.util.UiTask.run(() -> { new qpal.dao.QueueDao().act(row == null ? 0 : row.id(), action); return true; }, result -> {
             acting = false; actionButtons.forEach(b -> b.setEnabled(true)); refreshData();
         }, ex -> { acting = false; actionButtons.forEach(b -> b.setEnabled(true));
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Queue Action", JOptionPane.WARNING_MESSAGE); refreshData(); });
+            qpal.components.AppDialogs.showMessageDialog(this, ex.getMessage(), "Queue Action", JOptionPane.WARNING_MESSAGE); refreshData(); });
     }
 
     private void actBoarding(String action) {
@@ -526,19 +526,19 @@ public class AdminQueuePanel extends JPanel {
                 if (action.equals("Print Ticket")) qpal.view.Commuter.PrintTicketPanel.printTicket(this,receipt.text("B"));
                 else {
                     JTextArea text = new JTextArea(receipt.text("B")); text.setEditable(false);
-                    JOptionPane.showMessageDialog(this,text,"Boarding Details",JOptionPane.PLAIN_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(this,text,"Boarding Details",JOptionPane.PLAIN_MESSAGE);
                 }
-            }, ex -> JOptionPane.showMessageDialog(this,ex.getMessage()));
+            }, ex -> qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage()));
         } else if (callingNext || action.equals("Recall")) {
             Toolkit.getDefaultToolkit().beep();
-            JOptionPane.showMessageDialog(this,String.format("Queue B%03d: please board bus %s for %s.",
+            qpal.components.AppDialogs.showMessageDialog(this,String.format("Queue B%03d: please board bus %s for %s.",
                     row.number(),row.bus(),row.route()),"Boarding Recall",JOptionPane.INFORMATION_MESSAGE);
         } else if (action.equals("Complete Boarding")) {
             acting = true;
             showSelectedDetails();
             qpal.util.UiTask.run(() -> { new qpal.dao.QueueDao().completeBoarding(row.id()); return true; }, result -> {
                 acting = false; refreshData();
-            }, ex -> { acting = false; JOptionPane.showMessageDialog(this,ex.getMessage(),
+            }, ex -> { acting = false; qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage(),
                     "Unable to Complete Boarding",JOptionPane.WARNING_MESSAGE); refreshData(); });
         }
     }
@@ -547,7 +547,7 @@ public class AdminQueuePanel extends JPanel {
         if (loading || acting) return;
         var row = selectedRow();
         if (!action.equals("Add") && row == null) {
-            JOptionPane.showMessageDialog(this,"Select a queue row first."); return;
+            qpal.components.AppDialogs.showMessageDialog(this,"Select a queue row first."); return;
         }
         if (action.equals("Print")) { act("Print Ticket"); return; }
         acting = true;
@@ -555,17 +555,17 @@ public class AdminQueuePanel extends JPanel {
             if (!QueueBookingDialog.confirmDelete(this,row)) { acting=false; return; }
             qpal.util.UiTask.run(() -> { new qpal.dao.QueueBookingDao().cancel(row.bookingId()); return true; }, result -> {
                 acting=false; refreshData();
-            }, ex -> { acting=false; JOptionPane.showMessageDialog(this,ex.getMessage(),"Unable to Delete",JOptionPane.WARNING_MESSAGE); refreshData(); });
+            }, ex -> { acting=false; qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage(),"Unable to Delete",JOptionPane.WARNING_MESSAGE); refreshData(); });
         } else if (action.equals("Add")) {
             qpal.util.UiTask.run(() -> new qpal.dao.BookingDao().availableTrips(), trips -> {
                 try { QueueBookingDialog.show(this,null,trips,java.util.List.of()); }
                 finally { acting=false; refreshData(); }
-            }, ex -> { acting=false; JOptionPane.showMessageDialog(this,ex.getMessage(),"Unable to Add",JOptionPane.WARNING_MESSAGE); });
+            }, ex -> { acting=false; qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage(),"Unable to Add",JOptionPane.WARNING_MESSAGE); });
         } else {
             qpal.util.UiTask.run(() -> new qpal.dao.QueueBookingDao().passengers(row.bookingId()), people -> {
                 try { QueueBookingDialog.show(this,row,java.util.List.of(),people); }
                 finally { acting=false; refreshData(); }
-            }, ex -> { acting=false; JOptionPane.showMessageDialog(this,ex.getMessage(),"Unable to Edit",JOptionPane.WARNING_MESSAGE); });
+            }, ex -> { acting=false; qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage(),"Unable to Edit",JOptionPane.WARNING_MESSAGE); });
         }
     }
 

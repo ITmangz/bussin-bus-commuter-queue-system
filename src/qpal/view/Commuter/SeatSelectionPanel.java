@@ -397,7 +397,7 @@ public class SeatSelectionPanel extends JPanel {
         backbtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         backbtn.addActionListener(e -> {
 
-            int choice = JOptionPane.showConfirmDialog(this,"Are you sure you want to go back?",
+            int choice = qpal.components.AppDialogs.showConfirmDialog(this,"Are you sure you want to go back?",
                     "Confirmation",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
 
             if(choice == JOptionPane.YES_OPTION) {
@@ -419,14 +419,14 @@ public class SeatSelectionPanel extends JPanel {
 
             if(selectedSeats.size() != passengerCount) {
 
-                JOptionPane.showMessageDialog(this,"Please select one seat for each passenger.",
+                qpal.components.AppDialogs.showMessageDialog(this,"Please select one seat for each passenger.",
                         "Warning",JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             if(selectedTrip == null || !databaseSeatsLoaded) {
 
-                JOptionPane.showMessageDialog(this,"Please select a trip first.",
+                qpal.components.AppDialogs.showMessageDialog(this,"Please select a trip first.",
                         "Warning",JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -577,7 +577,7 @@ public class SeatSelectionPanel extends JPanel {
 
                 } else {
 
-                    JOptionPane.showMessageDialog(this,"You have selected a seat for every passenger. Deselect a seat to change it.",
+                    qpal.components.AppDialogs.showMessageDialog(this,"You have selected a seat for every passenger. Deselect a seat to change it.",
                             "Warning",JOptionPane.WARNING_MESSAGE);
                 }
 

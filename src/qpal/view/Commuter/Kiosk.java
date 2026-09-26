@@ -6,7 +6,7 @@ import javax.swing.*;
 public class Kiosk {
 
     public static void startOver(JPanel page) {
-        int choice = JOptionPane.showConfirmDialog(page,
+        int choice = qpal.components.AppDialogs.showConfirmDialog(page,
                 "Are you sure you want to start over? All transaction data will be cleared.",
                 "Start Over",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
 

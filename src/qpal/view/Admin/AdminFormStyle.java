@@ -2,109 +2,97 @@ package qpal.view.Admin;
 
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicComboBoxUI;
-import javax.swing.plaf.basic.BasicComboPopup;
-import javax.swing.plaf.basic.ComboPopup;
 import com.toedter.calendar.JDateChooser;
+import qpal.components.FormInputStyle;
 
-/** Consistent card outlines and input popups for admin forms. */
+/** Single dashboard-style outline around forms. */
 final class AdminFormStyle {
-    private static final Color OUTLINE = new Color(232, 236, 242);
-    private static final Color INK = new Color(20, 23, 28);
-    private static final Color ROSE = new Color(255, 235, 240);
-
     private AdminFormStyle() {}
-
     static JPanel frame(JPanel form) {
         styleInputs(form);
+        styleActions(form);
+        form.setOpaque(false);
+        if (form.getLayout() instanceof BoxLayout) form.setPreferredSize(null);
         AdminCard card = new AdminCard(2);
         card.setLayout(new BorderLayout());
         card.add(form);
-        JPanel surround = new JPanel(new BorderLayout());
-        surround.setBackground(new Color(245, 245, 245));
-        surround.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-        surround.add(card);
-        return surround;
+        card.addHierarchyListener(e -> {
+            Window window = SwingUtilities.getWindowAncestor(card);
+            if (window instanceof JDialog dialog && dialog.isUndecorated()
+                    && !Boolean.TRUE.equals(card.getClientProperty("shaped"))
+                    && window.getGraphicsConfiguration().getDevice().isWindowTranslucencySupported(
+                            GraphicsDevice.WindowTranslucency.PERPIXEL_TRANSPARENT)) {
+                card.putClientProperty("shaped", true);
+                window.addComponentListener(new java.awt.event.ComponentAdapter() {
+                    @Override public void componentResized(java.awt.event.ComponentEvent event) {
+                        window.setShape(new java.awt.geom.RoundRectangle2D.Double(
+                                0, 0, window.getWidth(), window.getHeight(), 14, 14));
+                    }
+                });
+            }
+        });
+        return card;
     }
-
     static void styleInputs(Component component) {
         if (component instanceof JDateChooser chooser) {
-            styleCalendar(chooser);
+            sizeInput(chooser);
+            FormInputStyle.styleCalendar(chooser);
             return;
         }
         if (component instanceof JComboBox<?> combo) {
-            styleCombo(combo);
+            sizeInput(combo);
+            FormInputStyle.styleCombo(combo);
             return;
         }
+        if (component instanceof javax.swing.text.JTextComponent field
+                && field.getMaximumSize().width == 300) sizeInput(field);
         if (component instanceof Container container)
             for (Component child : container.getComponents()) styleInputs(child);
     }
-
-    private static <T> void styleCombo(JComboBox<T> combo) {
-        if (Boolean.TRUE.equals(combo.getClientProperty("adminStyled"))) return;
-        combo.putClientProperty("adminStyled", true);
-        ListCellRenderer<? super T> original = combo.getRenderer();
-        combo.setUI(new BasicComboBoxUI() {
-            @Override protected JButton createArrowButton() {
-                JButton arrow = new JButton("\u25be");
-                arrow.setBackground(Color.WHITE);
-                arrow.setForeground(INK);
-                arrow.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
-                arrow.setFocusable(false);
-                return arrow;
-            }
-            @Override protected ComboPopup createPopup() {
-                return new BasicComboPopup(comboBox) {
-                    @Override protected void configureScroller() {
-                        super.configureScroller();
-                        scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-                        scroller.setWheelScrollingEnabled(true);
-                        AdminCard.styleScrollBar(scroller, Color.WHITE);
-                    }
-                };
-            }
-        });
-        combo.setMaximumRowCount(8);
-        combo.setBackground(Color.WHITE);
-        combo.setForeground(INK);
-        combo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        combo.setBorder(BorderFactory.createLineBorder(OUTLINE));
-        combo.setRenderer((list, value, index, selected, focused) -> {
-            Component cell = original.getListCellRendererComponent(list, value, index, selected, focused);
-            cell.setBackground(selected && index >= 0 ? ROSE : Color.WHITE);
-            cell.setForeground(INK);
-            if (cell instanceof JComponent input)
-                input.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
-            return cell;
-        });
+    private static void sizeInput(JComponent input) {
+        input.setAlignmentX(Component.LEFT_ALIGNMENT);
+        boolean flexible = input.getMaximumSize().width == Integer.MAX_VALUE;
+        int width = flexible ? input.getPreferredSize().width : 300;
+        input.setPreferredSize(new Dimension(width, 38));
+        input.setMinimumSize(new Dimension(width, 38));
+        input.setMaximumSize(new Dimension(flexible ? Integer.MAX_VALUE : width, 38));
     }
 
-    private static void styleCalendar(JDateChooser chooser) {
-        chooser.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        chooser.setBackground(Color.WHITE);
-        chooser.setBorder(BorderFactory.createLineBorder(OUTLINE));
-        JComponent editor = chooser.getDateEditor().getUiComponent();
-        editor.setBackground(Color.WHITE);
-        editor.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
-        JButton button = chooser.getCalendarButton();
-        button.setBackground(ROSE);
-        button.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
-        button.setPreferredSize(new Dimension(38, 36));
-        button.setFocusPainted(false);
-        var calendar = chooser.getJCalendar();
-        calendar.setPreferredSize(new Dimension(310, 270));
-        calendar.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        calendar.setBackground(Color.WHITE);
-        calendar.setForeground(INK);
-        calendar.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(OUTLINE), BorderFactory.createEmptyBorder(10, 10, 10, 10)));
-        calendar.setWeekOfYearVisible(false);
-        calendar.setDecorationBackgroundColor(ROSE);
-        calendar.setSundayForeground(new Color(225, 29, 72));
-        calendar.setWeekdayForeground(INK);
-        calendar.setDecorationBordersVisible(false);
-        calendar.getDayChooser().setDayBordersVisible(false);
-        calendar.setTodayButtonVisible(true);
-        styleInputs(calendar);
+    private static void styleActions(Container container) {
+        // Fixed button sizes also hold in the wider queue, revenue and profile forms.
+        if (container instanceof JPanel row && row.getLayout() instanceof GridLayout
+                && row.getComponentCount() == 2
+                && row.getComponent(0) instanceof JButton && row.getComponent(1) instanceof JButton) {
+            row.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            Component second = row.getComponent(1);
+            row.remove(second);
+            row.add(Box.createHorizontalStrut(12));
+            row.add(second);
+            row.setOpaque(false);
+            row.setAlignmentX(Component.LEFT_ALIGNMENT);
+            Dimension size = new Dimension(300, 38);
+            row.setMinimumSize(size);
+            row.setPreferredSize(size);
+            row.setMaximumSize(size);
+            for (Component child : row.getComponents()) {
+                if (child instanceof JButton button) {
+                    button.setPreferredSize(new Dimension(144, 38));
+                    button.setMinimumSize(new Dimension(144, 38));
+                    button.setMaximumSize(new Dimension(144, 38));
+                }
+            }
+        }
+        for (Component child : container.getComponents()) {
+            if (child instanceof JButton button) {
+                button.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+                button.setOpaque(true);
+                button.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+                button.setBorderPainted(false);
+                button.setFocusPainted(false);
+            } else if (child instanceof Container nested
+                    && !(child instanceof JComboBox<?>) && !(child instanceof JDateChooser)) {
+                styleActions(nested);
+            }
+        }
     }
 }

@@ -41,14 +41,14 @@ public final class RevenueDialog {
         save.addActionListener(e -> {
             BigDecimal value;
             try { value = new BigDecimal(amount.getText().trim()); }
-            catch (NumberFormatException ex) { JOptionPane.showMessageDialog(dialog,"Enter a valid amount."); return; }
+            catch (NumberFormatException ex) { qpal.components.AppDialogs.showMessageDialog(dialog,"Enter a valid amount."); return; }
             Choice choice = (Choice)trip.getSelectedItem();
             String label = commuter.getText(), paymentMethod = (String)method.getSelectedItem(), paymentStatus = (String)status.getSelectedItem();
             save.setEnabled(false); cancel.setEnabled(false); dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
             UiTask.run(() -> { new PaymentDao().save(original,choice,label,value,paymentMethod,paymentStatus); return true; }, result -> {
                 dialog.dispose(); parent.refreshData();
             }, ex -> { save.setEnabled(true); cancel.setEnabled(true); dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                JOptionPane.showMessageDialog(dialog,ex.getMessage(),"Unable to Save",JOptionPane.WARNING_MESSAGE); });
+                qpal.components.AppDialogs.showMessageDialog(dialog,ex.getMessage(),"Unable to Save",JOptionPane.WARNING_MESSAGE); });
         });
         dialog.setContentPane(AdminFormStyle.frame(form)); dialog.pack(); dialog.setResizable(false); dialog.setLocationRelativeTo(parent); dialog.setVisible(true);
     }

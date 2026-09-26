@@ -235,7 +235,7 @@ public class CodeVerification {
             }
             @Override
             public void mouseClicked(MouseEvent e) {
-                JOptionPane.showMessageDialog(null, "Verification code resent successfully.", "Success!", JOptionPane.INFORMATION_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(null, "Verification code resent successfully.", "Success!", JOptionPane.INFORMATION_MESSAGE);
             }
         });
 

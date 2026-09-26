@@ -372,7 +372,7 @@ public class EditProfilePanel extends JPanel {
             photoPath = chooser.getSelectedFile().getAbsolutePath();
             updatePreview();
         } catch(Exception e) {
-            JOptionPane.showMessageDialog(dialog,"Please select a valid PNG or JPG image.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(dialog,"Please select a valid PNG or JPG image.","Warning",JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -401,18 +401,18 @@ public class EditProfilePanel extends JPanel {
         String selectedPhoto = photoPath;
         if(selectedPhoto.length() > 255) {
 
-            JOptionPane.showMessageDialog(dialog,"The image path is too long. Choose a file with a shorter path.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(dialog,"The image path is too long. Choose a file with a shorter path.","Warning",JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         if(name.isEmpty()) {
 
-            JOptionPane.showMessageDialog(dialog,"Name needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(dialog,"Name needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
             return;
         }
         if(!email.equals(account.getEmail()) && !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
 
-            JOptionPane.showMessageDialog(dialog,"Enter a valid email address.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(dialog,"Enter a valid email address.","Warning",JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -455,13 +455,13 @@ public class EditProfilePanel extends JPanel {
 
                         } catch(Exception e) {
 
-                            JOptionPane.showMessageDialog(dialog,"Account saved, but local preferences could not be saved.","Warning",JOptionPane.WARNING_MESSAGE);
+                            qpal.components.AppDialogs.showMessageDialog(dialog,"Account saved, but local preferences could not be saved.","Warning",JOptionPane.WARNING_MESSAGE);
                         }
 
                         newPassword = "";
                         txtPassword.setText("unchanged");
 
-                        JOptionPane.showMessageDialog(dialog,"Profile updated successfully.","Success",JOptionPane.INFORMATION_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(dialog,"Profile updated successfully.","Success",JOptionPane.INFORMATION_MESSAGE);
 
                         if(dialog != null) {
 
@@ -472,18 +472,18 @@ public class EditProfilePanel extends JPanel {
 
                     } else {
 
-                        JOptionPane.showMessageDialog(dialog,"Failed to update profile. Check your database connection.","Error",JOptionPane.ERROR_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(dialog,"Failed to update profile. Check your database connection.","Error",JOptionPane.ERROR_MESSAGE);
                     }
 
                 } catch(Exception e) {
 
                     if(e.getCause() instanceof IllegalArgumentException) {
 
-                        JOptionPane.showMessageDialog(dialog,e.getCause().getMessage(),"Warning",JOptionPane.WARNING_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(dialog,e.getCause().getMessage(),"Warning",JOptionPane.WARNING_MESSAGE);
 
                     } else {
 
-                        JOptionPane.showMessageDialog(dialog,"Failed to update profile.","Error",JOptionPane.ERROR_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(dialog,"Failed to update profile.","Error",JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }

@@ -88,7 +88,7 @@ public class AdminDashboard {
     }
 
     public void logout() {
-        int choice = JOptionPane.showConfirmDialog(
+        int choice = qpal.components.AppDialogs.showConfirmDialog(
                 dashpage,
                 "Are you sure you want to log out?",
                 "Confirm Logout",

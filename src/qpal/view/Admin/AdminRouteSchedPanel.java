@@ -540,7 +540,7 @@ public class AdminRouteSchedPanel extends JPanel {
 
         if(selectedRow == -1){
 
-            JOptionPane.showMessageDialog(
+            qpal.components.AppDialogs.showMessageDialog(
                     this,
                     "No selected trip to edit.",
                     "Warning",
@@ -569,7 +569,7 @@ public class AdminRouteSchedPanel extends JPanel {
 
         if(selectedRow == -1){
 
-            JOptionPane.showMessageDialog(
+            qpal.components.AppDialogs.showMessageDialog(
                     this,
                     "No selected trip.",
                     "Warning",
@@ -588,7 +588,7 @@ public class AdminRouteSchedPanel extends JPanel {
                 + " "
                 + model.getValueAt(selectedRow,4).toString();
 
-        int confirm = JOptionPane.showConfirmDialog(
+        int confirm = qpal.components.AppDialogs.showConfirmDialog(
                 this,
                 "Permanently delete this trip?\n\n" + trip
                 + "\n\nIts bookings, passengers, seats, queues and payment/revenue records\nwill also be deleted. This cannot be undone.",
@@ -602,7 +602,7 @@ public class AdminRouteSchedPanel extends JPanel {
 
             if(success){
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         this,
                         "Trip deleted successfully.",
                         "Success",
@@ -612,7 +612,7 @@ public class AdminRouteSchedPanel extends JPanel {
 
             }else{
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         this,
                         "Failed to delete trip.",
                         "Error",
@@ -632,7 +632,7 @@ public class AdminRouteSchedPanel extends JPanel {
 
             if(complete){
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         this,
                         "Table printed successfully.",
                         "Print",
@@ -640,7 +640,7 @@ public class AdminRouteSchedPanel extends JPanel {
 
             }else{
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         this,
                         "Printing was cancelled.",
                         "Print",
@@ -650,7 +650,7 @@ public class AdminRouteSchedPanel extends JPanel {
 
         } catch (PrinterException e) {
 
-            JOptionPane.showMessageDialog(
+            qpal.components.AppDialogs.showMessageDialog(
                     this,
                     "Unable to print the table.",
                     "Print Error",

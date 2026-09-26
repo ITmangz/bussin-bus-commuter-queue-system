@@ -114,7 +114,7 @@ public class LoginPage{
                     } else {
                         emailtxt.setText("");
                         Toolkit.getDefaultToolkit().beep();
-                        JOptionPane.showMessageDialog(null, "Email must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(null, "Email must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
                     }
                 }
             });
@@ -156,7 +156,7 @@ public class LoginPage{
                     } else {
                         passtxt.setText("");
                         Toolkit.getDefaultToolkit().beep();
-                        JOptionPane.showMessageDialog(null, "Password must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(null, "Password must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
                     }
                 }
             });
@@ -253,19 +253,19 @@ public class LoginPage{
 
                 if (email.isEmpty() && password.isEmpty()) {
 
-                    JOptionPane.showMessageDialog(null, "Email and Password are required.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(null, "Email and Password are required.", "Warning!", JOptionPane.WARNING_MESSAGE);
                     return;
 
                 } else if (email.isEmpty()) {
 
-                    JOptionPane.showMessageDialog(null,"Email is required.","Warning!",JOptionPane.WARNING_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(null,"Email is required.","Warning!",JOptionPane.WARNING_MESSAGE);
                     emailtxt.setText("");
                     passtxt.setText("");
                     return;
 
                 } else if (password.isEmpty()) {
 
-                    JOptionPane.showMessageDialog(null,"Password is required.","Warning!", JOptionPane.WARNING_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(null,"Password is required.","Warning!", JOptionPane.WARNING_MESSAGE);
                     emailtxt.setText("");
                     passtxt.setText("");
                     return;
@@ -275,7 +275,7 @@ public class LoginPage{
 
                 if (account != null) {
 
-                    JOptionPane.showMessageDialog(null,"Login successful!","Success!", JOptionPane.INFORMATION_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(null,"Login successful!","Success!", JOptionPane.INFORMATION_MESSAGE);
 
                     if (account.getRole().equalsIgnoreCase("admin")) {
 
@@ -289,7 +289,7 @@ public class LoginPage{
 
                     } else {
 
-                        JOptionPane.showMessageDialog(null,"Unknown account role.","Error", JOptionPane.ERROR_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(null,"Unknown account role.","Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
 
@@ -297,17 +297,17 @@ public class LoginPage{
 
                 } else if (accountDao.CheckInactive(email)) {
 
-                    JOptionPane.showMessageDialog(null, "This account has been inactive. Please contact the admin.","Account Inactive",JOptionPane.WARNING_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(null, "This account has been inactive. Please contact the admin.","Account Inactive",JOptionPane.WARNING_MESSAGE);
                     passtxt.setText("");
 
                 } else if (accountDao.CheckEmail(email)) {
 
-                    JOptionPane.showMessageDialog(null,"Invalid password.","Login Failed!",JOptionPane.ERROR_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(null,"Invalid password.","Login Failed!",JOptionPane.ERROR_MESSAGE);
                     passtxt.setText("");
 
                 } else {
 
-                    JOptionPane.showMessageDialog(null,"Invalid email.","Login Failed!", JOptionPane.ERROR_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(null,"Invalid email.","Login Failed!", JOptionPane.ERROR_MESSAGE);
                     emailtxt.setText("");
                     passtxt.setText("");
 

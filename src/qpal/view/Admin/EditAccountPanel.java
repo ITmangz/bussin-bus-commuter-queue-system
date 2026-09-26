@@ -27,7 +27,7 @@ public class EditAccountPanel {
 
         if(account == null) {
 
-            JOptionPane.showMessageDialog(parent,"Account not found.","Warning", JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(parent,"Account not found.","Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -174,21 +174,21 @@ public class EditAccountPanel {
 
             if(name.isEmpty()) {
 
-                JOptionPane.showMessageDialog(dialog,"Name needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(dialog,"Name needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
 
             if(email.isEmpty()) {
 
-                JOptionPane.showMessageDialog(dialog,"Email needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(dialog,"Email needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
 
             if(!email.equals(account.getEmail()) && accountDao.CheckEmail(email)) {
 
-                JOptionPane.showMessageDialog(dialog,"Email already exists.","Warning",JOptionPane.WARNING_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(dialog,"Email already exists.","Warning",JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -206,13 +206,13 @@ public class EditAccountPanel {
 
             if(success) {
 
-                JOptionPane.showMessageDialog(dialog,"Account updated successfully.","Success",JOptionPane.INFORMATION_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(dialog,"Account updated successfully.","Success",JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
                 parent.loadAccounts();
 
             } else {
 
-                JOptionPane.showMessageDialog(dialog,"Failed to update account.","Error",JOptionPane.ERROR_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(dialog,"Failed to update account.","Error",JOptionPane.ERROR_MESSAGE);
             }
         });
 

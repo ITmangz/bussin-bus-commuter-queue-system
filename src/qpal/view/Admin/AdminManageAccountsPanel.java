@@ -451,7 +451,7 @@ public class AdminManageAccountsPanel extends JPanel {
 
         if(selectedRow == -1) {
 
-            JOptionPane.showMessageDialog(this,"No selected account to edit.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(this,"No selected account to edit.","Warning",JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -469,7 +469,7 @@ public class AdminManageAccountsPanel extends JPanel {
 
         if(selectedRow == -1) {
 
-            JOptionPane.showMessageDialog(this,"No selected account.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(this,"No selected account.","Warning",JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -477,7 +477,7 @@ public class AdminManageAccountsPanel extends JPanel {
 
         String name = model.getValueAt(selectedRow,1).toString();
 
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete " + name + "?","Delete Account", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        int confirm = qpal.components.AppDialogs.showConfirmDialog(this, "Are you sure you want to delete " + name + "?","Delete Account", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if(confirm == JOptionPane.YES_OPTION) {
 
@@ -485,12 +485,12 @@ public class AdminManageAccountsPanel extends JPanel {
 
             if(success) {
 
-                JOptionPane.showMessageDialog(this,"Account deleted successfully.","Success",JOptionPane.INFORMATION_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(this,"Account deleted successfully.","Success",JOptionPane.INFORMATION_MESSAGE);
                 loadAccounts();
 
             } else {
 
-                JOptionPane.showMessageDialog(this,"Failed to delete account.","Error", JOptionPane.ERROR_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(this,"Failed to delete account.","Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -504,16 +504,16 @@ public class AdminManageAccountsPanel extends JPanel {
 
             if(complete) {
 
-                JOptionPane.showMessageDialog(this,"Table printed successfully.","Print", JOptionPane.INFORMATION_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(this,"Table printed successfully.","Print", JOptionPane.INFORMATION_MESSAGE);
 
             } else {
 
-                JOptionPane.showMessageDialog(this,"Printing was cancelled.","Print", JOptionPane.WARNING_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(this,"Printing was cancelled.","Print", JOptionPane.WARNING_MESSAGE);
             }
 
         } catch(PrinterException e) {
 
-            JOptionPane.showMessageDialog(this,"Unable to print the table.","Print Error", JOptionPane.ERROR_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(this,"Unable to print the table.","Print Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
     }

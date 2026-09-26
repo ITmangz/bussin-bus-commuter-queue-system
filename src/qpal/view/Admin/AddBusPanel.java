@@ -137,7 +137,7 @@ public class AddBusPanel {
 
             if(busNumber.isEmpty()) {
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         dialog,
                         "Bus Number needs an input.",
                         "Warning",
@@ -147,13 +147,13 @@ public class AddBusPanel {
             }
 
             if (seatCapacity == null) {
-                JOptionPane.showMessageDialog(dialog, "Choose a seat capacity from 20 to 50.",
+                qpal.components.AppDialogs.showMessageDialog(dialog, "Choose a seat capacity from 20 to 50.",
                         "Warning", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             if(busDao.checkBusNumber(busNumber)) {
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         dialog,
                         "Bus Number already exists.",
                         "Warning",
@@ -176,7 +176,7 @@ public class AddBusPanel {
 
             if(success) {
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         dialog,
                         "Bus added successfully.",
                         "Success",
@@ -188,7 +188,7 @@ public class AddBusPanel {
 
             } else {
 
-                JOptionPane.showMessageDialog(
+                qpal.components.AppDialogs.showMessageDialog(
                         dialog,
                         "Failed to add bus.",
                         "Error",
