@@ -5,6 +5,16 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class ConfirmTripDetailsPanel extends JPanel {
+    private static JLabel imageLabel(String name,String filename) {
+        JLabel label=new JLabel();
+        label.setName(name);
+        ImageIcon picture=new ImageIcon("resources/icons/"+filename+".png");
+        Image scaled=picture.getImage().getScaledInstance(45,45,Image.SCALE_SMOOTH);
+        label.setIcon(new ImageIcon(scaled));
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        label.setVerticalAlignment(SwingConstants.CENTER);
+        return label;
+    }
 
     public ConfirmTripDetailsPanel(TripDetailsPanel tripDetailsPanel, PassengerDetailsPanel passengerPanel, PaymentPanel paymentPanel) {
 
@@ -116,56 +126,56 @@ public class ConfirmTripDetailsPanel extends JPanel {
 
         //================ LEFT SIDE =================//
 
-        JLabel queuelabel = new JLabel("🎟");
-        queuelabel.setBounds(58,66,45,45);
+        JLabel queuelabel = imageLabel("queueIcon","queueticketicon");
+        queuelabel.setBounds(58,65,45,45);
         queuelabel.setFont(new Font("Segoe UI Symbol",Font.PLAIN,32));
         queuelabel.setForeground(new Color(225,0,45));
         summarypanel.add(queuelabel);
 
         JLabel queuetext = new JLabel("Queue No. :");
-        queuetext.setBounds(100,65,150,20);
+        queuetext.setBounds(115,68,260,20);
         queuetext.setFont(new Font("Segoe UI",Font.PLAIN,12));
         queuetext.setForeground(Color.BLACK);
         summarypanel.add(queuetext);
 
         JLabel queuenumber = new JLabel("Assigned after booking");
-        queuenumber.setBounds(100,81,150,20);
+        queuenumber.setBounds(115,88,260,20);
         queuenumber.setFont(new Font("Segoe UI",Font.BOLD,13));
         queuenumber.setForeground(Color.BLACK);
         summarypanel.add(queuenumber);
 
-        JLabel buslabel = new JLabel("🚌");
-        buslabel.setBounds(58,116,45,45);
+        JLabel buslabel = imageLabel("busIcon","busnumicon");
+        buslabel.setBounds(58,115,45,45);
         buslabel.setFont(new Font("Segoe UI Emoji",Font.PLAIN,30));
         buslabel.setForeground(new Color(225,0,45));
         summarypanel.add(buslabel);
 
         JLabel bustext = new JLabel("Bus Number:");
-        bustext.setBounds(100,114,150,20);
+        bustext.setBounds(115,118,260,20);
         bustext.setFont(new Font("Segoe UI",Font.PLAIN,12));
         bustext.setForeground(Color.BLACK);
         summarypanel.add(bustext);
 
         JLabel busnumber = new JLabel("Bus 01");
-        busnumber.setBounds(100,130,150,20);
+        busnumber.setBounds(115,138,260,20);
         busnumber.setFont(new Font("Segoe UI",Font.BOLD,13));
         busnumber.setForeground(Color.BLACK);
         summarypanel.add(busnumber);
 
-        JLabel seatlabel = new JLabel("💺");
-        seatlabel.setBounds(58,164,45,45);
+        JLabel seatlabel = imageLabel("seatIcon","busseaticon");
+        seatlabel.setBounds(58,165,45,45);
         seatlabel.setFont(new Font("Segoe UI Emoji",Font.PLAIN,30));
         seatlabel.setForeground(new Color(225,0,45));
         summarypanel.add(seatlabel);
 
         JLabel seattext = new JLabel("Number of seats:");
-        seattext.setBounds(100,163,150,20);
+        seattext.setBounds(115,168,260,20);
         seattext.setFont(new Font("Segoe UI",Font.PLAIN,12));
         seattext.setForeground(Color.BLACK);
         summarypanel.add(seattext);
 
         JLabel seats = new JLabel();
-        seats.setBounds(100,179,290,20);
+        seats.setBounds(115,188,270,20);
         seats.setFont(new Font("Segoe UI",Font.BOLD,13));
         seats.setForeground(Color.BLACK);
         summarypanel.add(seats);
@@ -188,56 +198,56 @@ public class ConfirmTripDetailsPanel extends JPanel {
 
         //================ RIGHT SIDE =================//
 
-        JLabel locationlabel = new JLabel("●");
+        JLabel locationlabel = imageLabel("destinationIcon","destinationicon");
         locationlabel.setBounds(395,65,45,45);
         locationlabel.setFont(new Font("Segoe UI",Font.BOLD,35));
         locationlabel.setForeground(new Color(225,0,45));
         summarypanel.add(locationlabel);
 
         JLabel destinationtext = new JLabel("Destination:");
-        destinationtext.setBounds(435,65,180,20);
+        destinationtext.setBounds(452,68,260,20);
         destinationtext.setFont(new Font("Segoe UI",Font.PLAIN,12));
         destinationtext.setForeground(Color.BLACK);
         summarypanel.add(destinationtext);
 
         JLabel destination = new JLabel("PITX - Lancaster City");
-        destination.setBounds(435,81,220,20);
+        destination.setBounds(452,88,260,20);
         destination.setFont(new Font("Segoe UI",Font.BOLD,13));
         destination.setForeground(Color.BLACK);
         summarypanel.add(destination);
 
-        JLabel datelabel2 = new JLabel("▦");
+        JLabel datelabel2 = imageLabel("dateTimeIcon","datetimeicon");
         datelabel2.setBounds(395,115,45,45);
         datelabel2.setFont(new Font("Segoe UI Symbol",Font.BOLD,34));
         datelabel2.setForeground(new Color(225,0,45));
         summarypanel.add(datelabel2);
 
         JLabel datetext = new JLabel("Date & Time:");
-        datetext.setBounds(435,114,180,20);
+        datetext.setBounds(452,118,260,20);
         datetext.setFont(new Font("Segoe UI",Font.PLAIN,12));
         datetext.setForeground(Color.BLACK);
         summarypanel.add(datetext);
 
         JLabel datetime = new JLabel("September 1, 2026 | 9:00 PM");
-        datetime.setBounds(435,130,250,20);
+        datetime.setBounds(452,138,260,20);
         datetime.setFont(new Font("Segoe UI",Font.BOLD,13));
         datetime.setForeground(Color.BLACK);
         summarypanel.add(datetime);
 
-        JLabel farelabel = new JLabel("₱");
-        farelabel.setBounds(395,163,45,45);
+        JLabel farelabel = imageLabel("fareIcon","fare");
+        farelabel.setBounds(395,165,45,45);
         farelabel.setFont(new Font("Segoe UI",Font.BOLD,32));
         farelabel.setForeground(new Color(225,0,45));
         summarypanel.add(farelabel);
 
         JLabel faretext = new JLabel("Fare:");
-        faretext.setBounds(435,163,180,20);
+        faretext.setBounds(452,168,260,20);
         faretext.setFont(new Font("Segoe UI",Font.PLAIN,12));
         faretext.setForeground(Color.BLACK);
         summarypanel.add(faretext);
 
         JLabel fare = new JLabel("Php 100.00");
-        fare.setBounds(435,179,180,20);
+        fare.setBounds(452,188,260,20);
         fare.setFont(new Font("Segoe UI",Font.BOLD,13));
         fare.setForeground(Color.BLACK);
         summarypanel.add(fare);
