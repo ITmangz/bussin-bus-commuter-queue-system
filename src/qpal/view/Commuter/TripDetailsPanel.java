@@ -101,6 +101,9 @@ public class TripDetailsPanel extends JPanel {
         datebox.setDateFormatString("MMMM d, yyyy");
         qpal.components.FormInputStyle.styleCalendar(datebox);
         ((JTextField) datebox.getDateEditor().getUiComponent()).setEditable(false);
+        datebox.addPropertyChangeListener("date", e -> {
+            if (isShowing()) warnIfDatePassed();
+        });
 
         tripdetailspanel.add(createInputCard("Origin", "Select your departure terminal.",
                 originIconLabel, originbox, 70, 282));
@@ -199,6 +202,8 @@ public class TripDetailsPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
 
+                if (warnIfDatePassed()) return;
+
                 if(isMissing(originbox) || isMissing(destinationbox) || datebox.getDate() == null || isMissing(timebox)) {
 
                     qpal.components.AppDialogs.showMessageDialog(TripDetailsPanel.this,
@@ -268,6 +273,18 @@ public class TripDetailsPanel extends JPanel {
 
     private static boolean isMissing(JComboBox<String> box) {
         return box.getSelectedItem() == null || box.getSelectedItem().toString().trim().isEmpty();
+    }
+
+    private boolean warnIfDatePassed() {
+        if (datebox.getDate() == null) return false;
+        var search = getSearch();
+        var now = java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Manila"));
+        boolean pastDate = search.date().isBefore(now.toLocalDate());
+        if (!pastDate) return false;
+        qpal.components.AppDialogs.showMessageDialog(this,
+                "The selected travel date has already passed. Please choose today or a future date.",
+                "Departure Already Passed", JOptionPane.WARNING_MESSAGE);
+        return true;
     }
 
     public qpal.model.TripSearch getSearch() {

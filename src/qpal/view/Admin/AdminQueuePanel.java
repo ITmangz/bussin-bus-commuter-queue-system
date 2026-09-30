@@ -22,7 +22,11 @@ public class AdminQueuePanel extends JPanel {
     private final JPanel boardingPagination = transparent(new FlowLayout(FlowLayout.RIGHT,6,0));
     private JPanel queueActions;
     private final java.util.List<JButton> sideActions = new java.util.ArrayList<>();
-    private JButton completeButton;
+    private JButton completeButton, ticketButton;
+    private final JComboBox<String> counter = new JComboBox<>(new String[]{"Select counter", "Counter 1", "Counter 2"});
+    private final JComboBox<String> gate = new JComboBox<>(new String[]{"Select gate", "Gate 1", "Gate 2"});
+    private final JPanel stationPanel = new JPanel(new CardLayout());
+    private java.util.Map<Integer,Integer> paymentStations = java.util.Map.of(), boardingStations = java.util.Map.of();
     private java.util.List<qpal.model.BookingData.QueueRow> boardingRows = new java.util.ArrayList<>();
     private JTable table;
     private JLabel number;
@@ -176,9 +180,11 @@ public class AdminQueuePanel extends JPanel {
         fields.add(detail("Boarding Status", "—"));
         current.add(fields, BorderLayout.CENTER);
         serving.add(current, BorderLayout.CENTER);
-        JPanel servingButtons = transparent(new GridLayout(1, 3, 8, 0));
+        JPanel servingButtons = transparent(new GridLayout(1, 0, 8, 0));
         servingButtons.add(unavailableAction("View Details", false));
         servingButtons.add(unavailableAction("Recall", false));
+        ticketButton = unavailableAction("Print Ticket", false);
+        servingButtons.add(ticketButton);
         completeButton = unavailableAction("Complete", true);
         servingButtons.add(completeButton);
         serving.add(servingButtons, BorderLayout.SOUTH);
@@ -190,11 +196,15 @@ public class AdminQueuePanel extends JPanel {
         actions.setLayout(new BorderLayout(0, 8));
         actions.add(sectionTitle("Queue Actions"), BorderLayout.NORTH);
         JPanel actionButtons = transparent(new GridLayout(4, 1, 0, 6));
+        stationPanel.add(counter, "Payment"); stationPanel.add(gate, "Boarding");
+        AdminFormStyle.tableFilter(counter); AdminFormStyle.tableFilter(gate);
+        counter.addActionListener(e -> showSelectedDetails()); gate.addActionListener(e -> showSelectedDetails());
+        actionButtons.add(stationPanel);
         actionButtons.add(unavailableAction("Call Next Queue", true));
         actionButtons.add(unavailableAction("Skip Queue", false));
-        actionButtons.add(unavailableAction("Mark as Paid", false));
-        actionButtons.add(unavailableAction("Print Ticket", false));
-        for (Component control : actionButtons.getComponents()) sideActions.add((JButton)control);
+        actionButtons.add(unavailableAction("Payment", false));
+
+        for (Component control : actionButtons.getComponents()) if (control instanceof JButton b) sideActions.add(b);
         actions.add(actionButtons, BorderLayout.CENTER);
         servingRow.add(actions, BorderLayout.EAST);
         upper.add(servingRow, BorderLayout.CENTER);
@@ -206,14 +216,14 @@ public class AdminQueuePanel extends JPanel {
         toolbar.add(sectionTitle("Payment Queue"), BorderLayout.WEST);
         JPanel filters = transparent(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         JTextField search = new JTextField();
-        search.setPreferredSize(new Dimension(280, 34));
+        search.setPreferredSize(new Dimension(190, 34));
         search.setFont(new Font("SansSerif", Font.PLAIN, 13));
         search.setMargin(new Insets(0, 10, 0, 10));
         search.setToolTipText("Search queue number");
         search.getAccessibleContext().setAccessibleName("Search queue number");
 
         JComboBox<String> trips = new JComboBox<>(new String[]{"All Statuses", "Waiting", "Serving", "Skipped", "Completed", "Cancelled"});
-        trips.setPreferredSize(new Dimension(140, 34));
+        AdminFormStyle.tableFilter(trips);
         trips.setFont(new Font("SansSerif", Font.PLAIN, 13));
         trips.setFocusable(false);
         trips.setBackground(Color.WHITE);
@@ -227,6 +237,14 @@ public class AdminQueuePanel extends JPanel {
         filters.add(search);
         filters.add(trips);
         filters.add(searchButton);
+        JButton printButton = button("View", true);
+        printButton.setPreferredSize(new Dimension(95, 34));
+        printButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        printButton.setBackground(new Color(59, 130, 246));
+        printButton.setBorder(BorderFactory.createEmptyBorder());
+        printButton.setToolTipText("Open the live commuter queue monitor");
+        printButton.addActionListener(e -> QueueMonitor.open(this, isBoarding()));
+        filters.add(printButton);
         toolbar.add(filters, BorderLayout.EAST);
         waiting.add(toolbar, BorderLayout.NORTH);
 
@@ -244,37 +262,26 @@ public class AdminQueuePanel extends JPanel {
             currentPage = 1;
             loadQueuePage();
         };
-        searchButton.addActionListener(e -> applySearch.run());
-        search.addActionListener(e -> applySearch.run());
+        searchButton.addActionListener(e -> {
+            if (AdminFormStyle.validateSearch(search)) applySearch.run();
+        });
+        search.addActionListener(e -> {
+            if (AdminFormStyle.validateSearch(search)) applySearch.run();
+        });
         trips.addActionListener(e -> applySearch.run());
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(Color.WHITE);
         AdminCard.styleScrollBar(scroll,Color.WHITE);
         waiting.add(scroll, BorderLayout.CENTER);
-        JPanel footer = transparent(new BorderLayout(0,20));
+        JPanel footer = transparent(new BorderLayout());
         footer.setBorder(new EmptyBorder(18,0,0,0));
         JPanel pageRow = transparent(new BorderLayout());
         pageInfo.setFont(new Font("SansSerif",Font.PLAIN,12));
         pageInfo.setForeground(new Color(130,130,130));
         pageRow.add(pageInfo,BorderLayout.WEST);
         pageRow.add(pagination,BorderLayout.EAST);
-        footer.add(pageRow,BorderLayout.NORTH);
-        JPanel management = transparent(new GridLayout(1,4,12,0));
-        String[] names = {"Add","Edit","Print","Delete"};
-        Color[] colors = {new Color(34,197,94),new Color(245,158,11),new Color(59,130,246),new Color(225,29,72)};
-        for (int i=0;i<names.length;i++) {
-            String action=names[i];
-            JButton control = button(action,true);
-            control.setBackground(colors[i]);
-            control.setForeground(Color.WHITE);
-            control.setFont(new Font("SansSerif",Font.BOLD,14));
-            control.setBorder(BorderFactory.createEmptyBorder());
-            control.setPreferredSize(new Dimension(0,40));
-            control.addActionListener(e -> manage(action));
-            management.add(control);
-        }
-        footer.add(management,BorderLayout.CENTER);
+        footer.add(pageRow,BorderLayout.CENTER);
         waiting.add(footer,BorderLayout.SOUTH);
         loadQueuePage();
         queues.addTab("Payment Queue", waiting);
@@ -283,9 +290,15 @@ public class AdminQueuePanel extends JPanel {
         queues.addChangeListener(e -> {
             String[] labels = isBoarding()
                     ? new String[]{"Call Next Queue", "Skip Queue"}
-                    : new String[]{"Call Next Queue", "Skip Queue", "Mark as Paid", "Print Ticket"};
+                    : new String[]{"Call Next Queue", "Skip Queue", "Payment"};
             JPanel controls = (JPanel) sideActions.get(0).getParent();
             controls.removeAll();
+            ((CardLayout)stationPanel.getLayout()).show(stationPanel,isBoarding() ? "Boarding" : "Payment");
+            controls.add(stationPanel);
+            ticketButton.setVisible(!isBoarding());
+            // GridLayout reserves space even for hidden components.
+            if (isBoarding()) servingButtons.remove(ticketButton);
+            else servingButtons.add(ticketButton, 2);
             controls.setLayout(new GridLayout(4,1,0,6));
             for (int i=0;i<labels.length;i++) {
                 sideActions.get(i).setText(labels[i]);
@@ -314,14 +327,14 @@ public class AdminQueuePanel extends JPanel {
         toolbar.add(sectionTitle("Boarding Queue"), BorderLayout.WEST);
         JPanel filters = transparent(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         JTextField search = new JTextField();
-        search.setPreferredSize(new Dimension(280, 34));
+        search.setPreferredSize(new Dimension(190, 34));
         search.setFont(new Font("SansSerif", Font.PLAIN, 13));
         search.setMargin(new Insets(0, 10, 0, 10));
         search.setToolTipText("Search queue number");
         search.getAccessibleContext().setAccessibleName("Search queue number");
 
         JComboBox<String> trips = new JComboBox<>(new String[]{"All Statuses", "Boarding"});
-        trips.setPreferredSize(new Dimension(140, 34));
+        AdminFormStyle.tableFilter(trips);
         trips.setFont(new Font("SansSerif", Font.PLAIN, 13));
         trips.setFocusable(false);
         trips.setBackground(Color.WHITE);
@@ -335,6 +348,14 @@ public class AdminQueuePanel extends JPanel {
         filters.add(search);
         filters.add(trips);
         filters.add(searchButton);
+        JButton printButton = button("View", true);
+        printButton.setPreferredSize(new Dimension(95, 34));
+        printButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        printButton.setBackground(new Color(59, 130, 246));
+        printButton.setBorder(BorderFactory.createEmptyBorder());
+        printButton.setToolTipText("Open the live commuter queue monitor");
+        printButton.addActionListener(e -> QueueMonitor.open(this, isBoarding()));
+        filters.add(printButton);
         toolbar.add(filters, BorderLayout.EAST);
         boarding.add(toolbar, BorderLayout.NORTH);
 
@@ -352,37 +373,26 @@ public class AdminQueuePanel extends JPanel {
             boardingPage = 1;
             loadBoardingPage();
         };
-        searchButton.addActionListener(e -> applySearch.run());
-        search.addActionListener(e -> applySearch.run());
+        searchButton.addActionListener(e -> {
+            if (AdminFormStyle.validateSearch(search)) applySearch.run();
+        });
+        search.addActionListener(e -> {
+            if (AdminFormStyle.validateSearch(search)) applySearch.run();
+        });
         trips.addActionListener(e -> applySearch.run());
         JScrollPane scroll = new JScrollPane(boardingTable);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(Color.WHITE);
         AdminCard.styleScrollBar(scroll,Color.WHITE);
         boarding.add(scroll, BorderLayout.CENTER);
-        JPanel footer = transparent(new BorderLayout(0,20));
+        JPanel footer = transparent(new BorderLayout());
         footer.setBorder(new EmptyBorder(18,0,0,0));
         JPanel pageRow = transparent(new BorderLayout());
         boardingPageInfo.setFont(new Font("SansSerif",Font.PLAIN,12));
         boardingPageInfo.setForeground(new Color(130,130,130));
         pageRow.add(boardingPageInfo,BorderLayout.WEST);
         pageRow.add(boardingPagination,BorderLayout.EAST);
-        footer.add(pageRow,BorderLayout.NORTH);
-        JPanel management = transparent(new GridLayout(1,4,12,0));
-        String[] names = {"Add","Edit","Print","Delete"};
-        Color[] colors = {new Color(34,197,94),new Color(245,158,11),new Color(59,130,246),new Color(225,29,72)};
-        for (int i=0;i<names.length;i++) {
-            String action=names[i];
-            JButton control = button(action,true);
-            control.setBackground(colors[i]);
-            control.setForeground(Color.WHITE);
-            control.setFont(new Font("SansSerif",Font.BOLD,14));
-            control.setBorder(BorderFactory.createEmptyBorder());
-            control.setPreferredSize(new Dimension(0,40));
-            control.addActionListener(e -> manage(action));
-            management.add(control);
-        }
-        footer.add(management,BorderLayout.CENTER);
+        footer.add(pageRow,BorderLayout.CENTER);
         boarding.add(footer,BorderLayout.SOUTH);
         loadBoardingPage();
         return boarding;
@@ -391,10 +401,11 @@ public class AdminQueuePanel extends JPanel {
     public void refreshData() {
         if (loading || acting) return;
         loading = true;
+        showSelectedDetails();
         qpal.util.UiTask.run(() -> {
             var queues = new qpal.dao.QueueDao().today();
             long buses = new qpal.dao.BookingDao().availableTrips().stream().map(t -> t.bus()).distinct().count();
-            return new Object[]{queues, buses, new qpal.dao.QueueDao().boarding()};
+            return new Object[]{queues, buses, new qpal.dao.QueueDao().boarding(), new qpal.dao.QueueDao().stations("Payment"), new qpal.dao.QueueDao().stations("Boarding")};
         }, data -> {
             qpal.model.BookingData.QueueRow selected = waitingSelectedRow();
             var selectedBoarding = boardingTable.getSelectedRow() < 0 ? null
@@ -402,6 +413,7 @@ public class AdminQueuePanel extends JPanel {
             @SuppressWarnings("unchecked")
             var loaded = (java.util.List<qpal.model.BookingData.QueueRow>)data[0];
             rows = loaded;
+            paymentStations = (java.util.Map<Integer,Integer>)data[3]; boardingStations = (java.util.Map<Integer,Integer>)data[4];
             boardingModel.setRowCount(0);
             @SuppressWarnings("unchecked")
             var loadedBoarding = (java.util.List<qpal.model.BookingData.QueueRow>) data[2];
@@ -440,9 +452,15 @@ public class AdminQueuePanel extends JPanel {
             loadStatus.setText(rows.isEmpty() ? "No bookings in today's queue." : "Today's queues: " + rows.size());
             loading = false;
             showSelectedDetails();
-        }, ex -> { loading = false; loadStatus.setText("Unable to refresh queues. Retrying in 5 seconds."); });
+        }, ex -> { loading = false; showSelectedDetails(); loadStatus.setText("Unable to refresh queues. Retrying in 5 seconds."); });
     }
 
+    private int station() { return (isBoarding() ? gate : counter).getSelectedIndex(); }
+    private qpal.model.BookingData.QueueRow stationRow() {
+        Integer id=(isBoarding() ? boardingStations : paymentStations).get(station());
+        return (isBoarding() ? boardingRows : rows).stream().filter(r -> java.util.Objects.equals(id,r.id())
+                && (isBoarding() || r.status().equals("Serving"))).findFirst().orElse(null);
+    }
     private boolean isBoarding() { return queues.getSelectedIndex() == 1; }
 
     private qpal.model.BookingData.QueueRow selectedRow() {
@@ -461,9 +479,10 @@ public class AdminQueuePanel extends JPanel {
     private void showSelectedDetails() {
         var row = selectedRow();
         detailTitle.setText(isBoarding() ? "Currently Boarding" : row == null ? "Currently Serving" : "Selected Queue Details");
-        if (row == null && !isBoarding()) row = rows.stream().filter(r -> r.status().equals("Serving")).findFirst().orElse(null);
+        if (row == null) row = stationRow();
+        counter.setEnabled(!acting && !loading); gate.setEnabled(!acting && !loading);
         final boolean hasRow = row != null;
-        for (JButton button : actionButtons) button.setEnabled(!loading && !acting
+        for (JButton button : actionButtons) button.setEnabled(station() > 0 && !loading && !acting
                 && (!isBoarding() || hasRow || (button.getText().equals("Call Next Queue") && boardingTable.getRowCount() > 0)));
         number.setText(row == null ? "—" : String.format(isBoarding() ? "B%03d" : "P%03d", row.number()));
         detailLabels.get("Route").setText(row == null ? "—" : row.route());
@@ -475,62 +494,65 @@ public class AdminQueuePanel extends JPanel {
     }
 
     private void act(String action) {
-        if (acting || loading) return;
+        if (acting || loading || station() == 0) return;
         if (isBoarding()) { actBoarding(action); return; }
         var selected = selectedRow();
         if (selected == null && !action.equals("Call Next Queue")) {
-            selected = rows.stream().filter(r -> r.status().equals("Serving")).findFirst().orElse(null);
+            selected = stationRow();
         }
         if (selected == null && !action.equals("Call Next Queue")) {
             qpal.components.AppDialogs.showMessageDialog(this, "Select a queue first."); return;
         }
         final var row = selected;
-        if (action.equals("View Details") || action.equals("Print Ticket")) {
+        final int selectedStation = station();
+        if (action.equals("View Details")) {
             qpal.util.UiTask.run(() -> new qpal.dao.BookingDao().receipt(row.bookingId()), receipt -> {
-                if (action.equals("Print Ticket")) qpal.view.Commuter.PrintTicketPanel.printTicket(this, receipt.text());
-                else { JTextArea text = new JTextArea(receipt.text()); text.setEditable(false);
-                    qpal.components.AppDialogs.showMessageDialog(this, text, "Booking Details", JOptionPane.PLAIN_MESSAGE); }
+                JTextArea text = new JTextArea(receipt.text()); text.setEditable(false);
+                qpal.components.AppDialogs.showMessageDialog(this, text, "Booking Details", JOptionPane.PLAIN_MESSAGE);
             }, ex -> qpal.components.AppDialogs.showMessageDialog(this, ex.getMessage()));
             return;
         }
-        if (action.equals("Mark as Paid") && qpal.components.AppDialogs.showConfirmDialog(this,
-                "Confirm payment has been received for queue " + String.format("P%03d",row.number()) + "?", "Confirm Payment",
-                JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
+        if (action.equals("Payment") || action.equals("Print Ticket")) {
+            acting = true; showSelectedDetails();
+            Runnable closed = () -> { acting=false; refreshData(); };
+            if (action.equals("Print Ticket")) QueuePaymentDialog.openTickets(this,row,selectedStation,closed);
+            else QueuePaymentDialog.open(this,row,selectedStation,closed);
+            return;
+        }
         acting = true;
         actionButtons.forEach(b -> b.setEnabled(false));
-        qpal.util.UiTask.run(() -> { new qpal.dao.QueueDao().act(row == null ? 0 : row.id(), action); return true; }, result -> {
+        qpal.util.UiTask.run(() -> { new qpal.dao.QueueDao().act(row == null ? 0 : row.id(), action, selectedStation); return true; }, result -> {
+            announceQueue(action,false,selectedStation,row);
+            table.clearSelection();
+            if (action.equals("Recall")) {
+                qpal.components.AppDialogs.showMessageDialog(this,
+                        String.format("Queue P%03d: please proceed to Counter %d.",row.number(),selectedStation),
+                        "Queue Recall",JOptionPane.INFORMATION_MESSAGE);
+            }
             acting = false; actionButtons.forEach(b -> b.setEnabled(true)); refreshData();
         }, ex -> { acting = false; actionButtons.forEach(b -> b.setEnabled(true));
             qpal.components.AppDialogs.showMessageDialog(this, ex.getMessage(), "Queue Action", JOptionPane.WARNING_MESSAGE); refreshData(); });
     }
 
     private void actBoarding(String action) {
-        boolean skipping = action.equals("Skip Queue");
-        if (skipping && selectedRow() == null) return;
-        boolean callingNext = action.equals("Call Next Queue") || skipping;
-        if (callingNext) {
-            if (boardingTable.getRowCount() == 0) return;
-            if (skipping && boardingTable.getRowCount() == 1) {
-                boardingTable.clearSelection();
-                showSelectedDetails();
-                return;
-            }
-            int next = (boardingTable.getSelectedRow() + 1) % boardingTable.getRowCount();
-            boardingTable.setRowSelectionInterval(next,next);
-            boardingTable.scrollRectToVisible(boardingTable.getCellRect(next,0,true));
+        if (action.equals("Call Next Queue") || action.equals("Skip Queue")) {
+            int selectedStation=station();
+            var calledRow=stationRow();
+            acting=true; showSelectedDetails();
+            qpal.util.UiTask.run(() -> { new qpal.dao.QueueDao().callBoarding(0,selectedStation,action.equals("Skip Queue")); return true; }, result -> {
+                announceQueue(action,true,selectedStation,calledRow);
+                acting=false; boardingTable.clearSelection(); refreshData();
+            }, ex -> { acting=false; qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage()); refreshData(); });
+            return;
         }
-        var row = selectedRow();
-        if (row == null) return;
-        if (action.equals("View Details") || action.equals("Print Ticket")) {
+        var row = stationRow();
+        if (row == null) return;        if (action.equals("View Details")) {
             qpal.util.UiTask.run(() -> new qpal.dao.BookingDao().receipt(row.bookingId()), receipt -> {
-                if (action.equals("Print Ticket")) qpal.view.Commuter.PrintTicketPanel.printTicket(this,receipt.text("B"));
-                else {
-                    JTextArea text = new JTextArea(receipt.text("B")); text.setEditable(false);
-                    qpal.components.AppDialogs.showMessageDialog(this,text,"Boarding Details",JOptionPane.PLAIN_MESSAGE);
-                }
+                JTextArea text = new JTextArea(receipt.text("B")); text.setEditable(false);
+                qpal.components.AppDialogs.showMessageDialog(this,text,"Boarding Details",JOptionPane.PLAIN_MESSAGE);
             }, ex -> qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage()));
-        } else if (callingNext || action.equals("Recall")) {
-            Toolkit.getDefaultToolkit().beep();
+        } else if (action.equals("Recall")) {
+            announceQueue(action,true,station(),row);
             qpal.components.AppDialogs.showMessageDialog(this,String.format("Queue B%03d: please board bus %s for %s.",
                     row.number(),row.bus(),row.route()),"Boarding Recall",JOptionPane.INFORMATION_MESSAGE);
         } else if (action.equals("Complete Boarding")) {
@@ -540,6 +562,21 @@ public class AdminQueuePanel extends JPanel {
                 acting = false; refreshData();
             }, ex -> { acting = false; qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage(),
                     "Unable to Complete Boarding",JOptionPane.WARNING_MESSAGE); refreshData(); });
+        }
+    }
+
+    private void announceQueue(String action,boolean boarding,int station,qpal.model.BookingData.QueueRow row) {
+        if (action.equals("Call Next Queue")) {
+            qpal.util.UiTask.run(() -> {
+                var dao=new qpal.dao.QueueDao();
+                Integer id=dao.stations(boarding ? "Boarding" : "Payment").get(station);
+                return (boarding ? dao.boarding() : dao.today()).stream()
+                        .filter(r -> java.util.Objects.equals(id,r.id())).findFirst().orElse(null);
+            }, called -> {
+                if (called!=null) qpal.util.QueueVoice.announce(called.number(),boarding,station,false);
+            }, ex -> System.err.println("Unable to load called queue for announcement: "+ex.getMessage()));
+        } else if (row!=null && (action.equals("Recall") || action.equals("Skip Queue"))) {
+            qpal.util.QueueVoice.announce(row.number(),boarding,station,action.equals("Skip Queue"));
         }
     }
 
@@ -602,7 +639,16 @@ public class AdminQueuePanel extends JPanel {
     private JTable queueTable() { return queueTable(queueModel); }
 
     private JTable queueTable(DefaultTableModel model) {
-        JTable table = new JTable(model);
+        JTable table = new JTable(model) {
+            @Override protected void processMouseEvent(MouseEvent event) {
+                if (event.getID()==MouseEvent.MOUSE_PRESSED && SwingUtilities.isLeftMouseButton(event)
+                        && rowAtPoint(event.getPoint())>=0 && rowAtPoint(event.getPoint())==getSelectedRow()) {
+                    clearSelection();
+                    return;
+                }
+                super.processMouseEvent(event);
+            }
+        };
         table.setRowHeight(32);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         table.setShowGrid(false);

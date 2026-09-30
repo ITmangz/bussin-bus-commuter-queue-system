@@ -8,6 +8,48 @@ import qpal.util.DbConnection;
 import static qpal.dao.BookingDao.*;
 
 public class QueueDao {
+    private void ensureStations(Connection c) throws SQLException {
+        try (Statement s=c.createStatement()) {
+            s.executeUpdate("CREATE TABLE IF NOT EXISTS queue_stations (kind VARCHAR(16) NOT NULL, station INT NOT NULL, queue_entry_id INT NOT NULL, PRIMARY KEY(kind,station), UNIQUE KEY assigned_queue(kind,queue_entry_id)) ENGINE=InnoDB");
+        }
+    }
+
+    public Map<Integer,Integer> stations(String kind) throws SQLException {
+        try (Connection c=DbConnection.getConnection()) {
+            ensureStations(c);
+            Map<Integer,Integer> result=new HashMap<>();
+            try (PreparedStatement p=statement(c,"SELECT station,queue_entry_id FROM queue_stations WHERE kind=?",kind); ResultSet r=p.executeQuery()) {
+                while(r.next()) result.put(r.getInt(1),r.getInt(2));
+            }
+            return result;
+        }
+    }
+
+    public void callBoarding(int queueId, int station, boolean skip) throws SQLException {
+        if (station<1 || station>2) throw new SQLException("Select a gate first.");
+        // Fetch eligibility before taking the shared transition mutex.
+        var eligible=boarding();
+        try(Connection c=DbConnection.getConnection()) {
+            ensureStations(c);
+            c.setAutoCommit(false);
+            try {
+                update(c,"INSERT INTO queue_daily_counters(queue_date,last_queue_number) VALUES(CURRENT_DATE,0) ON DUPLICATE KEY UPDATE last_queue_number=last_queue_number");
+                Map<Integer,Integer> assigned=new HashMap<>();
+                try(PreparedStatement p=c.prepareStatement("SELECT station,queue_entry_id FROM queue_stations WHERE kind='Boarding' FOR UPDATE"); ResultSet r=p.executeQuery()) {
+                    while(r.next()) assigned.put(r.getInt(1),r.getInt(2));
+                }
+                if(skip) update(c,"DELETE FROM queue_stations WHERE kind='Boarding' AND station=?",station);
+                else {
+                    Integer current=assigned.get(station);
+                    if(eligible.stream().anyMatch(r -> Objects.equals(current,r.id()))) throw new SQLException("Complete or skip the current gate queue first.");
+                    var next=eligible.stream().filter(r -> !assigned.containsValue(r.id()) && (queueId==0 || queueId==r.id())).findFirst()
+                            .orElseThrow(() -> new SQLException("No unassigned boarding queues are available."));
+                    update(c,"REPLACE INTO queue_stations(kind,station,queue_entry_id) VALUES('Boarding',?,?)",station,next.id());
+                }
+                c.commit();
+            } catch(SQLException | RuntimeException ex) { c.rollback(); throw ex; }
+        }
+    }
     private void ensureBoardingTable(Connection c) throws SQLException {
         try (Statement s = c.createStatement()) {
             s.executeUpdate("CREATE TABLE IF NOT EXISTS queue_boarding ("
@@ -44,6 +86,8 @@ public class QueueDao {
     public void completeBoarding(int queueId) throws SQLException {
         try (Connection c = DbConnection.getConnection()) {
             ensureBoardingTable(c);
+            ensureStations(c);
+            QueuePaymentDao.ensureTable(c);
             c.setAutoCommit(false);
             try {
                 try (PreparedStatement p = statement(c,
@@ -55,6 +99,7 @@ public class QueueDao {
                         + "FOR UPDATE", queueId); ResultSet r = p.executeQuery()) {
                     if (!r.next()) throw new SQLException("This queue is no longer eligible for boarding. Refresh and try again.");
                 }
+                QueuePaymentDao.requirePrinted(c,queueId);
                 if (update(c,"INSERT IGNORE INTO queue_boarding(queue_entry_id) VALUES (?)",queueId)==0)
                     throw new SQLException("Boarding has already been completed for this queue.");
                 c.commit();
@@ -80,8 +125,12 @@ public class QueueDao {
         }
     }
 
-    public void act(int queueId, String action) throws SQLException {
+    public void act(int queueId, String action) throws SQLException { act(queueId, action, 1); }
+    public void act(int queueId, String action, int station) throws SQLException {
+        if (station < 1 || station > 2) throw new SQLException("Select a counter first.");
         try (Connection c = DbConnection.getConnection()) {
+            ensureStations(c);
+            QueuePaymentDao.ensureTable(c);
             c.setAutoCommit(false);
             try {
                 // The day's counter is also a mutex for admin queue transitions.
@@ -89,15 +138,17 @@ public class QueueDao {
                         + "ON DUPLICATE KEY UPDATE last_queue_number=last_queue_number");
                 if (action.equals("Call Next Queue") || action.equals("Recall")) {
                     try (PreparedStatement p = c.prepareStatement("SELECT queue_entry_id FROM queue_entries "
-                            + "WHERE queue_date=CURRENT_DATE AND status='Serving' FOR UPDATE"); ResultSet r = p.executeQuery()) {
-                        if (r.next()) throw new SQLException("Complete or skip the currently serving queue first.");
+                            + "WHERE queue_date=CURRENT_DATE AND status='Serving' AND queue_entry_id IN (SELECT queue_entry_id FROM queue_stations WHERE kind='Payment' AND station=" + station + ") FOR UPDATE"); ResultSet r = p.executeQuery()) {
+                        if (r.next() && !(action.equals("Recall") && r.getInt(1)==queueId))
+                            throw new SQLException("Complete or skip the currently serving queue first.");
                     }
                 }
                 if (action.equals("Call Next Queue")) {
                     try (PreparedStatement p = c.prepareStatement("SELECT queue_entry_id FROM queue_entries "
-                            + "WHERE queue_date=CURRENT_DATE AND status='Waiting' ORDER BY queue_number LIMIT 1 FOR UPDATE");
+                            + "WHERE queue_date=CURRENT_DATE AND status IN ('Waiting','Skipped') "
+                            + "ORDER BY CASE WHEN status='Waiting' THEN 0 ELSE 1 END,queue_number LIMIT 1 FOR UPDATE");
                             ResultSet r = p.executeQuery()) {
-                        if (!r.next()) throw new SQLException("There are no waiting queues.");
+                        if (!r.next()) throw new SQLException("There are no waiting or skipped queues.");
                         queueId = r.getInt(1);
                     }
                 }
@@ -107,9 +158,18 @@ public class QueueDao {
                         + "WHERE queue_entry_id=? AND queue_date=CURRENT_DATE FOR UPDATE", queueId); ResultSet r = p.executeQuery()) {
                     if (!r.next()) throw new SQLException("Select a queue for today first.");
                     booking = r.getInt(1); status = r.getString(2);
+                    if (status.equals("Serving")) {
+                        try (PreparedStatement owner = statement(c,"SELECT station FROM queue_stations WHERE kind='Payment' AND queue_entry_id=?",queueId); ResultSet o=owner.executeQuery()) {
+                            if (o.next() && o.getInt(1)!=station) throw new SQLException("This queue belongs to another counter.");
+                        }
+                    }
                 }
                 switch (action) {
                     case "Call Next Queue": case "Recall":
+                        if (action.equals("Recall") && status.equals("Serving")) {
+                            update(c,"UPDATE queue_entries SET called_at=NOW() WHERE queue_entry_id=?",queueId);
+                            break;
+                        }
                         if (!(status.equals("Waiting") || status.equals("Skipped"))) throw new SQLException("This queue cannot be called.");
                         if (action.equals("Recall")) {
                             try (PreparedStatement p = statement(c, "SELECT queue_entry_id FROM queue_entries "
@@ -120,6 +180,7 @@ public class QueueDao {
                             }
                         }
                         update(c, "UPDATE queue_entries SET status='Serving',called_at=NOW() WHERE queue_entry_id=?", queueId);
+                        update(c, "REPLACE INTO queue_stations(kind,station,queue_entry_id) VALUES ('Payment',?,?)",station,queueId);
                         break;
                     case "Undo Call":
                         if (!status.equals("Serving")) throw new SQLException("Only the current call can be undone.");
@@ -137,6 +198,7 @@ public class QueueDao {
                         break;
                     case "Complete":
                         if (!status.equals("Serving")) throw new SQLException("Only the serving queue can be completed.");
+                        QueuePaymentDao.requirePrinted(c,queueId);
                         try (PreparedStatement p = statement(c, "SELECT status FROM payments WHERE booking_id=? ORDER BY payment_id DESC LIMIT 1 FOR UPDATE", booking);
                                 ResultSet r = p.executeQuery()) {
                             if (!r.next() || !r.getString(1).equals("Paid")) throw new SQLException("Collect and mark the payment as Paid first.");

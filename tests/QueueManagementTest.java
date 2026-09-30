@@ -34,6 +34,12 @@ public class QueueManagementTest {
                 rejects(()->queue.act(two,"Recall"));
                 queue.act(0,"Call Next Queue");
                 check(queue.today().get(0).status().equals("Serving"),"FIFO call");
+                                rejects(()->queue.act(0,"Call Next Queue",0));
+                queue.act(0,"Call Next Queue",2);
+                check(queue.stations("Payment").get(1)==one && queue.stations("Payment").get(2)==two,"Independent counter assignments");
+                rejects(()->queue.act(one,"Skip Queue",2));
+                rejects(()->queue.act(0,"Call Next Queue",2));
+                queue.act(two,"Undo Call",2);
                 queue.act(one,"Undo Call");
                 check(queue.today().get(0).status().equals("Waiting"),"Undo returns to Waiting");
                 queue.act(0,"Call Next Queue");

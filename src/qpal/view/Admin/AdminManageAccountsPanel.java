@@ -128,7 +128,7 @@ public class AdminManageAccountsPanel extends JPanel {
                 "All Roles", "Admin", "Employee"
         });
 
-        cmbRole.setPreferredSize(new Dimension(140,34));
+        AdminFormStyle.tableFilter(cmbRole);
         cmbRole.setFont(new Font("SansSerif",Font.PLAIN,13));
         cmbRole.setFocusable(false);
         cmbRole.setBackground(Color.WHITE);
@@ -241,6 +241,7 @@ public class AdminManageAccountsPanel extends JPanel {
 
 
     private void searchAccounts() {
+        if (!AdminFormStyle.validateSearch(searchField)) return;
 
         appliedSearch = searchField.getText().trim().toLowerCase();
         currentPage = 1;

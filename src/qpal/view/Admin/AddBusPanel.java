@@ -49,6 +49,22 @@ public class AddBusPanel {
         panel.add(Box.createVerticalStrut(7));
 
         JTextField txtBusNumber = new JTextField();
+        AdminFormStyle.limitCharacters(txtBusNumber,6,"Bus Number");
+
+        txtBusNumber.setToolTipText("Enter Bus followed by digits, for example Bus01 or Bus100.");
+        ((javax.swing.text.AbstractDocument)txtBusNumber.getDocument()).setDocumentFilter(new javax.swing.text.DocumentFilter() {
+            @Override public void insertString(FilterBypass fb,int offset,String text,javax.swing.text.AttributeSet attrs)
+                    throws javax.swing.text.BadLocationException { replace(fb,offset,0,text,attrs); }
+            @Override public void remove(FilterBypass fb,int offset,int length)
+                    throws javax.swing.text.BadLocationException { replace(fb,offset,length,"",null); }
+            @Override public void replace(FilterBypass fb,int offset,int length,String text,javax.swing.text.AttributeSet attrs)
+                    throws javax.swing.text.BadLocationException {
+                String old=fb.getDocument().getText(0,fb.getDocument().getLength());
+                String value=old.substring(0,offset)+(text==null ? "" : text)+old.substring(offset+length);
+                if ("Bus".startsWith(value) || value.matches("Bus[0-9]*")) super.replace(fb,offset,length,text,attrs);
+                else Toolkit.getDefaultToolkit().beep();
+            }
+        });
         txtBusNumber.setBackground(new Color(220,220,220));
         txtBusNumber.setBorder(BorderFactory.createEmptyBorder(8,10,8,10));
         txtBusNumber.setPreferredSize(new Dimension(300,34));
@@ -135,11 +151,11 @@ public class AddBusPanel {
             Integer seatCapacity = (Integer)cmbSeatCapacity.getSelectedItem();
             String status = cmbStatus.getSelectedItem().toString();
 
-            if(busNumber.isEmpty()) {
+            if(!busNumber.matches("Bus[0-9]+")) {
 
                 qpal.components.AppDialogs.showMessageDialog(
                         dialog,
-                        "Bus Number needs an input.",
+                        "Enter Bus followed by digits, for example Bus01 or Bus100.",
                         "Warning",
                         JOptionPane.WARNING_MESSAGE);
 

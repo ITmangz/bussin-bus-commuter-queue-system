@@ -1,11 +1,12 @@
 package qpal;
 
-import qpal.view.Login.*;
+import javax.swing.SwingUtilities;
+import qpal.view.Login.LoginPage;
 
 
 public class MainEmpAndAdmin {
     public static void main(String[] args) {
         qpal.util.DepartureService.start();
-        new LoginPage();
+        SwingUtilities.invokeLater(LoginPage::new);
     }
 }

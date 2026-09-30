@@ -69,6 +69,7 @@ public class AddTripPanel {
         for(Bus bus : buses){
             cmbBus.addItem(bus);
         }
+        cmbBus.setSelectedIndex(-1);
 
         cmbBus.setRenderer(new DefaultListCellRenderer(){
 
@@ -155,28 +156,13 @@ public class AddTripPanel {
         panel.add(Box.createVerticalStrut(7));
 
         JTextField txtFare = new JTextField();
+        AdminFormStyle.limitCharacters(txtFare,5,"Fare");
         txtFare.setBackground(new Color(220,220,220));
         txtFare.setBorder(BorderFactory.createEmptyBorder(8,10,8,10));
         txtFare.setMaximumSize(new Dimension(300,38));
         txtFare.setAlignmentX(Component.LEFT_ALIGNMENT);
         txtFare.setToolTipText("Applies to all trips using the selected route.");
-        Route initialRoute = (Route)cmbRoute.getSelectedItem();
-
-        if(initialRoute != null && initialRoute.getFare() > 0) {
-
-            txtFare.setText(String.format(java.util.Locale.US,"%.2f",initialRoute.getFare()));
-        }
-
-        cmbRoute.addActionListener(e -> {
-
-            Route route = (Route)cmbRoute.getSelectedItem();
-            txtFare.setText("");
-
-            if(route != null && route.getFare() > 0) {
-
-                txtFare.setText(String.format(java.util.Locale.US,"%.2f",route.getFare()));
-            }
-        });
+        cmbRoute.addActionListener(e -> txtFare.setText(""));
 
         panel.add(txtFare);
         panel.add(Box.createVerticalStrut(14));
@@ -224,6 +210,7 @@ public class AddTripPanel {
                 "Departed",
                 "Cancelled"
         });
+        cmbStatus.setSelectedIndex(-1);
 
         cmbStatus.setMaximumSize(new Dimension(300,38));
         cmbStatus.setBackground(new Color(220,220,220));
@@ -270,6 +257,33 @@ public class AddTripPanel {
 
         btnCancel.addActionListener(e -> dialog.dispose());
 
+        Runnable validateTime = () -> {
+            if (!dialog.isShowing() || txtDate.getDate() == null || cmbTime.getSelectedItem() == null) return;
+            java.time.LocalDate selectedDate = java.time.LocalDate.parse(
+                    new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(txtDate.getDate()));
+            java.time.LocalTime selectedTime = (java.time.LocalTime)cmbTime.getSelectedItem();
+            java.time.LocalDateTime now = java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Manila"));
+            if (selectedDate.equals(now.toLocalDate()) && !selectedTime.isAfter(now.toLocalTime())) {
+                cmbTime.setSelectedIndex(-1);
+                qpal.components.AppDialogs.showMessageDialog(dialog,
+                        "The selected departure time has already passed for today. Please choose a later time.",
+                        "Departure Time Already Passed", JOptionPane.WARNING_MESSAGE);
+            }
+        };
+        cmbTime.addActionListener(e -> validateTime.run());
+
+        txtDate.addPropertyChangeListener("date", e -> {
+            if (txtDate.getDate() == null || !dialog.isShowing()) return;
+            java.time.LocalDate selected = java.time.LocalDate.parse(
+                    new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(txtDate.getDate()));
+            if (selected.isBefore(java.time.LocalDate.now(java.time.ZoneId.of("Asia/Manila")))) {
+                qpal.components.AppDialogs.showMessageDialog(dialog,
+                        "The selected departure date has already passed. Please choose today or a future date.",
+                        "Departure Already Passed", JOptionPane.WARNING_MESSAGE);
+                txtDate.setDate(null);
+            } else validateTime.run();
+        });
+
         btnAdd.addActionListener(e -> {
 
     if (cmbBus.getSelectedItem() == null) {
@@ -311,7 +325,19 @@ public class AddTripPanel {
         return;
     }
 
+    if (!java.time.LocalDate.parse(date).atTime(time).isAfter(
+            java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Manila")))) {
+        qpal.components.AppDialogs.showMessageDialog(dialog,
+                "Cannot add this trip because its departure date or time has already passed. Please choose a future departure.",
+                "Departure Already Passed", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
     Bus bus = (Bus) cmbBus.getSelectedItem();
+    if (cmbStatus.getSelectedItem() == null) {
+        qpal.components.AppDialogs.showMessageDialog(dialog,"Please select a trip status.","Warning",JOptionPane.WARNING_MESSAGE);
+        return;
+    }
     Route route = (Route) cmbRoute.getSelectedItem();
 
     Trip trip = new Trip();

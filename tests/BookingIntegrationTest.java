@@ -83,6 +83,9 @@ public class BookingIntegrationTest {
         rejects(() -> queue.act(first, "Complete"));
         queue.act(first, "Mark as Paid");
         rejects(() -> queue.act(first, "Mark as Paid"));
+        rejects(() -> queue.act(first, "Complete"));
+        new QueuePaymentDao().printed(first,false);
+        new QueuePaymentDao().printed(first,true);
         queue.act(first, "Complete");
         check(queue.revenue().todayRevenue().compareTo(new BigDecimal("100")) == 0, "Only collected payments count as revenue");
         check(queue.revenue().paidPassengers() == 2, "Paid passenger count");

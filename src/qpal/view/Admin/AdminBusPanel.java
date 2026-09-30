@@ -142,7 +142,7 @@ public class AdminBusPanel extends JPanel {
         cmbStatus = new JComboBox<>(new String[]{
                 "All Statuses", "Available", "Maintenance", "Inactive"
         });
-        cmbStatus.setPreferredSize(new Dimension(140,34));
+        AdminFormStyle.tableFilter(cmbStatus);
         cmbStatus.setFont(new Font("SansSerif",Font.PLAIN,13));
         cmbStatus.setBackground(Color.WHITE);
         cmbStatus.setFocusable(false);
@@ -241,6 +241,7 @@ public class AdminBusPanel extends JPanel {
     }
 
     private void searchBuses() {
+        if (!AdminFormStyle.validateSearch(searchField)) return;
 
         appliedSearch = searchField.getText().trim().toLowerCase();
         currentPage = 1;

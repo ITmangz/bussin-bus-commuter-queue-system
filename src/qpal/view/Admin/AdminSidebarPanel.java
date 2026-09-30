@@ -53,6 +53,12 @@ public class AdminSidebarPanel extends JPanel {
         routeBtn = createButton("Route &amp; Schedule<br>Management");
         revenueBtn = createButton("Revenue<br>Management");
         accountsBtn = createButton("Manage<br>Accounts");
+        addMenuIcon(dashboardBtn,"dashboardicon");
+        addMenuIcon(queueBtn,"queueicon");
+        addMenuIcon(busBtn,"busicon");
+        addMenuIcon(routeBtn,"routeicon");
+        addMenuIcon(revenueBtn,"revenueicon");
+        addMenuIcon(accountsBtn,"manageaccsicon");
 
         dashboardBtn.addActionListener(e -> dashboard.showPage("dashboard"));
         queueBtn.addActionListener(e -> dashboard.showPage("queue"));
@@ -78,19 +84,19 @@ public class AdminSidebarPanel extends JPanel {
         bottom.setBorder(new EmptyBorder(16, 20, 24, 20));
         logoutBtn = createButton("Log Out");
 
-        JLabel logoutlogo = new JLabel();
-        logoutlogo.setBounds(16,14,24,24);
-        ImageIcon logouticon = new ImageIcon("resources/icons/logout.png");
-        Image logout = logouticon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
-        logoutlogo.setIcon(new ImageIcon(logout));
-        logoutlogo.setVisible(true);
-
-        logoutBtn.add(logoutlogo);
+        addMenuIcon(logoutBtn,"logouticon");
 
         logoutBtn.addActionListener(e -> dashboard.logout());
         bottom.add(logoutBtn, BorderLayout.CENTER);
         add(bottom, BorderLayout.SOUTH);
         setSelectedPage("dashboard");
+    }
+
+    private static void addMenuIcon(JButton button,String name) {
+        ImageIcon source=new ImageIcon("resources/icons/"+name+".png");
+        JLabel icon=new JLabel(new ImageIcon(source.getImage().getScaledInstance(24,24,Image.SCALE_SMOOTH)));
+        icon.setBounds(16,14,24,24);
+        button.add(icon);
     }
 
     @Override
@@ -178,7 +184,7 @@ public class AdminSidebarPanel extends JPanel {
         btn.setForeground(Color.WHITE);
         btn.setOpaque(false);
         btn.setContentAreaFilled(false);
-        btn.setBorder(new EmptyBorder(4, 44, 4, 4));
+        btn.setBorder(new EmptyBorder(4, 52, 4, 4));
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;

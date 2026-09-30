@@ -36,6 +36,10 @@ public class AutomaticDepartureTest {
                     sql.executeUpdate("UPDATE queue_entries SET queue_date=CURRENT_DATE-INTERVAL 1 DAY");
                     check(queue.boarding().size()==1,"Earlier bookings remain in boarding queue");
                     int boardingId = queue.boarding().get(0).id();
+                    try { queue.completeBoarding(boardingId); throw new AssertionError("Unprinted boarding accepted"); }
+                    catch (SQLException expected) { }
+                    new qpal.dao.QueuePaymentDao().printed(boardingId,false);
+                    new qpal.dao.QueuePaymentDao().printed(boardingId,true);
                     queue.completeBoarding(boardingId);
                     check(queue.boarding().isEmpty(),"Completed boarding is removed from the list");
                     try { queue.completeBoarding(boardingId); throw new AssertionError("Duplicate boarding accepted"); }

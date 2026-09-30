@@ -72,11 +72,11 @@ public class BookingUiSmokeTest {
                 check(((JPanel)field(queuePanel,AdminQueuePanel.class,"queueActions")).isVisible(),"Boarding queue actions visible");
                 check(tabs.getTitleAt(0).equals("Payment Queue"),"Payment tab renamed");
                 java.util.List<?> sideActions = (java.util.List<?>)field(queuePanel,AdminQueuePanel.class,"sideActions");
-                check(((JButton)sideActions.get(0)).getParent().getComponentCount()==2,"Only two boarding queue actions");
+                check(((JButton)sideActions.get(0)).getParent().getComponentCount()==3,"Gate selector and two boarding queue actions");
                 check(((JButton)sideActions.get(1)).getText().equals("Skip Queue"),"Boarding skip action switches");
                 tabs.setSelectedIndex(0);
                 check(complete.getText().equals("Complete"),"Payment actions restored");
-                check(((JButton)sideActions.get(2)).getText().equals("Mark as Paid"),"Payment side action restored");
+                check(((JButton)sideActions.get(2)).getText().equals("Payment"),"Payment side action restored");
                 java.util.List<?> seats = (java.util.List<?>)field(panels[0], SeatSelectionPanel.class, "seats");
                 check(seats.size() == 20, "Seat screen uses bus capacity");
                 long occupied = seats.stream().map(s -> (SeatSelectionPanel.SeatData)s)

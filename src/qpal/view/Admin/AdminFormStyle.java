@@ -8,6 +8,37 @@ import qpal.components.FormInputStyle;
 /** Single dashboard-style outline around forms. */
 final class AdminFormStyle {
     private AdminFormStyle() {}
+    static void limitCharacters(JTextField field,int limit,String name) {
+        field.setDocument(new javax.swing.text.PlainDocument() {
+            @Override public void insertString(int offset,String text,javax.swing.text.AttributeSet attributes)
+                    throws javax.swing.text.BadLocationException {
+                if (text==null) return;
+                if (getLength()+text.length()<=limit) super.insertString(offset,text,attributes);
+                else {
+                    field.setText("");
+                    Toolkit.getDefaultToolkit().beep();
+                    qpal.components.AppDialogs.showMessageDialog(field,
+                            name+" must not exceed "+limit+" characters.","Warning!",JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        });
+    }
+    static boolean validateSearch(JTextField field) {
+        if (!field.getText().trim().isEmpty()) return true;
+        qpal.components.AppDialogs.showMessageDialog(field, "Please enter a search term.",
+                "Empty Search", JOptionPane.WARNING_MESSAGE);
+        field.requestFocusInWindow();
+        return false;
+    }
+
+    static void tableFilter(JComboBox<?> combo) {
+        combo.putClientProperty("adminTableFilter", Boolean.TRUE);
+        Dimension size = new Dimension(140, 34);
+        combo.setPreferredSize(size);
+        combo.setMinimumSize(size);
+        combo.setMaximumSize(size);
+    }
+
     static JPanel frame(JPanel form) {
         styleInputs(form);
         styleActions(form);
@@ -40,7 +71,8 @@ final class AdminFormStyle {
             return;
         }
         if (component instanceof JComboBox<?> combo) {
-            sizeInput(combo);
+            // Table filters keep their compact size when dashboard forms are styled.
+            if (!Boolean.TRUE.equals(combo.getClientProperty("adminTableFilter"))) sizeInput(combo);
             FormInputStyle.styleCombo(combo);
             return;
         }

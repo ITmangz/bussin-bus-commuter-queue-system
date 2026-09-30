@@ -151,7 +151,7 @@ public class AdminRouteSchedPanel extends JPanel {
             cmbStatus = new JComboBox<>(new String[]{
                 "All Statuses", "Scheduled", "Boarding", "Departed", "Cancelled"
         });
-        cmbStatus.setPreferredSize(new Dimension(140,34));
+        AdminFormStyle.tableFilter(cmbStatus);
         cmbStatus.setFont(new Font("SansSerif",Font.PLAIN,13));
         cmbStatus.setBackground(Color.WHITE);
         cmbStatus.setFocusable(false);
@@ -296,6 +296,7 @@ public class AdminRouteSchedPanel extends JPanel {
     }
 
     private void searchTrips() {
+        if (!AdminFormStyle.validateSearch(searchField)) return;
 
         appliedSearch = searchField.getText().trim().toLowerCase();
         currentPage = 1;

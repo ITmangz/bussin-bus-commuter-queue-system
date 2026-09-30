@@ -83,7 +83,6 @@ public class AdminRevenuePanel extends JPanel {
         JPanel heading = new JPanel();
         heading.setOpaque(false);
         heading.setLayout(new BoxLayout(heading,BoxLayout.Y_AXIS));
-
         JLabel lblTitle = new JLabel("Revenue Management");
         lblTitle.setFont(new Font("SansSerif",Font.BOLD,30));
         lblTitle.setForeground(new Color(228,0,70));
@@ -182,7 +181,7 @@ public class AdminRevenuePanel extends JPanel {
         });
 
         cmbStatus = new JComboBox<>(new String[]{"All Statuses","Paid","Pending","Cancelled"});
-        cmbStatus.setPreferredSize(new Dimension(130,34));
+        AdminFormStyle.tableFilter(cmbStatus);
         cmbStatus.setFont(new Font("SansSerif",Font.PLAIN,13));
         cmbStatus.setBackground(Color.WHITE);
         cmbStatus.setFocusable(false);
