@@ -33,16 +33,24 @@ public class QueueDao {
             ensureStations(c);
             c.setAutoCommit(false);
             try {
+                int trip=BoardingGateDao.assignedTrip(c,station);
                 update(c,"INSERT INTO queue_daily_counters(queue_date,last_queue_number) VALUES(CURRENT_DATE,0) ON DUPLICATE KEY UPDATE last_queue_number=last_queue_number");
                 Map<Integer,Integer> assigned=new HashMap<>();
                 try(PreparedStatement p=c.prepareStatement("SELECT station,queue_entry_id FROM queue_stations WHERE kind='Boarding' FOR UPDATE"); ResultSet r=p.executeQuery()) {
                     while(r.next()) assigned.put(r.getInt(1),r.getInt(2));
                 }
-                if(skip) update(c,"DELETE FROM queue_stations WHERE kind='Boarding' AND station=?",station);
+
+                if(skip) {
+                    Integer current=assigned.get(station);
+                    if(current!=null) update(c,"REPLACE INTO boarding_skips(queue_entry_id,skipped_at) VALUES(?,NOW())",current);
+                    update(c,"DELETE FROM queue_stations WHERE kind='Boarding' AND station=?",station);
+                }
                 else {
                     Integer current=assigned.get(station);
                     if(eligible.stream().anyMatch(r -> Objects.equals(current,r.id()))) throw new SQLException("Complete or skip the current gate queue first.");
-                    var next=eligible.stream().filter(r -> !assigned.containsValue(r.id()) && (queueId==0 || queueId==r.id())).findFirst()
+                    java.util.Set<Integer> tripQueues=new java.util.HashSet<>();
+                    try(PreparedStatement p=statement(c,"SELECT q.queue_entry_id FROM queue_entries q JOIN bookings b ON b.booking_id=q.booking_id WHERE b.trip_id=? AND q.status='Completed' AND b.status NOT IN ('Cancelled','Expired','No-show') AND NOT EXISTS(SELECT 1 FROM queue_boarding qb WHERE qb.queue_entry_id=q.queue_entry_id) FOR UPDATE",trip);ResultSet r=p.executeQuery()) {while(r.next()) tripQueues.add(r.getInt(1));}
+                    var next=eligible.stream().filter(r -> tripQueues.contains(r.id())).filter(r -> !assigned.containsValue(r.id()) && (queueId==0 || queueId==r.id())).findFirst()
                             .orElseThrow(() -> new SQLException("No unassigned boarding queues are available."));
                     update(c,"REPLACE INTO queue_stations(kind,station,queue_entry_id) VALUES('Boarding',?,?)",station,next.id());
                 }
@@ -61,23 +69,24 @@ public class QueueDao {
     public List<QueueRow> boarding() throws SQLException {
         try (Connection c = DbConnection.getConnection()) {
             ensureBoardingTable(c);
+            BoardingGateDao.ensure(c);
             qpal.util.DepartureService.reconcile(c);
             String sql = "SELECT q.queue_entry_id,q.booking_id,q.queue_number,MIN(bp.passenger_name),r.origin,r.destination,b.bus_number,"
-                    + "t.departure_date,t.departure_time,COUNT(*) "
+                    + "t.departure_date,t.departure_time,COUNT(*),CASE WHEN EXISTS(SELECT 1 FROM boarding_gates g WHERE g.trip_id=t.trip_id) THEN 'Boarding' ELSE 'Awaiting Gate' END AS boarding_status "
                     + "FROM queue_entries q JOIN bookings bk ON bk.booking_id=q.booking_id "
                     + "JOIN trips t ON t.trip_id=bk.trip_id JOIN routes r ON r.route_id=t.route_id "
                     + "JOIN buses b ON b.bus_id=t.bus_id JOIN booking_passengers bp ON bp.booking_id=bk.booking_id "
-                    + "WHERE t.status='Boarding' AND q.status<>'Cancelled' AND bk.status<>'Cancelled' "
+                    + "WHERE t.status IN ('Scheduled','Boarding') AND q.status='Completed' AND bk.status NOT IN ('Cancelled','Expired','No-show') "
                     + "AND NOT EXISTS (SELECT 1 FROM queue_boarding qb WHERE qb.queue_entry_id=q.queue_entry_id) "
                     + "AND (SELECT p.status FROM payments p WHERE p.booking_id=bk.booking_id "
                     + "ORDER BY p.payment_id DESC LIMIT 1)='Paid' "
                     + "GROUP BY q.queue_entry_id,q.booking_id,q.queue_number,r.origin,r.destination,b.bus_number,t.departure_date,t.departure_time "
-                    + "ORDER BY t.departure_date,t.departure_time,q.queue_date,q.queue_number";
+                    + "ORDER BY t.departure_date,t.departure_time,t.trip_id,COALESCE((SELECT skipped_at FROM boarding_skips bs WHERE bs.queue_entry_id=q.queue_entry_id),(SELECT MAX(paid_at) FROM payments p WHERE p.booking_id=bk.booking_id)),q.queue_entry_id";
             List<QueueRow> rows = new ArrayList<>();
             try (PreparedStatement p = c.prepareStatement(sql); ResultSet r = p.executeQuery()) {
                 while (r.next()) rows.add(new QueueRow(r.getInt(1),r.getInt(2),r.getInt(3),
                         r.getString(5) + " - " + r.getString(6),r.getString(7),
-                        r.getString(8) + " " + r.getString(9),r.getString(4),"Paid","Boarding",r.getInt(10)));
+                        r.getString(8) + " " + r.getString(9),r.getString(4),"Paid",r.getString("boarding_status"),r.getInt(10)));
             }
             return rows;
         }
@@ -86,6 +95,7 @@ public class QueueDao {
     public void completeBoarding(int queueId) throws SQLException {
         try (Connection c = DbConnection.getConnection()) {
             ensureBoardingTable(c);
+            BoardingGateDao.ensure(c);
             ensureStations(c);
             QueuePaymentDao.ensureTable(c);
             c.setAutoCommit(false);
@@ -93,8 +103,8 @@ public class QueueDao {
                 try (PreparedStatement p = statement(c,
                         "SELECT q.queue_entry_id FROM queue_entries q JOIN bookings bk ON bk.booking_id=q.booking_id "
                         + "JOIN trips t ON t.trip_id=bk.trip_id WHERE q.queue_entry_id=? "
-                        + "AND t.status='Boarding' AND TIMESTAMP(t.departure_date,t.departure_time)>NOW() "
-                        + "AND q.status<>'Cancelled' AND bk.status<>'Cancelled' "
+                        + "AND t.status='Boarding' AND EXISTS(SELECT 1 FROM boarding_gates g JOIN queue_stations s ON s.station=g.gate AND s.kind='Boarding' WHERE g.trip_id=t.trip_id AND s.queue_entry_id=q.queue_entry_id) "
+                        + "AND q.status='Completed' AND bk.status NOT IN ('Cancelled','Expired','No-show') "
                         + "AND (SELECT status FROM payments WHERE booking_id=bk.booking_id ORDER BY payment_id DESC LIMIT 1)='Paid' "
                         + "FOR UPDATE", queueId); ResultSet r = p.executeQuery()) {
                     if (!r.next()) throw new SQLException("This queue is no longer eligible for boarding. Refresh and try again.");
@@ -108,7 +118,7 @@ public class QueueDao {
     }
 
     public List<QueueRow> today() throws SQLException {
-        String sql = "SELECT q.*,r.origin,r.destination,b.bus_number,t.departure_date,t.departure_time,"
+        String sql = "SELECT q.*,CASE WHEN bk.status IN ('No-show','Expired') OR q.status='Expired' THEN 'No-show' ELSE q.status END AS display_status,r.origin,r.destination,b.bus_number,t.departure_date,t.departure_time,"
                 + "(SELECT MIN(passenger_name) FROM booking_passengers WHERE booking_id=q.booking_id) AS passenger,"
                 + "(SELECT COUNT(*) FROM booking_passengers WHERE booking_id=q.booking_id) AS passengers,"
                 + "(SELECT status FROM payments WHERE booking_id=q.booking_id ORDER BY payment_id DESC LIMIT 1) AS payment "
@@ -120,7 +130,9 @@ public class QueueDao {
             while (r.next()) rows.add(new QueueRow(r.getInt("queue_entry_id"), r.getInt("booking_id"),
                     r.getInt("queue_number"), r.getString("origin") + " - " + r.getString("destination"),
                     r.getString("bus_number"), r.getString("departure_date") + " " + r.getString("departure_time"),
-                    r.getString("passenger"), r.getString("payment"), r.getString("status"), r.getInt("passengers")));
+                    r.getString("passenger"), "No-show".equals(r.getString("display_status"))
+                            && "Cancelled".equals(r.getString("payment")) ? "Unpaid" : r.getString("payment"),
+                    r.getString("display_status"), r.getInt("passengers")));
             return rows;
         }
     }
@@ -133,6 +145,7 @@ public class QueueDao {
             QueuePaymentDao.ensureTable(c);
             c.setAutoCommit(false);
             try {
+                if (action.equals("Mark as Paid")) PaymentDeadlineDao.requireOpen(c, queueId);
                 // The day's counter is also a mutex for admin queue transitions.
                 update(c, "INSERT INTO queue_daily_counters (queue_date,last_queue_number) VALUES (CURRENT_DATE,0) "
                         + "ON DUPLICATE KEY UPDATE last_queue_number=last_queue_number");
@@ -171,7 +184,7 @@ public class QueueDao {
                             break;
                         }
                         if (!(status.equals("Waiting") || status.equals("Skipped"))) throw new SQLException("This queue cannot be called.");
-                        if (action.equals("Recall")) {
+                        if (action.equals("Recall") && !status.equals("Skipped")) {
                             try (PreparedStatement p = statement(c, "SELECT queue_entry_id FROM queue_entries "
                                     + "WHERE queue_date=CURRENT_DATE AND status IN ('Waiting','Skipped') "
                                     + "ORDER BY queue_number LIMIT 1 FOR UPDATE"); ResultSet r = p.executeQuery()) {
@@ -191,7 +204,8 @@ public class QueueDao {
                         update(c, "UPDATE queue_entries SET status='Skipped' WHERE queue_entry_id=?", queueId);
                         break;
                     case "Mark as Paid":
-                        if (status.equals("Cancelled") || status.equals("Completed")) throw new SQLException("This queue is closed.");
+                        PaymentDeadlineDao.requireOpen(c, queueId);
+                        if (Set.of("Cancelled", "Completed", "Expired", "No-show").contains(status)) throw new SQLException("This queue is closed.");
                         if (update(c, "UPDATE payments SET status='Paid',paid_at=NOW() WHERE booking_id=? AND status='Pending'", booking) == 0)
                             throw new SQLException("There is no pending payment for this booking.");
                         update(c, "UPDATE bookings SET status='Confirmed' WHERE booking_id=?", booking);

@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** Reconciles overdue departures while any application database session is in use. */
+/** Releases unpaid reservations at the cutoff; departures require staff confirmation. */
 public final class DepartureService {
     private static final AtomicBoolean started = new AtomicBoolean();
     private DepartureService() {}
@@ -22,16 +22,12 @@ public final class DepartureService {
             try (Connection connection = DbConnection.getConnection()) {
                 reconcile(connection);
             } catch (SQLException ex) {
-                System.err.println("Automatic departure update failed; retrying: " + ex.getMessage());
+                System.err.println("Payment deadline update failed; retrying: " + ex.getMessage());
             }
         }, 0, 5, TimeUnit.SECONDS);
     }
 
     public static void reconcile(Connection connection) throws SQLException {
-        try (var statement = connection.prepareStatement(
-                "UPDATE trips SET status='Departed' WHERE status IN ('Scheduled','Boarding') "
-                + "AND TIMESTAMP(departure_date,departure_time)<=NOW()")) {
-            statement.executeUpdate();
-        }
+        qpal.dao.PaymentDeadlineDao.expire(connection);
     }
 }

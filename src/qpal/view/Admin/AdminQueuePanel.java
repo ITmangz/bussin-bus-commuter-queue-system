@@ -143,7 +143,7 @@ public class AdminQueuePanel extends JPanel {
 
         JPanel heading = transparent(new GridLayout(2, 1, 0, 2));
         heading.add(label("Queue Management", 30, RED, true));
-        heading.add(label("Manage and monitor commuter queues in real time.", 14, MUTED, false));
+        heading.add(label("Unpaid passengers become No-show 30 minutes before departure; seats are released.", 14, MUTED, false));
         add(heading, BorderLayout.NORTH);
 
         JPanel body = transparent(new BorderLayout(0, 14));
@@ -223,7 +223,7 @@ public class AdminQueuePanel extends JPanel {
         search.setToolTipText("Search queue number");
         search.getAccessibleContext().setAccessibleName("Search queue number");
 
-        JComboBox<String> trips = new JComboBox<>(new String[]{"All Statuses", "Waiting", "Serving", "Skipped", "Completed", "Cancelled"});
+        JComboBox<String> trips = new JComboBox<>(new String[]{"All Statuses", "Waiting", "Serving", "Skipped", "Completed", "No-show"});
         AdminFormStyle.tableFilter(trips);
         trips.setFont(new Font("SansSerif", Font.PLAIN, 13));
         trips.setFocusable(false);
@@ -332,7 +332,7 @@ public class AdminQueuePanel extends JPanel {
         search.setToolTipText("Search queue number");
         search.getAccessibleContext().setAccessibleName("Search queue number");
 
-        JComboBox<String> trips = new JComboBox<>(new String[]{"All Statuses", "Boarding"});
+        JComboBox<String> trips = new JComboBox<>(new String[]{"All Statuses", "Awaiting Gate", "Boarding"});
         AdminFormStyle.tableFilter(trips);
         trips.setFont(new Font("SansSerif", Font.PLAIN, 13));
         trips.setFocusable(false);
@@ -390,6 +390,15 @@ public class AdminQueuePanel extends JPanel {
         pageRow.add(boardingPageInfo,BorderLayout.WEST);
         pageRow.add(boardingPagination,BorderLayout.EAST);
         footer.add(pageRow,BorderLayout.CENTER);
+        JPanel gateActions = transparent(new FlowLayout(FlowLayout.LEFT, 8, 8));
+        JButton assign = button("Assign trip to gate", true);
+        JButton release = button("Release gate", false);
+        JButton depart = button("Confirm departure", true);
+        assign.addActionListener(e -> manageGate("assign"));
+        release.addActionListener(e -> manageGate("release"));
+        depart.addActionListener(e -> manageGate("depart"));
+        gateActions.add(assign); gateActions.add(release); gateActions.add(depart);
+        footer.add(gateActions, BorderLayout.SOUTH);
         boarding.add(footer,BorderLayout.SOUTH);
         loadBoardingPage();
         return boarding;
@@ -428,7 +437,7 @@ public class AdminQueuePanel extends JPanel {
             qpal.model.BookingData.QueueRow serving = null;
             for (var row : rows) {
                 queueModel.addRow(new Object[]{String.format("P%03d",row.number()),row.route(),row.bus(),row.schedule(),row.payment(),row.status(),row.passengers()});
-                if (!row.status().equals("Cancelled")) passengers += row.passengers();
+                if (!java.util.Set.of("Cancelled", "Expired", "No-show").contains(row.status())) passengers += row.passengers();
                 if (row.status().equals("Serving")) serving = row;
             }
             loadQueuePage();
@@ -537,6 +546,50 @@ public class AdminQueuePanel extends JPanel {
             acting = false; actionButtons.forEach(b -> b.setEnabled(true)); refreshData();
         }, ex -> { acting = false; actionButtons.forEach(b -> b.setEnabled(true));
             qpal.components.AppDialogs.showMessageDialog(this, ex.getMessage(), "Queue Action", JOptionPane.WARNING_MESSAGE); refreshData(); });
+    }
+
+    private void manageGate(String action) {
+        int selectedGate = gate.getSelectedIndex();
+        if (selectedGate == 0) {
+            qpal.components.AppDialogs.showMessageDialog(this, "Select Gate 1 or Gate 2 first.");
+            return;
+        }
+        if (acting) return;
+        if (action.equals("assign")) {
+            acting = true;
+            qpal.util.UiTask.run(() -> new qpal.dao.BoardingGateDao().waitingTrips(), trips -> {
+                acting = false;
+                if (trips.isEmpty()) {
+                    qpal.components.AppDialogs.showMessageDialog(this, "No trips are awaiting a gate.");
+                    return;
+                }
+                JComboBox<qpal.dao.BoardingGateDao.GateTrip> choices = new JComboBox<>(
+                        trips.toArray(new qpal.dao.BoardingGateDao.GateTrip[0]));
+                JPanel prompt = new JPanel(new BorderLayout(0, 8));
+                prompt.add(new JLabel("Earliest departure is suggested. Confirm the bus is ready."), BorderLayout.NORTH);
+                prompt.add(choices, BorderLayout.CENTER);
+                if (JOptionPane.showConfirmDialog(this, prompt, "Assign Gate " + selectedGate,
+                        JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
+                var trip = (qpal.dao.BoardingGateDao.GateTrip)choices.getSelectedItem();
+                acting = true;
+                qpal.util.UiTask.run(() -> { new qpal.dao.BoardingGateDao().assign(selectedGate, trip.id()); return true; },
+                        result -> { acting=false; refreshData(); },
+                        ex -> { acting=false; qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage()); refreshData(); });
+            }, ex -> { acting=false; qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage()); });
+            return;
+        }
+        boolean departure = action.equals("depart");
+        String[] options = departure ? new String[]{"Depart if everyone boarded", "Mark remaining No-show and depart", "Cancel"}
+                : new String[]{"Release gate", "Cancel"};
+        int choice = JOptionPane.showOptionDialog(this,
+                departure ? "Confirm actual departure. No-show payments will remain paid; no refund is issued."
+                        : "Return this trip to Awaiting Gate? Boarded passengers remain recorded.",
+                "Gate " + selectedGate, JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[options.length-1]);
+        if (choice < 0 || choice == options.length-1) return;
+        acting = true;
+        qpal.util.UiTask.run(() -> { new qpal.dao.BoardingGateDao().close(selectedGate, departure, departure && choice==1); return true; },
+                result -> { acting=false; refreshData(); },
+                ex -> { acting=false; qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage()); refreshData(); });
     }
 
     private void actBoarding(String action) {

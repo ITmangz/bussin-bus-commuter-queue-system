@@ -31,9 +31,9 @@ public class StatusRenderer extends DefaultTableCellRenderer {
                 background = new Color(220,252,231); foreground = new Color(22,101,52); break;
             case "Boarding":
                 background = new Color(219,234,254); foreground = new Color(30,64,175); break;
-            case "Maintenance":
+            case "Maintenance": case "Awaiting Gate":
                 background = new Color(254,243,199); foreground = new Color(146,64,14); break;
-            case "Cancelled": case "Inactive":
+            case "Cancelled": case "Inactive": case "Expired": case "No-show":
                 background = new Color(254,226,226); foreground = new Color(185,28,28); break;
             case "Departed":
                 background = new Color(243,244,246); foreground = new Color(75,85,99); break;

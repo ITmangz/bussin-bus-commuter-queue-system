@@ -42,7 +42,7 @@ public class AdminDashboard {
 
         dashboardPanel = new AdminDashboardPanel(this);
         profilePanel = new EditProfilePanel(this);
-        contentPanel.add(dashboardPanel, "dashboard");
+        contentPanel.add(AdminCard.scrollPage(dashboardPanel, 880), "dashboard");
         contentPanel.add(AdminCard.scrollPage(new AdminQueuePanel(), 880), "queue");
         contentPanel.add(AdminCard.scrollPage(new AdminBusPanel(), 880), "bus");
         contentPanel.add(AdminCard.scrollPage(new AdminRouteSchedPanel(), 880), "route");

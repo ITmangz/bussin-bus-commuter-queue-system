@@ -56,6 +56,7 @@ public class QueuePaymentDao {
             ensureTable(c);
             c.setAutoCommit(false);
             try {
+                PaymentDeadlineDao.requireOpen(c, queue);
                 int booking;
                 try (PreparedStatement p = statement(c,"SELECT q.booking_id FROM queue_entries q JOIN queue_stations s "
                         + "ON s.queue_entry_id=q.queue_entry_id AND s.kind='Payment' WHERE q.queue_entry_id=? "
@@ -71,6 +72,7 @@ public class QueuePaymentDao {
                     payment = r.getInt(1);
                     validateReceived(received.toPlainString(),r.getBigDecimal(2));
                 }
+                PaymentDeadlineDao.requireOpen(c, queue);
                 update(c,"UPDATE payments SET status='Paid',paid_at=NOW() WHERE payment_id=?",payment);
                 update(c,"UPDATE bookings SET status='Confirmed' WHERE booking_id=?",booking);
                 update(c,"INSERT INTO queue_payment_progress(queue_entry_id,received) VALUES(?,?)",queue,received);

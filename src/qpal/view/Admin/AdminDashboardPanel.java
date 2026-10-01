@@ -76,13 +76,13 @@ public class AdminDashboardPanel extends JPanel {
         stats.setPreferredSize(new Dimension(0,180));
         stats.add(stat("TOTAL NUMBER OF COMMUTERS", commuters, lblCommutersImage, "Today's booked passengers"));
         stats.add(stat("NUMBER OF AVAILABLE BUSES", available, lblBusesImage, "Ready for assignment"));
-        stats.add(stat("CURRENT QUEUE NUMBER", currentQueue, lblQueueImage, "Counter 1 | Counter 2"));
+        stats.add(stat("ACTIVE BOARDING TRIPS", currentQueue, lblQueueImage, "Counter 1 | Counter 2"));
         details.add(stats, BorderLayout.NORTH);
 
         JPanel bottom = new JPanel(new GridLayout(1,2,16,0));
         bottom.setOpaque(false);
-        bottom.add(section("Upcoming Departures", departures, "View schedules", "route"));
-        bottom.add(section("Fleet Status", fleet, "Manage buses", "bus"));
+        bottom.add(section("Active Boarding", departures, "View schedules", "route"));
+        bottom.add(section("Queue Status", fleet, "Manage queues", "queue"));
         details.add(bottom, BorderLayout.CENTER);
         body.add(details, BorderLayout.CENTER);
         add(body, BorderLayout.CENTER);
@@ -94,8 +94,8 @@ public class AdminDashboardPanel extends JPanel {
             }
         });
         updateProfile();
-        showMessage(departures, "Loading upcoming trips...");
-        showMessage(fleet, "Loading fleet status...");
+        showMessage(departures, "Loading boarding trips...");
+        showMessage(fleet, "Loading queue status...");
     }
 
     public void updateProfile() {
@@ -136,29 +136,27 @@ public class AdminDashboardPanel extends JPanel {
                     DashboardDao.Summary summary = get();
                     available.setText(String.valueOf(summary.available));
                     commuters.setText(String.valueOf(summary.commuters));
-                    currentQueue.setText(summary.currentQueue);
+                    currentQueue.setText(String.valueOf(summary.boardingTrips.size()));
                     departures.removeAll();
-                    if(summary.departures.isEmpty()) {
-
-                        showMessage(departures, "No upcoming departures.");
+                    if(summary.boardingTrips.isEmpty()) {
+                        showMessage(departures, "No trips are currently boarding.");
                     }
-                    for(String[] trip : summary.departures.subList(0, Math.min(3, summary.departures.size()))) {
-                        departures.add(label(trip[0],14,new Color(55,55,55),true));
-                        departures.add(label(trip[1],12,Color.GRAY,false));
-                        departures.add(Box.createVerticalStrut(12));
+                    for(DashboardDao.BoardingTrip trip : summary.boardingTrips) {
+                        departures.add(boardingCard(trip));
+                        departures.add(Box.createVerticalStrut(10));
                     }
                     fleet.removeAll();
-                    fleet.add(label("Available                 " + summary.available,16,new Color(0,145,85),true));
-                    fleet.add(Box.createVerticalStrut(14));
-                    fleet.add(label("Maintenance           " + summary.maintenance,16,new Color(175,120,0),true));
-                    fleet.add(Box.createVerticalStrut(14));
-                    fleet.add(label("Inactive                    " + summary.inactive,16,Color.GRAY,true));
-                    fleet.add(Box.createVerticalStrut(14));
-                    fleet.add(label("Total fleet: " + summary.total,13,Color.GRAY,false));
+                    for(DashboardDao.Station station : summary.stations) {
+                        fleet.add(stationCard(station));
+                        fleet.add(Box.createVerticalStrut(10));
+                    }
                 } catch(Exception ex) {
+                    ex.printStackTrace();
                     available.setText("—");
-                    showMessage(departures, "Unable to load departures.");
-                    showMessage(fleet, "Unable to load fleet status.");
+                    commuters.setText("—");
+                    currentQueue.setText("—");
+                    showMessage(departures, "Unable to load boarding trips.");
+                    showMessage(fleet, "Unable to load queue status.");
                 } finally {
                     loading = false;
                     revalidate();
@@ -166,6 +164,68 @@ public class AdminDashboardPanel extends JPanel {
                 }
             }
         }.execute();
+    }
+
+    private JPanel boardingCard(DashboardDao.BoardingTrip trip) {
+        JPanel panel = new AdminCard(12);
+        panel.setLayout(new BorderLayout(0, 10));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 154));
+        panel.setPreferredSize(new Dimension(0, 154));
+        JPanel heading = new JPanel(new BorderLayout(8, 0));
+        heading.setOpaque(false);
+        heading.add(label(trip.bus(), 14, Color.BLACK, true), BorderLayout.CENTER);
+        heading.add(badge("Boarding", true), BorderLayout.EAST);
+        panel.add(heading, BorderLayout.NORTH);
+        JPanel details = new JPanel(new GridLayout(2, 1, 0, 5));
+        details.setOpaque(false);
+        details.add(label(trip.route(), 12, Color.GRAY, false));
+        details.add(label("Departure: " + trip.departure(), 12, Color.GRAY, false));
+        panel.add(details, BorderLayout.CENTER);
+        JPanel seats = new JPanel(new BorderLayout(0, 6));
+        seats.setOpaque(false);
+        seats.add(label("Booked seats: " + trip.occupied() + " / " + trip.capacity(),
+                12, new Color(55,55,55), true), BorderLayout.NORTH);
+        JProgressBar tracker = new JProgressBar(0, Math.max(1, trip.capacity()));
+        tracker.setValue(trip.occupied());
+        tracker.setUI(new javax.swing.plaf.basic.BasicProgressBarUI());
+        tracker.setForeground(new Color(39,139,196));
+        tracker.setBackground(new Color(232,236,242));
+        tracker.setBorderPainted(false);
+        tracker.setPreferredSize(new Dimension(0, 7));
+        tracker.getAccessibleContext().setAccessibleName("Booked seats " + trip.occupied() + " of " + trip.capacity());
+        seats.add(tracker, BorderLayout.CENTER);
+        panel.add(seats, BorderLayout.SOUTH);
+        return panel;
+    }
+
+    private JPanel stationCard(DashboardDao.Station station) {
+        JPanel panel = new AdminCard(12);
+        panel.setLayout(new BorderLayout(0, 8));
+        panel.setPreferredSize(new Dimension(0, 128));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 128));
+        var queue = station.queue();
+        JPanel heading = new JPanel(new BorderLayout(8, 0));
+        heading.setOpaque(false);
+        heading.add(label(station.name(), 13, Color.BLACK, true), BorderLayout.CENTER);
+        heading.add(badge(queue == null ? station.trip() == null ? "Idle" : "Assigned" : "Serving", queue != null || station.trip()!=null), BorderLayout.EAST);
+        panel.add(heading, BorderLayout.NORTH);
+        JPanel details = new JPanel(new GridLayout(3, 1, 0, 4));
+        details.setOpaque(false);
+        details.add(label(queue == null ? "No queue assigned" : String.format(java.util.Locale.ROOT,
+                "Queue P%03d • %d passenger(s)", queue.number(), queue.passengers()), 13,
+                new Color(170,0,45), true));
+        details.add(label(queue == null ? station.trip() == null ? "Ready for the next queue" : station.trip() : queue.passenger(), 12, Color.GRAY, false));
+        details.add(label(queue == null ? " " : queue.route(), 12, Color.GRAY, false));
+        panel.add(details, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JLabel badge(String text, boolean active) {
+        JLabel badge = label(text, 10, active ? new Color(0,125,75) : Color.GRAY, true);
+        badge.setOpaque(true);
+        badge.setBackground(active ? new Color(220,252,231) : new Color(243,244,246));
+        badge.setBorder(new EmptyBorder(4,7,4,7));
+        return badge;
     }
 
     private JPanel stat(String title, JLabel value, JLabel lblImage, String caption) {
@@ -205,6 +265,7 @@ public class AdminDashboardPanel extends JPanel {
         content.setOpaque(false);
         content.setLayout(new BoxLayout(content,BoxLayout.Y_AXIS));
         JScrollPane scroll = new JScrollPane(content);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.setBorder(null);
         scroll.setOpaque(false);
         scroll.getViewport().setOpaque(false);

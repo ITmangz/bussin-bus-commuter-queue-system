@@ -3,8 +3,8 @@ package qpal.dao;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
-import qpal.util.DbConnection;
 import static qpal.dao.BookingDao.*;
+import qpal.util.DbConnection;
 
 public class PaymentDao {
     public record Payment(int id, int tripId, Integer bookingId, String commuter, BigDecimal amount,
