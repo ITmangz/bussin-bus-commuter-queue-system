@@ -256,6 +256,7 @@ public class AddTripPanel {
         dialog.setLocationRelativeTo(parent);
 
         btnCancel.addActionListener(e -> dialog.dispose());
+        ManagementComboBoxes.validateBusOnSelection(cmbBus, dialog);
 
         Runnable validateTime = () -> {
             if (!dialog.isShowing() || txtDate.getDate() == null || cmbTime.getSelectedItem() == null) return;
@@ -285,6 +286,8 @@ public class AddTripPanel {
         });
 
         btnAdd.addActionListener(e -> {
+
+    if (!ManagementComboBoxes.validateBusSelection(cmbBus, dialog)) return;
 
     if (cmbBus.getSelectedItem() == null) {
         qpal.components.AppDialogs.showMessageDialog(

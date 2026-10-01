@@ -9,6 +9,28 @@ import javax.swing.*;
 final class ManagementComboBoxes {
     private ManagementComboBoxes() {}
 
+    static void validateBusOnSelection(JComboBox<qpal.model.Bus> combo, Component parent) {
+        combo.addActionListener(e -> validateBusSelection(combo, parent));
+    }
+
+    static boolean validateBusSelection(JComboBox<qpal.model.Bus> combo, Component parent) {
+        qpal.model.Bus bus = (qpal.model.Bus)combo.getSelectedItem();
+        if (bus == null) return true;
+        String status = bus.getBusStatus();
+        String message;
+        if ("Maintenance".equalsIgnoreCase(status)) {
+            message = "Bus is in maintenance.";
+        } else if ("Inactive".equalsIgnoreCase(status)) {
+            message = "Bus is not in the operations.";
+        } else {
+            return true;
+        }
+        combo.setSelectedIndex(-1);
+        qpal.components.AppDialogs.showMessageDialog(parent, message,
+                "Bus Unavailable", JOptionPane.WARNING_MESSAGE);
+        return false;
+    }
+
     static JComboBox<Integer> seatCapacity(int selected) {
         JComboBox<Integer> combo = new JComboBox<>();
         for (int seats = 20; seats <= 50; seats += 5) combo.addItem(seats);

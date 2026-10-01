@@ -48,6 +48,27 @@ public class AddAccountPanel {
         panel.add(Box.createVerticalStrut(7));
 
         JTextField txtName = new JTextField();
+
+            txtName.setDocument(new javax.swing.text.PlainDocument() {
+
+                @Override
+                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                        throws javax.swing.text.BadLocationException {
+
+                    if (str == null) {
+                        return;
+                    }
+
+                    if (getLength() + str.length() <= 100) {
+                        super.insertString(offs, str, a);
+
+                    } else {
+                        txtName.setText("");
+                        Toolkit.getDefaultToolkit().beep();
+                        qpal.components.AppDialogs.showMessageDialog(null, "Name must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
+            });
         txtName.setBackground(new Color(220,220,220));
         txtName.setBorder(BorderFactory.createEmptyBorder(8,10,8,10));
         txtName.setMaximumSize(new Dimension(300,38));
@@ -62,6 +83,27 @@ public class AddAccountPanel {
         panel.add(Box.createVerticalStrut(7));
 
         JTextField txtEmail = new JTextField();
+
+            txtEmail.setDocument(new javax.swing.text.PlainDocument() {
+
+                @Override
+                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                        throws javax.swing.text.BadLocationException {
+
+                    if (str == null) {
+                        return;
+                    }
+
+                    if (getLength() + str.length() <= 100) {
+                        super.insertString(offs, str, a);
+
+                    } else {
+                        txtEmail.setText("");
+                        Toolkit.getDefaultToolkit().beep();
+                        qpal.components.AppDialogs.showMessageDialog(null, "Email must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
+            });
         txtEmail.setBackground(new Color(220,220,220));
         txtEmail.setBorder(BorderFactory.createEmptyBorder(8,10,8,10));
         txtEmail.setMaximumSize(new Dimension(300,38));
@@ -76,6 +118,27 @@ public class AddAccountPanel {
         panel.add(Box.createVerticalStrut(7));
 
         JPasswordField txtPassword =new JPasswordField();
+
+            txtPassword.setDocument(new javax.swing.text.PlainDocument() {
+
+                @Override
+                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                        throws javax.swing.text.BadLocationException {
+
+                    if (str == null) {
+                        return;
+                    }
+
+                    if (getLength() + str.length() <= 100) {
+                        super.insertString(offs, str, a);
+
+                    } else {
+                        txtPassword.setText("");
+                        Toolkit.getDefaultToolkit().beep();
+                        qpal.components.AppDialogs.showMessageDialog(null, "Password must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
+            });
         txtPassword.setBackground(new Color(220,220,220));
         txtPassword.setBorder(BorderFactory.createEmptyBorder(8,10,8,10));
         txtPassword.setMaximumSize(new Dimension(300,38));

@@ -295,8 +295,18 @@ public class EditTripPanel {
         dialog.setLocationRelativeTo(parent);
 
         btnCancel.addActionListener(e -> dialog.dispose());
+        cmbStatus.addActionListener(e -> {
+            if ("Departed".equals(trip.getStatus()) && !"Departed".equals(cmbStatus.getSelectedItem())) {
+                cmbStatus.setSelectedItem("Departed");
+                qpal.components.AppDialogs.showMessageDialog(dialog, "Trip is departed.",
+                        "Warning", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+        ManagementComboBoxes.validateBusOnSelection(cmbBus, dialog);
 
         btnSave.addActionListener(e -> {
+
+    if (!ManagementComboBoxes.validateBusSelection(cmbBus, dialog)) return;
 
     Bus selectedBus = (Bus) cmbBus.getSelectedItem();
     Route selectedRoute = (Route) cmbRoute.getSelectedItem();
@@ -373,6 +383,9 @@ public class EditTripPanel {
     boolean success;
     try {
         success = tripDao.saveTripWithFare(updatedTrip,fare,true);
+    } catch (TripDao.DepartedTripException ex) {
+        qpal.components.AppDialogs.showMessageDialog(dialog, ex.getMessage(), "Warning", JOptionPane.WARNING_MESSAGE);
+        return;
     } catch (TripDao.ScheduleConflictException ex) {
         qpal.components.AppDialogs.showMessageDialog(dialog, ex.getMessage(), "Schedule Conflict", JOptionPane.WARNING_MESSAGE);
         return;

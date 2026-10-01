@@ -26,8 +26,8 @@ public final class QueueVoice {
     public static void announce(int number, boolean boarding, int station, boolean skipped) {
         String queue=(boarding ? "B " : "P ")+String.format(java.util.Locale.ROOT,"%03d",number)
                 .replace("", " ").trim();
-        String message="Queue number " + queue + (skipped ? ", has been skipped. Please approach " : ", please proceed to ")
-                + (boarding ? "boarding gate " : "payment counter ") + station + ".";
+        String message="Queue number " + queue + (skipped ? " is skipped."
+                : ", please proceed to " + (boarding ? "boarding gate " : "payment counter ") + station + ".");
         SPEAKER.execute(() -> {
             try {
                 String encoded=Base64.getEncoder().encodeToString(SCRIPT.getBytes(StandardCharsets.UTF_16LE));

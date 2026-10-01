@@ -10,6 +10,9 @@ import qpal.model.Trip;
 import qpal.util.DbConnection;
 
 public class TripDao {
+    public static class DepartedTripException extends IllegalArgumentException {
+        public DepartedTripException() { super("Trip is departed."); }
+    }
 
     public static class ScheduleConflictException extends IllegalArgumentException {
         public ScheduleConflictException(String message) { super(message); }
@@ -277,7 +280,7 @@ public class TripDao {
                 conn.commit();
                 return true;
 
-            } catch(ScheduleConflictException e) {
+            } catch(ScheduleConflictException | DepartedTripException e) {
                 conn.rollback();
                 throw e;
             } catch(SQLException e) {
@@ -299,6 +302,8 @@ public class TripDao {
             p.setInt(1, trip.getTripID());
             try (ResultSet r = p.executeQuery()) {
                 if (!r.next()) throw new SQLException("Trip no longer exists.");
+                if ("Departed".equals(r.getString("status")) && !"Departed".equals(trip.getStatus()))
+                    throw new DepartedTripException();
                 try (PreparedStatement bookings = conn.prepareStatement("SELECT booking_id FROM bookings WHERE trip_id=? LIMIT 1")) {
                     bookings.setInt(1, trip.getTripID());
                     try (ResultSet found = bookings.executeQuery()) {

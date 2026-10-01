@@ -90,10 +90,52 @@ public class EditProfilePanel extends JPanel {
         panel.add(Box.createVerticalStrut(20));
 
         txtName = createTextField();
+
+            txtName.setDocument(new javax.swing.text.PlainDocument() {
+
+                @Override
+                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                        throws javax.swing.text.BadLocationException {
+
+                    if (str == null) {
+                        return;
+                    }
+
+                    if (getLength() + str.length() <= 100) {
+                        super.insertString(offs, str, a);
+
+                    } else {
+                        txtName.setText("");
+                        Toolkit.getDefaultToolkit().beep();
+                        qpal.components.AppDialogs.showMessageDialog(null, "Name must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
+            });
         addField(panel,"Name",txtName);
         panel.add(Box.createVerticalStrut(18));
 
         txtEmail = createTextField();
+
+            txtEmail.setDocument(new javax.swing.text.PlainDocument() {
+
+                @Override
+                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                        throws javax.swing.text.BadLocationException {
+
+                    if (str == null) {
+                        return;
+                    }
+
+                    if (getLength() + str.length() <= 100) {
+                        super.insertString(offs, str, a);
+
+                    } else {
+                        txtEmail.setText("");
+                        Toolkit.getDefaultToolkit().beep();
+                        qpal.components.AppDialogs.showMessageDialog(null, "Email must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
+            });
         addField(panel,"Email",txtEmail);
         panel.add(Box.createVerticalStrut(22));
 
@@ -110,6 +152,32 @@ public class EditProfilePanel extends JPanel {
         cmbTimezone.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         txtWorkingHours = createTextField();
+
+            txtWorkingHours.setDocument(new javax.swing.text.PlainDocument() {
+
+                @Override
+                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                        throws javax.swing.text.BadLocationException {
+
+                    if (str == null) {
+                        return;
+                    }
+
+                    if (!str.matches("[0-9: -]*")) {
+                        Toolkit.getDefaultToolkit().beep();
+                        return;
+                    }
+
+                    if (getLength() + str.length() <= 11) {
+                        super.insertString(offs, str, a);
+
+                    } else {
+                        txtWorkingHours.setText("");
+                        Toolkit.getDefaultToolkit().beep();
+                        qpal.components.AppDialogs.showMessageDialog(null, "Working Hours must not exceed 11 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
+            });
         JPanel timezone = new JPanel();
         timezone.setOpaque(false);
         timezone.setLayout(new BoxLayout(timezone,BoxLayout.Y_AXIS));

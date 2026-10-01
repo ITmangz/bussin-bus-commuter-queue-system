@@ -195,6 +195,7 @@ public class AdminBusPanel extends JPanel {
 
         table.setDefaultRenderer(Object.class,new ModernTableCellRenderer());
         table.getColumnModel().getColumn(4).setCellRenderer(new StatusRenderer());
+        table.getColumnModel().getColumn(5).setCellRenderer(new StatusRenderer());
 
         table.getColumnModel().getColumn(0).setPreferredWidth(70);
         table.getColumnModel().getColumn(1).setPreferredWidth(220);

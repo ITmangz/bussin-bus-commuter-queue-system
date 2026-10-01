@@ -10,16 +10,16 @@ import qpal.model.Bus;
 import qpal.util.DbConnection;
 
 public class BusDao {
-    /** Prefer an active boarding trip, then today's next trip, then the latest departure. */
+    /** Prefer boarding, then the next scheduled trip, then the latest trip history. */
     public java.util.Map<Integer,String> departureStatuses() throws SQLException {
         var statuses = new java.util.HashMap<Integer,String>();
         try (Connection c = DbConnection.getConnection()) {
             qpal.util.DepartureService.reconcile(c);
             try (PreparedStatement p = c.prepareStatement(
                     "SELECT bus_id,status FROM trips WHERE status='Boarding' "
-                    + "OR (status='Scheduled' AND departure_date=CURRENT_DATE) OR status='Departed' "
+                    + "OR status IN ('Scheduled','Cancelled','Departed') "
                     + "ORDER BY CASE status WHEN 'Boarding' THEN 0 WHEN 'Scheduled' THEN 1 ELSE 2 END, "
-                    + "CASE WHEN status<>'Departed' THEN TIMESTAMP(departure_date,departure_time) END ASC, "
+                    + "CASE WHEN status IN ('Boarding','Scheduled') THEN TIMESTAMP(departure_date,departure_time) END ASC, "
                     + "TIMESTAMP(departure_date,departure_time) DESC,trip_id DESC"); ResultSet r = p.executeQuery()) {
                 while (r.next()) statuses.putIfAbsent(r.getInt(1),r.getString(2));
             }

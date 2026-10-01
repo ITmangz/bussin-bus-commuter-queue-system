@@ -524,11 +524,6 @@ public class AdminQueuePanel extends JPanel {
         qpal.util.UiTask.run(() -> { new qpal.dao.QueueDao().act(row == null ? 0 : row.id(), action, selectedStation); return true; }, result -> {
             announceQueue(action,false,selectedStation,row);
             table.clearSelection();
-            if (action.equals("Recall")) {
-                qpal.components.AppDialogs.showMessageDialog(this,
-                        String.format("Queue P%03d: please proceed to Counter %d.",row.number(),selectedStation),
-                        "Queue Recall",JOptionPane.INFORMATION_MESSAGE);
-            }
             acting = false; actionButtons.forEach(b -> b.setEnabled(true)); refreshData();
         }, ex -> { acting = false; actionButtons.forEach(b -> b.setEnabled(true));
             qpal.components.AppDialogs.showMessageDialog(this, ex.getMessage(), "Queue Action", JOptionPane.WARNING_MESSAGE); refreshData(); });
@@ -553,8 +548,6 @@ public class AdminQueuePanel extends JPanel {
             }, ex -> qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage()));
         } else if (action.equals("Recall")) {
             announceQueue(action,true,station(),row);
-            qpal.components.AppDialogs.showMessageDialog(this,String.format("Queue B%03d: please board bus %s for %s.",
-                    row.number(),row.bus(),row.route()),"Boarding Recall",JOptionPane.INFORMATION_MESSAGE);
         } else if (action.equals("Complete Boarding")) {
             acting = true;
             showSelectedDetails();

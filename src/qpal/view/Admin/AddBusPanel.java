@@ -41,7 +41,7 @@ public class AddBusPanel {
         panel.add(lblSubtitle);
         panel.add(Box.createVerticalStrut(20));
 
-        JLabel lblBusNumber = new JLabel("Bus Number");
+        JLabel lblBusNumber = new JLabel("Bus Number (BusXXX)");
         lblBusNumber.setFont(new Font("SansSerif", Font.BOLD,13));
         lblBusNumber.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -98,6 +98,7 @@ public class AddBusPanel {
                 "Maintenance",
                 "Inactive"
         });
+        cmbStatus.setSelectedIndex(-1);
 
         cmbStatus.setBackground(new Color(220,220,220));
         cmbStatus.setPreferredSize(new Dimension(300,30));
@@ -149,7 +150,7 @@ public class AddBusPanel {
 
             String busNumber = txtBusNumber.getText().trim();
             Integer seatCapacity = (Integer)cmbSeatCapacity.getSelectedItem();
-            String status = cmbStatus.getSelectedItem().toString();
+            String status = (String)cmbStatus.getSelectedItem();
 
             if(!busNumber.matches("Bus[0-9]+")) {
 
@@ -164,6 +165,11 @@ public class AddBusPanel {
 
             if (seatCapacity == null) {
                 qpal.components.AppDialogs.showMessageDialog(dialog, "Choose a seat capacity from 20 to 50.",
+                        "Warning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (status == null) {
+                qpal.components.AppDialogs.showMessageDialog(dialog, "Please select a bus status.",
                         "Warning", JOptionPane.WARNING_MESSAGE);
                 return;
             }

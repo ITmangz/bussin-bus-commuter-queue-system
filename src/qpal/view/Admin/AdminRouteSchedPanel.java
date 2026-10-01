@@ -276,6 +276,16 @@ public class AdminRouteSchedPanel extends JPanel {
 
         }
 
+        trips.sort(java.util.Comparator.comparingInt(row -> {
+            switch (String.valueOf(row[7])) {
+                case "Scheduled": return 0;
+                case "Boarding": return 1;
+                case "Cancelled": return 2;
+                case "Departed": return 3;
+                default: return 4;
+            }
+        }));
+
         currentPage = Math.max(1, Math.min(currentPage,
                 (getVisibleRows().size() + rowsPerPage - 1) / rowsPerPage));
 

@@ -56,6 +56,21 @@ public class AutomaticDepartureTest {
                     DepartureService.reconcile(c);
                     check(queue.boarding().isEmpty(),"Departure removes boarding entries without attendance requirement");
                     check("Departed".equals(new BusDao().departureStatuses().get(1)),"Bus displays departed trip");
+                    qpal.model.Trip departed = new TripDao().getTrip(1);
+                    departed.setStatus("Scheduled");
+                    try {
+                        new TripDao().saveTripWithFare(departed, new java.math.BigDecimal("50"), true);
+                        throw new AssertionError("Departed trip status change accepted");
+                    } catch (TripDao.DepartedTripException expected) {
+                        check("Trip is departed.".equals(expected.getMessage()), "Departed warning");
+                    }
+                    sql.executeUpdate("INSERT INTO trips(trip_id,bus_id,route_id,departure_date,departure_time,available_seats,status) "
+                            + "VALUES(5,1,1,CURRENT_DATE+INTERVAL 2 DAY,'12:00:00',20,'Scheduled')");
+                    check("Scheduled".equals(new BusDao().departureStatuses().get(1)), "Future trip replaces old departure");
+                    sql.executeUpdate("UPDATE trips SET status='Boarding' WHERE trip_id=5");
+                    check("Boarding".equals(new BusDao().departureStatuses().get(1)), "Bus follows boarding status");
+                    sql.executeUpdate("UPDATE trips SET status='Cancelled' WHERE trip_id=5");
+                    check("Cancelled".equals(new BusDao().departureStatuses().get(1)), "Bus follows cancellation status");
                     DepartureService.reconcile(c);
                     try (ResultSet r = sql.executeQuery("SELECT available_seats FROM trips WHERE trip_id=1")) {
                         r.next(); check(r.getInt(1)==18,"Departure preserves seat accounting and is repeatable");
