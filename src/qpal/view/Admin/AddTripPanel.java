@@ -197,27 +197,6 @@ public class AddTripPanel {
         panel.add(cmbTime);
         panel.add(Box.createVerticalStrut(14));
 
-        JLabel lblStatus = new JLabel("Status");
-        lblStatus.setFont(new Font("SansSerif",Font.BOLD,13));
-        lblStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        panel.add(lblStatus);
-        panel.add(Box.createVerticalStrut(7));
-
-        JComboBox<String> cmbStatus = new JComboBox<>(new String[]{
-                "Scheduled",
-                "Boarding",
-                "Departed",
-                "Cancelled"
-        });
-        cmbStatus.setSelectedIndex(-1);
-
-        cmbStatus.setMaximumSize(new Dimension(300,38));
-        cmbStatus.setBackground(new Color(220,220,220));
-        cmbStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        panel.add(cmbStatus);
-
         panel.add(Box.createVerticalStrut(25));
 
         JButton btnAdd = new JButton("Add Trip");
@@ -337,10 +316,6 @@ public class AddTripPanel {
     }
 
     Bus bus = (Bus) cmbBus.getSelectedItem();
-    if (cmbStatus.getSelectedItem() == null) {
-        qpal.components.AppDialogs.showMessageDialog(dialog,"Please select a trip status.","Warning",JOptionPane.WARNING_MESSAGE);
-        return;
-    }
     Route route = (Route) cmbRoute.getSelectedItem();
 
     Trip trip = new Trip();
@@ -350,7 +325,7 @@ public class AddTripPanel {
     trip.setDepartureDate(date);
     trip.setDepartureTime(time.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")));
     trip.setAvailableSeats(bus.getSeatCapacity());
-    trip.setStatus(cmbStatus.getSelectedItem().toString());
+    trip.setStatus("Scheduled");
 
     java.math.BigDecimal fare;
 

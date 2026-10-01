@@ -104,11 +104,23 @@ public final class FormInputStyle {
                 if (child instanceof JButton day) {
                     try {
                         boolean selected = Integer.parseInt(day.getText()) == calendar.getDayChooser().getDay();
-                        day.setBackground(selected ? ROSE : Color.WHITE);
+                        boolean hovered = day.isEnabled() && day.getModel().isRollover();
+                        day.setBackground(hovered ? new Color(255, 215, 226)
+                                : selected ? ROSE : Color.WHITE);
                     } catch (NumberFormatException ignored) { }
                 }
             }
         };
+        for (Component child : calendar.getDayChooser().getDayPanel().getComponents()) {
+            if (child instanceof JButton day) {
+                day.setRolloverEnabled(true);
+                day.setOpaque(true);
+                if (!Boolean.TRUE.equals(day.getClientProperty("calendarHoverStyled"))) {
+                    day.putClientProperty("calendarHoverStyled", true);
+                    day.getModel().addChangeListener(e -> tintDays.run());
+                }
+            }
+        }
         calendar.getDayChooser().addPropertyChangeListener(e -> { tintDays.run(); SwingUtilities.invokeLater(tintDays); });
         tintDays.run();
     }

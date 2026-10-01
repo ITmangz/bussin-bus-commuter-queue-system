@@ -254,6 +254,8 @@ public class LoginPage{
                 if (email.isEmpty() && password.isEmpty()) {
 
                     qpal.components.AppDialogs.showMessageDialog(null, "Email and Password are required.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                    emailtxt.setText("");
+                    passtxt.setText("");
                     return;
 
                 } else if (email.isEmpty()) {
@@ -290,6 +292,8 @@ public class LoginPage{
                     } else {
 
                         qpal.components.AppDialogs.showMessageDialog(null,"Unknown account role.","Error", JOptionPane.ERROR_MESSAGE);
+                        emailtxt.setText("");
+                        passtxt.setText("");
                         return;
                     }
 
@@ -298,16 +302,18 @@ public class LoginPage{
                 } else if (accountDao.CheckInactive(email)) {
 
                     qpal.components.AppDialogs.showMessageDialog(null, "This account has been inactive. Please contact the admin.","Account Inactive",JOptionPane.WARNING_MESSAGE);
+                    emailtxt.setText("");
                     passtxt.setText("");
 
                 } else if (accountDao.CheckEmail(email)) {
 
-                    qpal.components.AppDialogs.showMessageDialog(null,"Invalid password.","Login Failed!",JOptionPane.ERROR_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(null,"Invalid Credentials.","Login Failed!",JOptionPane.ERROR_MESSAGE);
+                    emailtxt.setText("");
                     passtxt.setText("");
 
                 } else {
 
-                    qpal.components.AppDialogs.showMessageDialog(null,"Invalid email.","Login Failed!", JOptionPane.ERROR_MESSAGE);
+                    qpal.components.AppDialogs.showMessageDialog(null,"Invalid Credentials.","Login Failed!", JOptionPane.ERROR_MESSAGE);
                     emailtxt.setText("");
                     passtxt.setText("");
 

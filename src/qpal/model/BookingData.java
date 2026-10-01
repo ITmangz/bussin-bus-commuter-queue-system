@@ -18,11 +18,14 @@ public final class BookingData {
             BigDecimal total, String method, String paymentStatus) {
         public String text() { return text("P"); }
         public String text(String prefix) {
-            return "BUSSIN TICKET\n\nQueue: " + queueDate + " / " + String.format(java.util.Locale.ROOT,"%s%03d",prefix,queueNumber)
+            return "BUSSIN TICKET\n\n" + detailsText(prefix)
+                    + ("Paid".equals(paymentStatus) ? "" : "\nPlease pay at the counter.");
+        }
+        public String detailsText(String prefix) {
+            return "Queue: " + queueDate + " / " + String.format(java.util.Locale.ROOT,"%s%03d",prefix,queueNumber)
                     + "\nBooking: " + reference + "\nBus: " + bus + "\nRoute: " + route
                     + "\nDeparture: " + schedule + "\nSeats: " + seats
-                    + "\nTotal: PHP " + total + "\nPayment: " + method + " - " + paymentStatus
-                    + ("Paid".equals(paymentStatus) ? "" : "\nPlease pay at the counter.");
+                    + "\nTotal: PHP " + total + "\nPayment: " + method + " - " + paymentStatus;
         }
     }
     public record QueueRow(int id, int bookingId, int number, String route, String bus,

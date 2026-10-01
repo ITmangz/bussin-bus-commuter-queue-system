@@ -96,6 +96,19 @@ public final class QueuePaymentDialog extends JDialog {
         addField(content,"Total Fare (PHP)",receipt.total().toPlainString());
         addInput(content,"Amount Received (PHP)",received);
         if (progress.received()!=null) received.setText(progress.received().toPlainString());
+        ((javax.swing.text.AbstractDocument)received.getDocument()).setDocumentFilter(new javax.swing.text.DocumentFilter() {
+            @Override public void insertString(FilterBypass fb,int offset,String text,javax.swing.text.AttributeSet attributes)
+                    throws javax.swing.text.BadLocationException {
+                replace(fb,offset,0,text,attributes);
+            }
+            @Override public void replace(FilterBypass fb,int offset,int length,String text,javax.swing.text.AttributeSet attributes)
+                    throws javax.swing.text.BadLocationException {
+                String current=fb.getDocument().getText(0,fb.getDocument().getLength());
+                String value=current.substring(0,offset)+(text==null ? "" : text)+current.substring(offset+length);
+                if (value.matches("[0-9]{0,5}(\\.[0-9]{0,2})?")) super.replace(fb,offset,length,text,attributes);
+                else Toolkit.getDefaultToolkit().beep();
+            }
+        });
         change.setFont(new Font("SansSerif",Font.PLAIN,12)); change.setAlignmentX(Component.LEFT_ALIGNMENT);
         status.setFont(new Font("SansSerif",Font.PLAIN,11)); status.setAlignmentX(Component.LEFT_ALIGNMENT);
         content.add(change); content.add(Box.createVerticalStrut(8)); content.add(status); content.add(Box.createVerticalStrut(20));
@@ -129,7 +142,20 @@ public final class QueuePaymentDialog extends JDialog {
         });
         pay.addActionListener(e -> pay());
 
-        updateChange(); updateButtons(); pack(); setLocationRelativeTo(parent);
+        updateChange(); updateButtons(); pack();
+        Rectangle screen = getGraphicsConfiguration().getBounds();
+        Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration());
+        int maximumHeight = screen.height - insets.top - insets.bottom - 40;
+        if (getHeight() > maximumHeight) {
+            Container form = getContentPane();
+            JScrollPane scroll = new JScrollPane(form);
+            scroll.setBorder(BorderFactory.createEmptyBorder());
+            scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            qpal.components.ScrollBarStyle.apply(scroll,Color.WHITE);
+            setContentPane(scroll);
+            setSize(getWidth() + 12,maximumHeight);
+        }
+        setLocationRelativeTo(getOwner());
     }
 
     private static void addField(JPanel content,String label,String value) {
@@ -311,6 +337,7 @@ public final class QueuePaymentDialog extends JDialog {
             fraction[0]=0; collect.setVisible(false); collect.setEnabled(false); paper.repaint();
             busy=true; updateButtons();
             UiTask.run(() -> {
+                new QueuePaymentDao().requireBoardingPayment(row.id());
                 PrinterJob job=PrinterJob.getPrinterJob();
                 if (job.getPrintService()==null) throw new PrinterException("No printer is available. Connect a printer and retry.");
                 job.setJobName("BUSSIN Boarding Pass " + (current[0]+1) + " of " + pages.size()); job.setCopies(1);

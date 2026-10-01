@@ -44,10 +44,10 @@ public class AdminDashboard {
         profilePanel = new EditProfilePanel(this);
         contentPanel.add(dashboardPanel, "dashboard");
         contentPanel.add(AdminCard.scrollPage(new AdminQueuePanel(), 880), "queue");
-        contentPanel.add(new AdminBusPanel(), "bus");
-        contentPanel.add(new AdminRouteSchedPanel(), "route");
+        contentPanel.add(AdminCard.scrollPage(new AdminBusPanel(), 880), "bus");
+        contentPanel.add(AdminCard.scrollPage(new AdminRouteSchedPanel(), 880), "route");
         contentPanel.add(new AdminRevenuePanel(), "revenue");
-        contentPanel.add(new AdminManageAccountsPanel(), "accounts");
+        contentPanel.add(AdminCard.scrollPage(new AdminManageAccountsPanel(), 880), "accounts");
 
         AdminFormStyle.styleInputs(contentPanel);
         cardLayout.show(contentPanel, "dashboard");

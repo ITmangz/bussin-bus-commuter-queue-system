@@ -15,7 +15,7 @@ public class AdminDashboardPanel extends JPanel {
     private final JPanel fleet = new JPanel();
     private boolean loading;
     private final JLabel commuters = label("—",32,new Color(170,0,45),true);
-    private final JLabel currentQueue = label("—",32,new Color(170,0,45),true);
+    private final JLabel currentQueue = label("— | —",32,new Color(170,0,45),true);
 
     // Add your ImageIcons to these labels when the images are ready.
     private JLabel lblCommutersImage = new JLabel();
@@ -76,7 +76,7 @@ public class AdminDashboardPanel extends JPanel {
         stats.setPreferredSize(new Dimension(0,180));
         stats.add(stat("TOTAL NUMBER OF COMMUTERS", commuters, lblCommutersImage, "Today's booked passengers"));
         stats.add(stat("NUMBER OF AVAILABLE BUSES", available, lblBusesImage, "Ready for assignment"));
-        stats.add(stat("CURRENT QUEUE NUMBER", currentQueue, lblQueueImage, "Currently serving"));
+        stats.add(stat("CURRENT QUEUE NUMBER", currentQueue, lblQueueImage, "Counter 1 | Counter 2"));
         details.add(stats, BorderLayout.NORTH);
 
         JPanel bottom = new JPanel(new GridLayout(1,2,16,0));
@@ -172,7 +172,6 @@ public class AdminDashboardPanel extends JPanel {
 
         JPanel panel = card();
         panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
-        panel.setToolTipText(caption);
 
         Dimension imageSize = new Dimension(44,44);
         lblImage.setPreferredSize(imageSize);

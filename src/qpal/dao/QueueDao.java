@@ -217,21 +217,33 @@ public class QueueDao {
         List<Object[]> rows = new ArrayList<>();
         int paid = 0, pending = 0;
         BigDecimal total = BigDecimal.ZERO;
-        String sql = "SELECT p.*,b.bus_number,r.origin,r.destination,"
-                + "(SELECT COUNT(*) FROM booking_passengers bp WHERE bp.booking_id=p.booking_id) AS passengers,"
+        java.util.Set<Integer> countedPayments = new java.util.HashSet<>();
+        java.util.Set<Integer> pendingPayments = new java.util.HashSet<>();
+        String sql = "SELECT p.*,b.bus_number,r.origin,r.destination,bp.passenger_name,bp.fare,q.queue_number,"
+                + "(SELECT sr.seat_number FROM seat_reservations sr WHERE sr.booking_passenger_id=bp.booking_passenger_id "
+                + "ORDER BY sr.seat_reservation_id DESC LIMIT 1) AS seat_number,"
                 + "DATE(p.paid_at)=CURRENT_DATE AS paid_today FROM payments p JOIN trips t ON t.trip_id=p.trip_id "
-                + "JOIN buses b ON b.bus_id=t.bus_id JOIN routes r ON r.route_id=t.route_id ORDER BY p.created_at DESC,p.payment_id DESC";
+                + "JOIN buses b ON b.bus_id=t.bus_id JOIN routes r ON r.route_id=t.route_id "
+                + "LEFT JOIN booking_passengers bp ON bp.booking_id=p.booking_id "
+                + "LEFT JOIN queue_entries q ON q.booking_id=p.booking_id "
+                + "ORDER BY CASE p.status WHEN 'Pending' THEN 0 WHEN 'Paid' THEN 2 ELSE 1 END,"
+                + "p.created_at DESC,p.payment_id DESC,bp.booking_passenger_id";
         try (Connection c = DbConnection.getConnection(); PreparedStatement p = c.prepareStatement(sql); ResultSet r = p.executeQuery()) {
             while (r.next()) {
                 String status = r.getString("status");
                 BigDecimal amount = r.getBigDecimal("amount");
-                rows.add(new Object[]{r.getInt("payment_id"), r.getString("commuter_name"), r.getString("bus_number"),
-                        r.getString("origin") + " - " + r.getString("destination"), r.getString("created_at"), amount, status});
+                String passenger = r.getString("passenger_name");
+                String queue = r.getObject("queue_number") == null ? "—"
+                        : String.format(java.util.Locale.ROOT, "P%03d", r.getInt("queue_number"));
+                String seat = r.getObject("seat_number") == null ? "—" : BookingDao.seatLabel(r.getInt("seat_number"));
+                rows.add(new Object[]{r.getInt("payment_id"), queue, r.getString("bus_number"),
+                        r.getString("origin") + " - " + r.getString("destination"), r.getString("created_at"),
+                        passenger == null ? amount : r.getBigDecimal("fare"), status, seat});
                 if (status.equals("Paid")) {
-                    paid += r.getObject("booking_id") == null ? 1 : r.getInt("passengers");
-                    if (r.getBoolean("paid_today")) total = total.add(amount);
+                    paid++;
+                    if (countedPayments.add(r.getInt("payment_id")) && r.getBoolean("paid_today")) total = total.add(amount);
                 }
-                if (status.equals("Pending")) pending++;
+                if (status.equals("Pending") && pendingPayments.add(r.getInt("payment_id"))) pending++;
             }
         }
         return new RevenueData(rows, paid, pending, total);

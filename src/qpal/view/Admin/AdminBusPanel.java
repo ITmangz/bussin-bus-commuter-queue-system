@@ -22,6 +22,7 @@ public class AdminBusPanel extends JPanel {
     private JTextField searchField;
     private JComboBox<String> cmbStatus;
     private String appliedSearch = "";
+    private final JLabel[] busCounts = new JLabel[4];
 
     private final List<Object[]> buses = new ArrayList<>();
 
@@ -44,7 +45,11 @@ public class AdminBusPanel extends JPanel {
         setBorder(new EmptyBorder(20,25,20,25));
 
         add(createHeader(), BorderLayout.NORTH);
-        add(createContent(), BorderLayout.CENTER);
+        JPanel body = new JPanel(new BorderLayout(0, 16));
+        body.setOpaque(false);
+        body.add(createBusSummary(), BorderLayout.NORTH);
+        body.add(createContent(), BorderLayout.CENTER);
+        add(body, BorderLayout.CENTER);
 
         loadBuses();
         Timer timer = new Timer(5000, e -> loadBuses());
@@ -76,6 +81,51 @@ public class AdminBusPanel extends JPanel {
         panel.add(Box.createVerticalStrut(18));
 
         return panel;
+    }
+
+    private JPanel createBusSummary() {
+        JPanel summary = new JPanel(new GridLayout(1, 4, 14, 0));
+        summary.setOpaque(false);
+        summary.setPreferredSize(new Dimension(0, 150));
+        String[] titles = {"TOTAL BUSES", "AVAILABLE BUSES", "BUSES UNDER MAINTENANCE", "INACTIVE BUSES"};
+        for (int i = 0; i < titles.length; i++) {
+            JPanel card = new AdminCard(18);
+            card.setLayout(new GridBagLayout());
+
+            JLabel title = new JLabel(titles[i]);
+            title.setFont(new Font("SansSerif", Font.PLAIN, 10));
+            title.setForeground(new Color(100,100,100));
+            title.setAlignmentX(Component.LEFT_ALIGNMENT);
+            JPanel content = new JPanel(new BorderLayout(0, 8));
+            content.setOpaque(false);
+            content.add(title, BorderLayout.NORTH);
+
+            busCounts[i] = new JLabel("—");
+            busCounts[i].setFont(new Font("SansSerif", Font.BOLD, 32));
+            busCounts[i].setForeground(new Color(170,0,45));
+            busCounts[i].setAlignmentX(Component.LEFT_ALIGNMENT);
+            content.add(busCounts[i], BorderLayout.CENTER);
+
+            GridBagConstraints constraints = new GridBagConstraints();
+            constraints.fill = GridBagConstraints.HORIZONTAL;
+            constraints.weightx = 1;
+            card.add(content, constraints);
+            summary.add(card);
+        }
+        return summary;
+    }
+
+    private void updateBusSummary() {
+        int[] counts = {buses.size(), 0, 0, 0};
+        for (Object[] bus : buses) {
+            String status = String.valueOf(bus[4]);
+            if ("Available".equalsIgnoreCase(status)) counts[1]++;
+            else if ("Maintenance".equalsIgnoreCase(status)) counts[2]++;
+            else if ("Inactive".equalsIgnoreCase(status)) counts[3]++;
+        }
+        for (int i = 0; i < counts.length; i++) {
+            busCounts[i].setText(String.valueOf(counts[i]));
+        }
     }
 
     private JPanel createContent() {
@@ -138,6 +188,7 @@ public class AdminBusPanel extends JPanel {
     btnSearch.setBorder(BorderFactory.createEmptyBorder());
 
     btnSearch.addActionListener(e -> searchBuses());
+    AdminFormStyle.searchOnEnter(searchField, btnSearch);
 
         cmbStatus = new JComboBox<>(new String[]{
                 "All Statuses", "Available", "Maintenance", "Inactive"
@@ -233,6 +284,7 @@ public class AdminBusPanel extends JPanel {
         }, result -> {
             Object selectedId = table.getSelectedRow() < 0 ? null : model.getValueAt(table.getSelectedRow(),0);
             buses.clear(); buses.addAll(result);
+            updateBusSummary();
             currentPage = Math.max(1, Math.min(currentPage, (getVisibleRows().size()+rowsPerPage-1)/rowsPerPage));
             loadPage();
             if (selectedId != null) for (int i=0;i<model.getRowCount();i++)

@@ -351,6 +351,14 @@ public class EditTripPanel {
         return;
     }
 
+    if (!java.time.LocalDate.parse(departureDate).atTime(departureTime).isAfter(
+            java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Manila")))) {
+        qpal.components.AppDialogs.showMessageDialog(dialog,
+                "Cannot save this trip because its departure date or time has already passed. Please choose a future departure.",
+                "Departure Already Passed", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
     Trip updatedTrip = new Trip();
 
     updatedTrip.setTripID(tripID);

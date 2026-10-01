@@ -22,6 +22,7 @@ public class AdminRouteSchedPanel extends JPanel {
     private JTextField searchField;
     private JComboBox<String> cmbStatus;
     private String appliedSearch = "";
+    private final JLabel[] tripCounts = new JLabel[4];
 
     private final List<Object[]> trips = new ArrayList<>();
 
@@ -47,7 +48,11 @@ public class AdminRouteSchedPanel extends JPanel {
         setBorder(new EmptyBorder(20,25,20,25));
 
         add(createHeader(), BorderLayout.NORTH);
-        add(createContent(), BorderLayout.CENTER);
+        JPanel body = new JPanel(new BorderLayout(0, 16));
+        body.setOpaque(false);
+        body.add(createTripSummary(), BorderLayout.NORTH);
+        body.add(createContent(), BorderLayout.CENTER);
+        add(body, BorderLayout.CENTER);
 
         loadTrips();
 
@@ -83,6 +88,38 @@ public class AdminRouteSchedPanel extends JPanel {
 
         return panel;
 
+    }
+
+    private JPanel createTripSummary() {
+        JPanel summary = new JPanel(new GridLayout(1, 4, 14, 0));
+        summary.setOpaque(false);
+        summary.setPreferredSize(new Dimension(0, 150));
+        String[] titles = {"SCHEDULED TRIPS", "BOARDING TRIPS", "DEPARTED TRIPS", "CANCELLED TRIPS"};
+        for (int i = 0; i < titles.length; i++) {
+            JPanel card = new AdminCard(18);
+            card.setLayout(new GridBagLayout());
+
+            JLabel title = new JLabel(titles[i]);
+            title.setFont(new Font("SansSerif", Font.PLAIN, 10));
+            title.setForeground(new Color(100,100,100));
+            title.setAlignmentX(Component.LEFT_ALIGNMENT);
+            JPanel content = new JPanel(new BorderLayout(0, 8));
+            content.setOpaque(false);
+            content.add(title, BorderLayout.NORTH);
+
+            tripCounts[i] = new JLabel("—");
+            tripCounts[i].setFont(new Font("SansSerif", Font.BOLD, 32));
+            tripCounts[i].setForeground(new Color(170,0,45));
+            tripCounts[i].setAlignmentX(Component.LEFT_ALIGNMENT);
+            content.add(tripCounts[i], BorderLayout.CENTER);
+
+            GridBagConstraints constraints = new GridBagConstraints();
+            constraints.fill = GridBagConstraints.HORIZONTAL;
+            constraints.weightx = 1;
+            card.add(content, constraints);
+            summary.add(card);
+        }
+        return summary;
     }
 
     private JPanel createContent() {
@@ -147,6 +184,7 @@ public class AdminRouteSchedPanel extends JPanel {
         btnSearch.setBorder(BorderFactory.createEmptyBorder());
 
         btnSearch.addActionListener(e -> searchTrips());
+        AdminFormStyle.searchOnEnter(searchField, btnSearch);
 
             cmbStatus = new JComboBox<>(new String[]{
                 "All Statuses", "Scheduled", "Boarding", "Departed", "Cancelled"
@@ -258,8 +296,14 @@ public class AdminRouteSchedPanel extends JPanel {
                 : table.getValueAt(table.getSelectedRow(), 0);
 
         trips.clear();
+        int[] counts = new int[4];
 
         for (Trip trip : tripList) {
+            String status = trip.getStatus();
+            if ("Scheduled".equalsIgnoreCase(status)) counts[0]++;
+            else if ("Boarding".equalsIgnoreCase(status)) counts[1]++;
+            else if ("Departed".equalsIgnoreCase(status)) counts[2]++;
+            else if ("Cancelled".equalsIgnoreCase(status)) counts[3]++;
 
             trips.add(new Object[]{
 
@@ -274,6 +318,10 @@ public class AdminRouteSchedPanel extends JPanel {
 
             });
 
+        }
+
+        for (int i = 0; i < counts.length; i++) {
+            tripCounts[i].setText(String.valueOf(counts[i]));
         }
 
         trips.sort(java.util.Comparator.comparingInt(row -> {

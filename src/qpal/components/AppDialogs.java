@@ -25,6 +25,10 @@ public final class AppDialogs {
         show(parent, message, title, type, JOptionPane.DEFAULT_OPTION);
     }
 
+    public static void showDetailsDialog(Component parent, String message, String title) {
+        show(parent, message, title, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, true);
+    }
+
     public static int showConfirmDialog(Component parent, Object message, String title, int options) {
         return showConfirmDialog(parent, message, title, options, JOptionPane.QUESTION_MESSAGE);
     }
@@ -34,9 +38,13 @@ public final class AppDialogs {
     }
 
     private static int show(Component parent, Object message, String title, int type, int options) {
+        return show(parent, message, title, type, options, false);
+    }
+
+    private static int show(Component parent, Object message, String title, int type, int options, boolean details) {
         if (!SwingUtilities.isEventDispatchThread()) {
             int[] result = {JOptionPane.CLOSED_OPTION};
-            try { SwingUtilities.invokeAndWait(() -> result[0] = show(parent, message, title, type, options)); }
+            try { SwingUtilities.invokeAndWait(() -> result[0] = show(parent, message, title, type, options, details)); }
             catch (InterruptedException e) { Thread.currentThread().interrupt(); }
             catch (java.lang.reflect.InvocationTargetException e) { throw new IllegalStateException(e.getCause()); }
             return result[0];
@@ -51,7 +59,7 @@ public final class AppDialogs {
         JPanel card = buildCard(message, title, type, options, value -> {
             result[0] = value;
             dialog.dispose();
-        });
+        }, details);
         dialog.setContentPane(card);
         dialog.getRootPane().registerKeyboardAction(e -> dialog.dispose(),
                 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -86,6 +94,11 @@ public final class AppDialogs {
 
     static JPanel buildCard(Object message, String title, int type, int options,
             java.util.function.IntConsumer choose) {
+        return buildCard(message, title, type, options, choose, false);
+    }
+
+    static JPanel buildCard(Object message, String title, int type, int options,
+            java.util.function.IntConsumer choose, boolean details) {
         boolean success = type == JOptionPane.INFORMATION_MESSAGE
                 && title.toLowerCase(Locale.ROOT).contains("success");
         Color accent = success ? new Color(0, 160, 95) : type == JOptionPane.WARNING_MESSAGE
@@ -131,16 +144,18 @@ public final class AppDialogs {
         body.setForeground(new Color(105, 115, 135));
         body.setText(message == null ? "" : String.valueOf(message));
         javax.swing.text.SimpleAttributeSet alignment = new javax.swing.text.SimpleAttributeSet();
-        javax.swing.text.StyleConstants.setAlignment(alignment, javax.swing.text.StyleConstants.ALIGN_CENTER);
+        javax.swing.text.StyleConstants.setAlignment(alignment, details
+                ? javax.swing.text.StyleConstants.ALIGN_LEFT : javax.swing.text.StyleConstants.ALIGN_CENTER);
         body.getStyledDocument().setParagraphAttributes(0, body.getDocument().getLength(), alignment, false);
         // Measure at the available width, including space for a vertical scrollbar.
-        int textWidth = 448 - UIManager.getInt("ScrollBar.width");
+        int textWidth = 448 - 12;
         body.setSize(textWidth, Short.MAX_VALUE);
         int height = Math.min(220, body.getPreferredSize().height + 6);
         JScrollPane scroll = new JScrollPane(body, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.setBorder(BorderFactory.createEmptyBorder()); scroll.setOpaque(false);
         scroll.getViewport().setBackground(Color.WHITE);
+        ScrollBarStyle.apply(scroll, Color.WHITE);
         scroll.setPreferredSize(new Dimension(448, height));
         scroll.setMinimumSize(new Dimension(448, height));
         scroll.setMaximumSize(new Dimension(448, height));

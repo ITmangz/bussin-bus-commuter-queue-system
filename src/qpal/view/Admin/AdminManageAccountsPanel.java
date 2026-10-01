@@ -19,6 +19,7 @@ public class AdminManageAccountsPanel extends JPanel {
     private DefaultTableModel model;
     private JTextField searchField;
     private String appliedSearch = "";
+    private final JLabel[] accountCounts = new JLabel[3];
     private JComboBox<String> cmbRole;
     private final List<Object[]> accounts = new ArrayList<>();
     private int currentPage = 1;
@@ -37,7 +38,11 @@ public class AdminManageAccountsPanel extends JPanel {
         setBorder(new EmptyBorder(20,25,20,25));
         
         add(createHeader(), BorderLayout.NORTH);
-        add(createContent(), BorderLayout.CENTER);
+        JPanel body = new JPanel(new BorderLayout(0, 16));
+        body.setOpaque(false);
+        body.add(createAccountSummary(), BorderLayout.NORTH);
+        body.add(createContent(), BorderLayout.CENTER);
+        add(body, BorderLayout.CENTER);
 
         loadAccounts();
     }
@@ -53,7 +58,7 @@ public class AdminManageAccountsPanel extends JPanel {
         title.setFont(new Font("SansSerif", Font.BOLD, 30));
         title.setForeground(new Color(228,0,70));
 
-        JLabel subtitle = new JLabel("Manage admin accounts and access permissions.");
+        JLabel subtitle = new JLabel("Manage administrator and employee accounts and access permissions.");
         subtitle.setFont(new Font("SansSerif", Font.PLAIN, 13));
         subtitle.setForeground(new Color(120,120,120));
 
@@ -65,6 +70,50 @@ public class AdminManageAccountsPanel extends JPanel {
         return panel;
     }
 
+
+    private JPanel createAccountSummary() {
+        JPanel summary = new JPanel(new GridLayout(1, 3, 14, 0));
+        summary.setOpaque(false);
+        summary.setPreferredSize(new Dimension(0, 150));
+        String[] titles = {"TOTAL ACCOUNTS", "ACTIVE ACCOUNTS", "INACTIVE ACCOUNTS"};
+        for (int i = 0; i < titles.length; i++) {
+            JPanel card = new AdminCard(18);
+            card.setLayout(new GridBagLayout());
+
+            JLabel title = new JLabel(titles[i]);
+            title.setFont(new Font("SansSerif", Font.PLAIN, 10));
+            title.setForeground(new Color(100,100,100));
+            title.setAlignmentX(Component.LEFT_ALIGNMENT);
+            JPanel content = new JPanel(new BorderLayout(0, 8));
+            content.setOpaque(false);
+            content.add(title, BorderLayout.NORTH);
+
+            accountCounts[i] = new JLabel("—");
+            accountCounts[i].setFont(new Font("SansSerif", Font.BOLD, 32));
+            accountCounts[i].setForeground(new Color(170,0,45));
+            accountCounts[i].setAlignmentX(Component.LEFT_ALIGNMENT);
+            content.add(accountCounts[i], BorderLayout.CENTER);
+
+            GridBagConstraints constraints = new GridBagConstraints();
+            constraints.fill = GridBagConstraints.HORIZONTAL;
+            constraints.weightx = 1;
+            card.add(content, constraints);
+            summary.add(card);
+        }
+        return summary;
+    }
+
+    private void updateAccountSummary() {
+        int[] counts = {accounts.size(), 0, 0};
+        for (Object[] account : accounts) {
+            String status = String.valueOf(account[5]);
+            if ("Active".equalsIgnoreCase(status)) counts[1]++;
+            else if ("Inactive".equalsIgnoreCase(status)) counts[2]++;
+        }
+        for (int i = 0; i < counts.length; i++) {
+            accountCounts[i].setText(String.valueOf(counts[i]));
+        }
+    }
 
     private JPanel createContent() {
 
@@ -152,6 +201,8 @@ public class AdminManageAccountsPanel extends JPanel {
             searchAccounts();
         });
 
+        AdminFormStyle.searchOnEnter(searchField, btnSearch);
+
     controls.add(searchField);
         controls.add(cmbRole);
         controls.add(btnSearch);
@@ -232,6 +283,7 @@ public class AdminManageAccountsPanel extends JPanel {
             });
         }
 
+        updateAccountSummary();
         currentPage = 1;
 
         if(model != null) {

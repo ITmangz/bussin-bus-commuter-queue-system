@@ -153,6 +153,7 @@ public class AdminQueuePanel extends JPanel {
         summary.add(stat("TOTAL NUMBER OF COMMUTERS", lblCommutersImage, new Color(255, 232, 238)));
         summary.add(stat("NUMBER OF AVAILABLE BUSES", lblBusesImage, new Color(255, 245, 210)));
         summary.add(stat("CURRENT QUEUE NUMBER", lblQueueImage, new Color(228, 249, 233)));
+        stats.get(2).setText("— | —");
         upper.add(summary, BorderLayout.NORTH);
 
         JPanel servingRow = transparent(new BorderLayout(14, 0));
@@ -265,9 +266,7 @@ public class AdminQueuePanel extends JPanel {
         searchButton.addActionListener(e -> {
             if (AdminFormStyle.validateSearch(search)) applySearch.run();
         });
-        search.addActionListener(e -> {
-            if (AdminFormStyle.validateSearch(search)) applySearch.run();
-        });
+        AdminFormStyle.searchOnEnter(search, searchButton);
         trips.addActionListener(e -> applySearch.run());
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createEmptyBorder());
@@ -376,9 +375,7 @@ public class AdminQueuePanel extends JPanel {
         searchButton.addActionListener(e -> {
             if (AdminFormStyle.validateSearch(search)) applySearch.run();
         });
-        search.addActionListener(e -> {
-            if (AdminFormStyle.validateSearch(search)) applySearch.run();
-        });
+        AdminFormStyle.searchOnEnter(search, searchButton);
         trips.addActionListener(e -> applySearch.run());
         JScrollPane scroll = new JScrollPane(boardingTable);
         scroll.setBorder(BorderFactory.createEmptyBorder());
@@ -441,7 +438,16 @@ public class AdminQueuePanel extends JPanel {
             }
             stats.get(0).setText(String.valueOf(passengers));
             stats.get(1).setText(String.valueOf(data[1]));
-            stats.get(2).setText(serving == null ? "—" : String.format("P%03d",serving.number()));
+            String[] currentQueues = {"—", "—"};
+            for (int counter = 1; counter <= 2; counter++) {
+                Integer id = paymentStations.get(counter);
+                for (var row : rows) {
+                    if (java.util.Objects.equals(id, row.id()) && row.status().equals("Serving")) {
+                        currentQueues[counter - 1] = String.format("P%03d",row.number());
+                    }
+                }
+            }
+            stats.get(2).setText(currentQueues[0] + " | " + currentQueues[1]);
             number.setText(serving == null ? "—" : String.format("P%03d",serving.number()));
             detailLabels.get("Route").setText(serving == null ? "—" : serving.route());
             detailLabels.get("Bus").setText(serving == null ? "—" : serving.bus());
@@ -484,6 +490,11 @@ public class AdminQueuePanel extends JPanel {
         final boolean hasRow = row != null;
         for (JButton button : actionButtons) button.setEnabled(station() > 0 && !loading && !acting
                 && (!isBoarding() || hasRow || (button.getText().equals("Call Next Queue") && boardingTable.getRowCount() > 0)));
+        for (JButton button : actionButtons) {
+            if (button.getText().equals("Print Ticket")) {
+                button.setEnabled(button.isEnabled() && hasRow && "Paid".equals(row.payment()));
+            }
+        }
         number.setText(row == null ? "—" : String.format(isBoarding() ? "B%03d" : "P%03d", row.number()));
         detailLabels.get("Route").setText(row == null ? "—" : row.route());
         detailLabels.get("Bus").setText(row == null ? "—" : row.bus());
@@ -507,8 +518,7 @@ public class AdminQueuePanel extends JPanel {
         final int selectedStation = station();
         if (action.equals("View Details")) {
             qpal.util.UiTask.run(() -> new qpal.dao.BookingDao().receipt(row.bookingId()), receipt -> {
-                JTextArea text = new JTextArea(receipt.text()); text.setEditable(false);
-                qpal.components.AppDialogs.showMessageDialog(this, text, "Booking Details", JOptionPane.PLAIN_MESSAGE);
+                qpal.components.AppDialogs.showDetailsDialog(this, receipt.detailsText("P"), "Booking Details");
             }, ex -> qpal.components.AppDialogs.showMessageDialog(this, ex.getMessage()));
             return;
         }
@@ -543,8 +553,7 @@ public class AdminQueuePanel extends JPanel {
         var row = stationRow();
         if (row == null) return;        if (action.equals("View Details")) {
             qpal.util.UiTask.run(() -> new qpal.dao.BookingDao().receipt(row.bookingId()), receipt -> {
-                JTextArea text = new JTextArea(receipt.text("B")); text.setEditable(false);
-                qpal.components.AppDialogs.showMessageDialog(this,text,"Boarding Details",JOptionPane.PLAIN_MESSAGE);
+                qpal.components.AppDialogs.showDetailsDialog(this,receipt.detailsText("B"),"Boarding Details");
             }, ex -> qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage()));
         } else if (action.equals("Recall")) {
             announceQueue(action,true,station(),row);

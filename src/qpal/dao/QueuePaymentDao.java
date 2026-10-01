@@ -32,10 +32,23 @@ public class QueuePaymentDao {
         BigDecimal amount;
         try { amount = new BigDecimal(value.trim()).setScale(2, java.math.RoundingMode.UNNECESSARY); }
         catch (RuntimeException ex) { throw new IllegalArgumentException("Enter a valid amount with at most two decimal places."); }
-        if (amount.signum() < 0 || amount.compareTo(new BigDecimal("9999999999.99")) > 0)
-            throw new IllegalArgumentException("Enter an amount between 0 and 9,999,999,999.99.");
+        if (amount.signum() < 0 || amount.compareTo(new BigDecimal("99999.99")) > 0)
+            throw new IllegalArgumentException("Enter an amount between 0 and 99,999.99 (up to 5 digits and 2 decimal places).");
         if (amount.compareTo(total) < 0) throw new IllegalArgumentException("Amount received must cover the total fare.");
         return amount;
+    }
+
+    public void requireBoardingPayment(int queue) throws SQLException {
+        try (Connection c = DbConnection.getConnection()) {
+            ensureTable(c);
+            try (PreparedStatement p = statement(c,"SELECT q.status,pp.receipt_printed,"
+                    + "(SELECT status FROM payments WHERE booking_id=q.booking_id ORDER BY payment_id DESC LIMIT 1) "
+                    + "FROM queue_entries q LEFT JOIN queue_payment_progress pp ON pp.queue_entry_id=q.queue_entry_id "
+                    + "WHERE q.queue_entry_id=?",queue); ResultSet r = p.executeQuery()) {
+                if (!r.next() || "Cancelled".equals(r.getString(1)) || !r.getBoolean(2) || !"Paid".equals(r.getString(3)))
+                    throw new SQLException("Finish Payment and collect the payment receipt before printing boarding tickets.");
+            }
+        }
     }
 
     public void pay(int queue, int station, BigDecimal received) throws SQLException {

@@ -12,12 +12,13 @@ public class DashboardDao {
         public int inactive;
         public int total;
         public int commuters;
-        public String currentQueue = "—";
+        public String currentQueue = "— | —";
         public final List<String[]> departures = new ArrayList<>();
     }
 
     public Summary loadSummary() throws SQLException {
         Summary summary = new Summary();
+        java.util.Map<Integer,Integer> counters = new QueueDao().stations("Payment");
         try (Connection connection = DbConnection.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(
                     "SELECT COUNT(*) FROM booking_passengers bp JOIN queue_entries q ON q.booking_id=bp.booking_id "
@@ -25,9 +26,17 @@ public class DashboardDao {
                 rows.next(); summary.commuters = rows.getInt(1);
             }
             try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT queue_number FROM queue_entries WHERE queue_date=CURRENT_DATE AND status='Serving' ORDER BY queue_number LIMIT 1");
+                    "SELECT queue_entry_id,queue_number FROM queue_entries WHERE queue_date=CURRENT_DATE AND status='Serving'");
                     ResultSet rows = statement.executeQuery()) {
-                if (rows.next()) summary.currentQueue = String.format(java.util.Locale.ROOT,"P%03d",rows.getInt(1));
+                String[] queues = {"—", "—"};
+                while(rows.next()) {
+                    for(int counter = 1; counter <= 2; counter++) {
+                        if(Integer.valueOf(rows.getInt(1)).equals(counters.get(counter))) {
+                            queues[counter - 1] = String.format(java.util.Locale.ROOT,"P%03d",rows.getInt(2));
+                        }
+                    }
+                }
+                summary.currentQueue = queues[0] + " | " + queues[1];
             }
             try (PreparedStatement statement = connection.prepareStatement(
                     "SELECT bus_status, COUNT(*) AS total FROM buses GROUP BY bus_status");

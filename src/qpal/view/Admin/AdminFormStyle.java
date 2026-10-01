@@ -31,6 +31,27 @@ final class AdminFormStyle {
         return false;
     }
 
+    static void searchOnEnter(JTextField field, JButton button) {
+        java.awt.event.KeyListener listener = new java.awt.event.KeyListener() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    button.doClick();
+                }
+            }
+
+            @Override
+            public void keyTyped(java.awt.event.KeyEvent e) {
+            }
+
+            @Override
+            public void keyReleased(java.awt.event.KeyEvent e) {
+            }
+        };
+        field.addKeyListener(listener);
+        button.addKeyListener(listener);
+    }
+
     static void tableFilter(JComboBox<?> combo) {
         combo.putClientProperty("adminTableFilter", Boolean.TRUE);
         Dimension size = new Dimension(140, 34);

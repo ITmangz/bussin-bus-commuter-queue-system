@@ -70,13 +70,13 @@ public class EditAccountPanel {
                         return;
                     }
 
-                    if (getLength() + str.length() <= 100) {
+                    if (getLength() + str.length() <= 50) {
                         super.insertString(offs, str, a);
 
                     } else {
                         txtName.setText("");
                         Toolkit.getDefaultToolkit().beep();
-                        qpal.components.AppDialogs.showMessageDialog(null, "Name must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(null, "Name must not exceed 50 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
                     }
                 }
             });
