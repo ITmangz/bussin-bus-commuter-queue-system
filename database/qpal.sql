@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 26, 2026 at 05:08 PM
+-- Generation Time: Oct 02, 2026 at 09:05 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -52,6 +52,72 @@ INSERT INTO `accounts` (`id`, `name`, `email`, `password`, `role`, `status`, `pr
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `activity_logs`
+--
+
+CREATE TABLE `activity_logs` (
+  `log_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `email` varchar(100) NOT NULL,
+  `role` enum('Admin','Employee') NOT NULL,
+  `module` varchar(100) NOT NULL,
+  `action` varchar(50) NOT NULL,
+  `description` text NOT NULL,
+  `account_id` int(11) DEFAULT NULL,
+  `user_name` varchar(100) NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `activity_logs`
+--
+
+INSERT INTO `activity_logs` (`log_id`, `created_at`, `email`, `role`, `module`, `action`, `description`, `account_id`, `user_name`) VALUES
+(1, '2026-10-02 16:02:41', 'enzo', 'Admin', 'Authentication', 'Login', 'User logged in to the system.', 1, 'Enzo'),
+(2, '2026-10-02 17:58:05', 'enzo', 'Admin', 'Authentication', 'Login', 'User logged in to the system.', 1, 'Enzo'),
+(3, '2026-10-02 18:43:56', 'enzo', 'Admin', 'Authentication', 'Login', 'User logged in to the system.', 1, 'Enzo'),
+(4, '2026-10-02 18:45:12', 'enzo', 'Admin', 'Authentication', 'Login', 'User logged in to the system.', 1, 'Enzo'),
+(5, '2026-10-02 18:45:26', 'enzo', 'Admin', 'Authentication', 'Logout', 'User logged out of the system.', 1, 'Enzo'),
+(6, '2026-10-02 18:45:30', 'enzo', 'Admin', 'Authentication', 'Login', 'User logged in to the system.', 1, 'Enzo'),
+(7, '2026-10-02 18:46:14', 'enzo', 'Admin', 'Authentication', 'Login', 'User logged in to the system.', 1, 'Enzo'),
+(8, '2026-10-02 18:48:22', 'enzo', 'Admin', 'Authentication', 'Logout', 'User logged out of the system.', 1, 'Enzo'),
+(9, '2026-10-02 18:53:09', 'enzo', 'Admin', 'Authentication', 'Login', 'User logged in to the system.', 1, 'Enzo'),
+(10, '2026-10-02 18:57:39', 'enzo', 'Admin', 'Authentication', 'Login', 'User logged in to the system.', 1, 'Enzo'),
+(11, '2026-10-02 19:02:37', 'enzo', 'Admin', 'Authentication', 'Login', 'User logged in to the system.', 1, 'Enzo'),
+(12, '2026-10-02 19:05:10', 'enzo', 'Admin', 'Authentication', 'Logout', 'User logged out of the system.', 1, 'Enzo');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `boarding_gates`
+--
+
+CREATE TABLE `boarding_gates` (
+  `gate` int(11) NOT NULL,
+  `trip_id` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `boarding_gates`
+--
+
+INSERT INTO `boarding_gates` (`gate`, `trip_id`) VALUES
+(2, NULL),
+(1, 20);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `boarding_skips`
+--
+
+CREATE TABLE `boarding_skips` (
+  `queue_entry_id` int(11) NOT NULL,
+  `skipped_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `bookings`
 --
 
@@ -90,8 +156,37 @@ INSERT INTO `bookings` (`booking_id`, `booking_reference`, `trip_id`, `total_amo
 (24, 'BK-593ab0c51e524a88bfdf6bf88e', 13, 500.00, 'Pending', '2026-09-24 15:26:22'),
 (25, 'BK-0e32fc34ac12408a90cb39fcf1', 13, 500.00, 'Pending', '2026-09-24 15:26:53'),
 (26, 'BK-6ed04e0a75b942bb80b6e2ff2c', 11, 300.00, 'Pending', '2026-09-24 16:38:11'),
-(27, 'BK-dfd34b3d0fed44eb8f1e9c3eb2', 14, 300.00, 'Pending', '2026-09-24 17:08:08'),
-(28, 'BK-ca7aa211954f43e491594f1c31', 14, 150.00, 'Pending', '2026-09-24 17:08:54');
+(29, 'BK-d198fc654655418dab5c0eede4', 15, 50.00, 'Pending', '2026-09-27 05:48:10'),
+(30, 'BK-4940af1d04b045029c2d9fb78b', 16, 50.00, 'Pending', '2026-09-28 23:20:05'),
+(31, 'BK-731b617ea0404c70ba3626c447', 19, 500.00, 'Completed', '2026-10-01 00:41:38'),
+(32, 'BK-10326c9a2fef43b59b002fc26d', 19, 50.00, 'Completed', '2026-10-01 01:22:52'),
+(33, 'BK-eb9c46a35ee14811b9341d82fa', 19, 50.00, 'Completed', '2026-10-01 01:40:53'),
+(34, 'BK-5c5399dd451d43e88f8cf93de8', 19, 50.00, 'Completed', '2026-10-01 01:52:38'),
+(35, 'BK-0c5389c81abb43bb8d0f1b9c0b', 20, 50.00, 'Completed', '2026-10-01 02:31:10'),
+(36, 'BK-6e5a08a533a9476b9ce7e306da', 20, 100.00, 'Completed', '2026-10-01 02:31:43'),
+(37, 'BK-6e126e54067e4da8aa6ad52849', 20, 50.00, 'Completed', '2026-10-01 02:32:08'),
+(38, 'BK-96382466205448eda9fe6c04a1', 20, 50.00, 'Completed', '2026-10-01 03:30:58'),
+(39, 'BK-712d7f51808a45498568893913', 20, 50.00, 'No-show', '2026-10-01 04:22:49'),
+(40, 'BK-770ec008b2ee4731b03232ec37', 20, 50.00, 'No-show', '2026-10-01 04:23:12'),
+(41, 'BK-53a65af377ce47568bbad09448', 20, 150.00, 'No-show', '2026-10-01 04:23:34'),
+(42, 'BK-70766ad8e43a4c1ab80ec03cb2', 20, 50.00, 'Completed', '2026-10-01 04:23:55'),
+(43, 'BK-1044decd9f82461eb3012679b2', 20, 50.00, 'Completed', '2026-10-01 04:24:13'),
+(44, 'BK-50faa97b5b104a0daf18a1b093', 20, 50.00, 'Completed', '2026-10-01 04:24:34'),
+(45, 'BK-3d0529a6393f4f7d9090b55e12', 20, 50.00, 'No-show', '2026-10-01 04:24:50'),
+(46, 'BK-3604edf3bec14b11a47a929656', 20, 50.00, 'Completed', '2026-10-01 04:25:06'),
+(47, 'BK-82fc08176d704ef89720bcdeab', 20, 50.00, 'Completed', '2026-10-01 04:25:26'),
+(48, 'BK-482df2b1c6e04a0aa93245399b', 20, 50.00, 'Completed', '2026-10-01 04:25:44'),
+(49, 'BK-2cf8104470c242b781d0cc945d', 20, 150.00, 'Completed', '2026-10-01 18:15:31'),
+(50, 'BK-b2b5bfd88a1a45f49b9557c53c', 21, 60.00, 'Pending', '2026-10-01 18:33:16'),
+(51, 'BK-c850a777692c4bcda022efa29a', 21, 180.00, 'Pending', '2026-10-01 18:34:50'),
+(52, 'BK-106823b0619c46aa8abbb675b6', 21, 60.00, 'Pending', '2026-10-01 19:07:53'),
+(53, 'BK-a87b7072c32349a4ab0a0ce7da', 21, 600.00, 'Pending', '2026-10-01 20:15:40'),
+(54, 'BK-642ddf791dfa424ab6709138a2', 21, 600.00, 'Pending', '2026-10-01 20:16:17'),
+(55, 'BK-ad15c6c2cfd34e6a8f9797aee6', 21, 600.00, 'Pending', '2026-10-01 20:16:54'),
+(56, 'BK-a5300e5a1235496985c5b0e965', 21, 480.00, 'Pending', '2026-10-01 20:17:37'),
+(57, 'BK-88887ca0e68d47eb93fe9ac63e', 21, 120.00, 'Pending', '2026-10-01 20:24:46'),
+(58, 'BK-2d4c072fbdd448dbbe4948b2da', 24, 500.00, 'Completed', '2026-10-02 04:14:06'),
+(59, 'BK-99465ed340b54430932c1d4ee7', 25, 50.00, 'Completed', '2026-10-02 17:49:24');
 
 -- --------------------------------------------------------
 
@@ -209,21 +304,97 @@ INSERT INTO `booking_passengers` (`booking_passenger_id`, `booking_id`, `trip_id
 (116, 26, 11, 'Passenger 8', 'Student', 30.00),
 (117, 26, 11, 'Passenger 9', 'Student', 30.00),
 (118, 26, 11, 'Passenger 10', 'Student', 30.00),
-(119, 27, 14, 'Passenger 1', 'Student', 30.00),
-(120, 27, 14, 'Passenger 2', 'Student', 30.00),
-(121, 27, 14, 'Passenger 3', 'Student', 30.00),
-(122, 27, 14, 'Passenger 4', 'Student', 30.00),
-(123, 27, 14, 'Passenger 5', 'Student', 30.00),
-(124, 27, 14, 'Passenger 6', 'Student', 30.00),
-(125, 27, 14, 'Passenger 7', 'Student', 30.00),
-(126, 27, 14, 'Passenger 8', 'Student', 30.00),
-(127, 27, 14, 'Passenger 9', 'Student', 30.00),
-(128, 27, 14, 'Passenger 10', 'Student', 30.00),
-(129, 28, 14, 'Passenger 1', 'Student', 30.00),
-(130, 28, 14, 'Passenger 2', 'Student', 30.00),
-(131, 28, 14, 'Passenger 3', 'Student', 30.00),
-(132, 28, 14, 'Passenger 4', 'Student', 30.00),
-(133, 28, 14, 'Passenger 5', 'Student', 30.00);
+(134, 29, 15, 'Passenger 1', 'Student', 50.00),
+(135, 30, 16, 'Passenger 1', 'Regular', 50.00),
+(136, 31, 19, 'Passenger 1', 'Regular', 50.00),
+(137, 31, 19, 'Passenger 2', 'Regular', 50.00),
+(138, 31, 19, 'Passenger 3', 'Regular', 50.00),
+(139, 31, 19, 'Passenger 4', 'Regular', 50.00),
+(140, 31, 19, 'Passenger 5', 'Regular', 50.00),
+(141, 31, 19, 'Passenger 6', 'Regular', 50.00),
+(142, 31, 19, 'Passenger 7', 'Regular', 50.00),
+(143, 31, 19, 'Passenger 8', 'Regular', 50.00),
+(144, 31, 19, 'Passenger 9', 'Regular', 50.00),
+(145, 31, 19, 'Passenger 10', 'Regular', 50.00),
+(146, 32, 19, 'Passenger 1', 'Regular', 50.00),
+(147, 33, 19, 'Passenger 1', 'Regular', 50.00),
+(148, 34, 19, 'Passenger 1', 'Regular', 50.00),
+(149, 35, 20, 'Passenger 1', 'Regular', 50.00),
+(150, 36, 20, 'Passenger 1', 'Regular', 50.00),
+(151, 36, 20, 'Passenger 2', 'Regular', 50.00),
+(152, 37, 20, 'Passenger 1', 'Student', 50.00),
+(153, 38, 20, 'Passenger 1', 'Regular', 50.00),
+(154, 39, 20, 'Passenger 1', 'Regular', 50.00),
+(155, 40, 20, 'Passenger 1', 'Regular', 50.00),
+(156, 41, 20, 'Passenger 1', 'Regular', 50.00),
+(157, 41, 20, 'Passenger 2', 'Regular', 50.00),
+(158, 41, 20, 'Passenger 3', 'Regular', 50.00),
+(159, 42, 20, 'Passenger 1', 'Regular', 50.00),
+(160, 43, 20, 'Passenger 1', 'Regular', 50.00),
+(161, 44, 20, 'Passenger 1', 'Regular', 50.00),
+(162, 45, 20, 'Passenger 1', 'Regular', 50.00),
+(163, 46, 20, 'Passenger 1', 'Regular', 50.00),
+(164, 47, 20, 'Passenger 1', 'Regular', 50.00),
+(165, 48, 20, 'Passenger 1', 'Senior', 50.00),
+(166, 49, 20, 'Passenger 1', 'Regular', 50.00),
+(167, 49, 20, 'Passenger 2', 'Regular', 50.00),
+(168, 49, 20, 'Passenger 3', 'Regular', 50.00),
+(169, 50, 21, 'Passenger 1', 'Regular', 60.00),
+(170, 51, 21, 'Passenger 1', 'Student', 60.00),
+(171, 51, 21, 'Passenger 2', 'Student', 60.00),
+(172, 51, 21, 'Passenger 3', 'Student', 60.00),
+(173, 52, 21, 'Passenger 1', 'Regular', 60.00),
+(174, 53, 21, 'Passenger 1', 'Student', 60.00),
+(175, 53, 21, 'Passenger 2', 'Student', 60.00),
+(176, 53, 21, 'Passenger 3', 'Student', 60.00),
+(177, 53, 21, 'Passenger 4', 'Student', 60.00),
+(178, 53, 21, 'Passenger 5', 'Student', 60.00),
+(179, 53, 21, 'Passenger 6', 'Student', 60.00),
+(180, 53, 21, 'Passenger 7', 'Student', 60.00),
+(181, 53, 21, 'Passenger 8', 'Student', 60.00),
+(182, 53, 21, 'Passenger 9', 'Student', 60.00),
+(183, 53, 21, 'Passenger 10', 'Student', 60.00),
+(184, 54, 21, 'Passenger 1', 'Regular', 60.00),
+(185, 54, 21, 'Passenger 2', 'Regular', 60.00),
+(186, 54, 21, 'Passenger 3', 'Regular', 60.00),
+(187, 54, 21, 'Passenger 4', 'Regular', 60.00),
+(188, 54, 21, 'Passenger 5', 'Regular', 60.00),
+(189, 54, 21, 'Passenger 6', 'Regular', 60.00),
+(190, 54, 21, 'Passenger 7', 'Regular', 60.00),
+(191, 54, 21, 'Passenger 8', 'Regular', 60.00),
+(192, 54, 21, 'Passenger 9', 'Regular', 60.00),
+(193, 54, 21, 'Passenger 10', 'Regular', 60.00),
+(194, 55, 21, 'Passenger 1', 'Regular', 60.00),
+(195, 55, 21, 'Passenger 2', 'Regular', 60.00),
+(196, 55, 21, 'Passenger 3', 'Regular', 60.00),
+(197, 55, 21, 'Passenger 4', 'Regular', 60.00),
+(198, 55, 21, 'Passenger 5', 'Regular', 60.00),
+(199, 55, 21, 'Passenger 6', 'Regular', 60.00),
+(200, 55, 21, 'Passenger 7', 'Regular', 60.00),
+(201, 55, 21, 'Passenger 8', 'Regular', 60.00),
+(202, 55, 21, 'Passenger 9', 'Regular', 60.00),
+(203, 55, 21, 'Passenger 10', 'Regular', 60.00),
+(204, 56, 21, 'Passenger 1', 'Regular', 60.00),
+(205, 56, 21, 'Passenger 2', 'Regular', 60.00),
+(206, 56, 21, 'Passenger 3', 'Regular', 60.00),
+(207, 56, 21, 'Passenger 4', 'Regular', 60.00),
+(208, 56, 21, 'Passenger 5', 'Regular', 60.00),
+(209, 56, 21, 'Passenger 6', 'Regular', 60.00),
+(210, 56, 21, 'Passenger 7', 'Regular', 60.00),
+(211, 56, 21, 'Passenger 8', 'Regular', 60.00),
+(212, 57, 21, 'Passenger 1', 'Student', 60.00),
+(213, 57, 21, 'Passenger 2', 'Student', 60.00),
+(214, 58, 24, 'Passenger 1', 'Regular', 50.00),
+(215, 58, 24, 'Passenger 2', 'Regular', 50.00),
+(216, 58, 24, 'Passenger 3', 'Regular', 50.00),
+(217, 58, 24, 'Passenger 4', 'Regular', 50.00),
+(218, 58, 24, 'Passenger 5', 'Regular', 50.00),
+(219, 58, 24, 'Passenger 6', 'Regular', 50.00),
+(220, 58, 24, 'Passenger 7', 'Regular', 50.00),
+(221, 58, 24, 'Passenger 8', 'Regular', 50.00),
+(222, 58, 24, 'Passenger 9', 'Regular', 50.00),
+(223, 58, 24, 'Passenger 10', 'Regular', 50.00),
+(224, 59, 25, 'Passenger 1', 'Regular', 50.00);
 
 -- --------------------------------------------------------
 
@@ -246,12 +417,15 @@ CREATE TABLE `buses` (
 INSERT INTO `buses` (`bus_id`, `bus_number`, `seat_capacity`, `available_seats`, `bus_status`) VALUES
 (5, 'Bus01', 40, 40, 'Available'),
 (6, 'Bus02', 20, 20, 'Available'),
-(7, 'Bus03', 20, 20, 'Available'),
+(7, 'Bus03', 20, 20, 'Maintenance'),
 (8, 'Bus04', 30, 30, 'Available'),
 (9, 'Bus05', 40, 40, 'Available'),
 (10, 'Bus06', 20, 20, 'Available'),
 (11, 'Bus07', 40, 40, 'Available'),
-(12, 'Bus10', 45, 45, 'Available');
+(12, 'Bus10', 45, 45, 'Available'),
+(13, 'Bus012', 20, 20, 'Maintenance'),
+(14, 'Bus013', 25, 25, 'Available'),
+(15, 'Bus1', 20, 20, 'Available');
 
 -- --------------------------------------------------------
 
@@ -297,8 +471,37 @@ INSERT INTO `payments` (`payment_id`, `trip_id`, `commuter_name`, `amount`, `pay
 (24, 13, 'Passenger 1', 500.00, 'Cash', 'Pending', '2026-09-24 15:26:22', NULL, 24),
 (25, 13, 'Passenger 1', 500.00, 'Cash', 'Pending', '2026-09-24 15:26:53', NULL, 25),
 (26, 11, 'Passenger 1', 300.00, 'Cash', 'Pending', '2026-09-24 16:38:11', NULL, 26),
-(27, 14, 'Passenger 1', 300.00, 'Cash', 'Pending', '2026-09-24 17:08:08', NULL, 27),
-(28, 14, 'Passenger 1', 150.00, 'Cash', 'Pending', '2026-09-24 17:08:54', NULL, 28);
+(29, 15, 'Passenger 1', 50.00, 'Cash', 'Pending', '2026-09-27 05:48:10', NULL, 29),
+(30, 16, 'Passenger 1', 50.00, 'Cash', 'Pending', '2026-09-28 23:20:05', NULL, 30),
+(31, 19, 'Passenger 1', 500.00, 'Cash', 'Paid', '2026-10-01 00:41:38', '2026-10-01 00:47:58', 31),
+(32, 19, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-01 01:22:52', '2026-10-01 01:23:41', 32),
+(33, 19, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-01 01:40:53', '2026-10-01 01:53:36', 33),
+(34, 19, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-01 01:52:38', '2026-10-01 02:48:57', 34),
+(35, 20, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-01 02:31:10', '2026-10-01 03:27:29', 35),
+(36, 20, 'Passenger 1', 100.00, 'Cash', 'Paid', '2026-10-01 02:31:43', '2026-10-01 02:54:33', 36),
+(37, 20, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-01 02:32:08', '2026-10-01 03:10:51', 37),
+(38, 20, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-01 03:30:58', '2026-10-01 03:31:45', 38),
+(39, 20, 'Passenger 1', 50.00, 'Cash', 'Cancelled', '2026-10-01 04:22:49', NULL, 39),
+(40, 20, 'Passenger 1', 50.00, 'Cash', 'Cancelled', '2026-10-01 04:23:12', NULL, 40),
+(41, 20, 'Passenger 1', 150.00, 'Cash', 'Cancelled', '2026-10-01 04:23:34', NULL, 41),
+(42, 20, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-01 04:23:55', '2026-10-01 17:44:36', 42),
+(43, 20, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-01 04:24:13', '2026-10-01 18:12:13', 43),
+(44, 20, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-01 04:24:34', '2026-10-01 18:37:50', 44),
+(45, 20, 'Passenger 1', 50.00, 'Cash', 'Cancelled', '2026-10-01 04:24:50', NULL, 45),
+(46, 20, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-01 04:25:06', '2026-10-01 19:10:02', 46),
+(47, 20, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-01 04:25:26', '2026-10-01 20:31:22', 47),
+(48, 20, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-01 04:25:44', '2026-10-01 20:32:28', 48),
+(49, 20, 'Passenger 1', 150.00, 'Cash', 'Paid', '2026-10-01 18:15:31', '2026-10-01 20:33:30', 49),
+(50, 21, 'Passenger 1', 60.00, 'Cash', 'Pending', '2026-10-01 18:33:16', NULL, 50),
+(51, 21, 'Passenger 1', 180.00, 'Cash', 'Pending', '2026-10-01 18:34:50', NULL, 51),
+(52, 21, 'Passenger 1', 60.00, 'Cash', 'Pending', '2026-10-01 19:07:53', NULL, 52),
+(53, 21, 'Passenger 1', 600.00, 'Cash', 'Pending', '2026-10-01 20:15:40', NULL, 53),
+(54, 21, 'Passenger 1', 600.00, 'Cash', 'Pending', '2026-10-01 20:16:17', NULL, 54),
+(55, 21, 'Passenger 1', 600.00, 'Cash', 'Pending', '2026-10-01 20:16:55', NULL, 55),
+(56, 21, 'Passenger 1', 480.00, 'Cash', 'Pending', '2026-10-01 20:17:37', NULL, 56),
+(57, 21, 'Passenger 1', 120.00, 'GCash', 'Pending', '2026-10-01 20:24:46', NULL, 57),
+(58, 24, 'Passenger 1', 500.00, 'Cash', 'Paid', '2026-10-02 04:14:06', '2026-10-02 04:15:42', 58),
+(59, 25, 'Passenger 1', 50.00, 'Cash', 'Paid', '2026-10-02 17:49:24', '2026-10-02 17:50:47', 59);
 
 -- --------------------------------------------------------
 
@@ -329,7 +532,11 @@ CREATE TABLE `queue_daily_counters` (
 INSERT INTO `queue_daily_counters` (`queue_date`, `last_queue_number`) VALUES
 ('2026-09-21', 1),
 ('2026-09-22', 4),
-('2026-09-24', 23);
+('2026-09-24', 23),
+('2026-09-27', 1),
+('2026-09-28', 1),
+('2026-10-01', 27),
+('2026-10-02', 2);
 
 -- --------------------------------------------------------
 
@@ -374,8 +581,94 @@ INSERT INTO `queue_entries` (`queue_entry_id`, `booking_id`, `queue_date`, `queu
 (24, 24, '2026-09-24', 19, 'Waiting', '2026-09-24 15:26:22', NULL, NULL),
 (25, 25, '2026-09-24', 20, 'Waiting', '2026-09-24 15:26:53', NULL, NULL),
 (26, 26, '2026-09-24', 21, 'Waiting', '2026-09-24 16:38:11', NULL, NULL),
-(27, 27, '2026-09-24', 22, 'Waiting', '2026-09-24 17:08:08', NULL, NULL),
-(28, 28, '2026-09-24', 23, 'Waiting', '2026-09-24 17:08:54', NULL, NULL);
+(29, 29, '2026-09-27', 1, 'Waiting', '2026-09-27 05:48:10', NULL, NULL),
+(30, 30, '2026-09-28', 1, 'Waiting', '2026-09-28 23:20:05', NULL, NULL),
+(31, 31, '2026-10-01', 1, 'Completed', '2026-10-01 00:41:38', '2026-10-01 00:42:01', '2026-10-01 01:25:11'),
+(32, 32, '2026-10-01', 2, 'Completed', '2026-10-01 01:22:52', '2026-10-01 01:23:23', '2026-10-01 01:24:30'),
+(33, 33, '2026-10-01', 3, 'Completed', '2026-10-01 01:40:53', '2026-10-01 01:53:20', '2026-10-01 01:56:30'),
+(34, 34, '2026-10-01', 4, 'Completed', '2026-10-01 01:52:38', '2026-10-01 01:58:52', '2026-10-01 02:49:26'),
+(35, 35, '2026-10-01', 5, 'Completed', '2026-10-01 02:31:10', '2026-10-01 02:49:28', '2026-10-01 18:09:16'),
+(36, 36, '2026-10-01', 6, 'Completed', '2026-10-01 02:31:43', '2026-10-01 02:54:09', '2026-10-01 02:54:57'),
+(37, 37, '2026-10-01', 7, 'Completed', '2026-10-01 02:32:08', '2026-10-01 03:11:06', '2026-10-01 03:11:25'),
+(38, 38, '2026-10-01', 8, 'Completed', '2026-10-01 03:30:58', '2026-10-01 03:31:57', '2026-10-01 03:32:09'),
+(39, 39, '2026-10-01', 9, 'No-show', '2026-10-01 04:22:49', '2026-10-01 04:53:44', NULL),
+(40, 40, '2026-10-01', 10, 'No-show', '2026-10-01 04:23:12', '2026-10-01 14:02:21', NULL),
+(41, 41, '2026-10-01', 11, 'No-show', '2026-10-01 04:23:34', '2026-10-01 14:06:50', NULL),
+(42, 42, '2026-10-01', 12, 'Completed', '2026-10-01 04:23:55', '2026-10-01 17:44:01', '2026-10-01 17:44:55'),
+(43, 43, '2026-10-01', 13, 'Completed', '2026-10-01 04:24:13', '2026-10-01 18:12:19', '2026-10-01 19:09:16'),
+(44, 44, '2026-10-01', 14, 'Completed', '2026-10-01 04:24:34', '2026-10-01 18:36:36', '2026-10-01 18:38:42'),
+(45, 45, '2026-10-01', 15, 'No-show', '2026-10-01 04:24:50', '2026-10-01 18:38:52', NULL),
+(46, 46, '2026-10-01', 16, 'Completed', '2026-10-01 04:25:06', '2026-10-01 19:10:24', '2026-10-01 19:10:37'),
+(47, 47, '2026-10-01', 17, 'Completed', '2026-10-01 04:25:26', '2026-10-01 20:30:13', '2026-10-01 20:32:10'),
+(48, 48, '2026-10-01', 18, 'Completed', '2026-10-01 04:25:44', '2026-10-01 20:32:17', '2026-10-01 20:32:58'),
+(49, 49, '2026-10-01', 19, 'Completed', '2026-10-01 18:15:31', '2026-10-01 20:33:14', '2026-10-01 20:34:26'),
+(50, 50, '2026-10-01', 20, 'Waiting', '2026-10-01 18:33:16', NULL, NULL),
+(51, 51, '2026-10-01', 21, 'Waiting', '2026-10-01 18:34:50', NULL, NULL),
+(52, 52, '2026-10-01', 22, 'Waiting', '2026-10-01 19:07:53', NULL, NULL),
+(53, 53, '2026-10-01', 23, 'Waiting', '2026-10-01 20:15:41', NULL, NULL),
+(54, 54, '2026-10-01', 24, 'Waiting', '2026-10-01 20:16:17', NULL, NULL),
+(55, 55, '2026-10-01', 25, 'Waiting', '2026-10-01 20:16:55', NULL, NULL),
+(56, 56, '2026-10-01', 26, 'Waiting', '2026-10-01 20:17:37', NULL, NULL),
+(57, 57, '2026-10-01', 27, 'Waiting', '2026-10-01 20:24:46', NULL, NULL),
+(58, 58, '2026-10-02', 1, 'Completed', '2026-10-02 04:14:06', '2026-10-02 04:15:26', '2026-10-02 04:16:22'),
+(59, 59, '2026-10-02', 2, 'Completed', '2026-10-02 17:49:24', '2026-10-02 17:50:27', '2026-10-02 17:50:58');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `queue_payment_progress`
+--
+
+CREATE TABLE `queue_payment_progress` (
+  `queue_entry_id` int(11) NOT NULL,
+  `received` decimal(12,2) DEFAULT NULL,
+  `receipt_printed` tinyint(1) NOT NULL DEFAULT 0,
+  `tickets_printed` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `queue_payment_progress`
+--
+
+INSERT INTO `queue_payment_progress` (`queue_entry_id`, `received`, `receipt_printed`, `tickets_printed`) VALUES
+(31, 800.00, 1, 1),
+(32, 500.00, 1, 1),
+(33, 500.00, 1, 1),
+(34, 500.00, 1, 1),
+(35, 400.00, 1, 1),
+(36, 500.00, 1, 1),
+(37, 400.00, 1, 1),
+(38, 50.00, 1, 1),
+(42, 500.00, 1, 1),
+(43, 400.00, 1, 1),
+(44, 1000.00, 1, 1),
+(46, 50.00, 1, 1),
+(47, 100.00, 1, 1),
+(48, 100.00, 1, 1),
+(49, 400.00, 1, 1),
+(58, 1000.00, 1, 1),
+(59, 50.00, 1, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `queue_stations`
+--
+
+CREATE TABLE `queue_stations` (
+  `kind` varchar(16) NOT NULL,
+  `station` int(11) NOT NULL,
+  `queue_entry_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `queue_stations`
+--
+
+INSERT INTO `queue_stations` (`kind`, `station`, `queue_entry_id`) VALUES
+('Boarding', 1, 36),
+('Payment', 2, 45),
+('Payment', 1, 59);
 
 -- --------------------------------------------------------
 
@@ -400,7 +693,7 @@ INSERT INTO `routes` (`route_id`, `origin`, `destination`, `fare`, `status`) VAL
 (2, 'PITX', 'General Mariano Alvarez (GMA)', 0.00, 'Active'),
 (3, 'PITX', 'Trece Martires', 0.00, 'Active'),
 (4, 'PITX', 'Alfonso', 50.00, 'Active'),
-(5, 'PITX', 'Amadeo', 30.00, 'Active'),
+(5, 'PITX', 'Amadeo', 433.00, 'Active'),
 (6, 'PITX', 'Mendez', 0.00, 'Active'),
 (7, 'PITX', 'Silang', 0.00, 'Active'),
 (8, 'PITX', 'Tagaytay', 0.00, 'Active'),
@@ -411,7 +704,7 @@ INSERT INTO `routes` (`route_id`, `origin`, `destination`, `fare`, `status`) VAL
 (13, 'PITX', 'Lancaster City', 0.00, 'Active'),
 (14, 'PITX', 'Molino', 0.00, 'Active'),
 (15, 'PITX', 'Paliparan', 0.00, 'Active'),
-(16, 'PITX', 'Tanza', 0.00, 'Active'),
+(16, 'PITX', 'Tanza', 60.00, 'Active'),
 (17, 'PITX', 'Balibago', 0.00, 'Active'),
 (18, 'PITX', 'Sta. Cruz', 0.00, 'Active'),
 (19, 'PITX', 'Batangas City', 0.00, 'Active'),
@@ -543,21 +836,97 @@ INSERT INTO `seat_reservations` (`seat_reservation_id`, `trip_id`, `booking_pass
 (116, 11, 116, 24, 'Active', '2026-09-24 16:38:11'),
 (117, 11, 117, 20, 'Active', '2026-09-24 16:38:11'),
 (118, 11, 118, 19, 'Active', '2026-09-24 16:38:11'),
-(119, 14, 119, 10, 'Active', '2026-09-24 17:08:08'),
-(120, 14, 120, 2, 'Active', '2026-09-24 17:08:08'),
-(121, 14, 121, 1, 'Active', '2026-09-24 17:08:08'),
-(122, 14, 122, 9, 'Active', '2026-09-24 17:08:08'),
-(123, 14, 123, 7, 'Active', '2026-09-24 17:08:08'),
-(124, 14, 124, 4, 'Active', '2026-09-24 17:08:08'),
-(125, 14, 125, 8, 'Active', '2026-09-24 17:08:08'),
-(126, 14, 126, 3, 'Active', '2026-09-24 17:08:08'),
-(127, 14, 127, 11, 'Active', '2026-09-24 17:08:08'),
-(128, 14, 128, 12, 'Active', '2026-09-24 17:08:08'),
-(129, 14, 129, 6, 'Active', '2026-09-24 17:08:54'),
-(130, 14, 130, 5, 'Active', '2026-09-24 17:08:54'),
-(131, 14, 131, 13, 'Active', '2026-09-24 17:08:54'),
-(132, 14, 132, 14, 'Active', '2026-09-24 17:08:54'),
-(133, 14, 133, 15, 'Active', '2026-09-24 17:08:54');
+(134, 15, 134, 6, 'Active', '2026-09-27 05:48:10'),
+(135, 16, 135, 6, 'Active', '2026-09-28 23:20:05'),
+(136, 19, 136, 1, 'Active', '2026-10-01 00:41:38'),
+(137, 19, 137, 2, 'Active', '2026-10-01 00:41:38'),
+(138, 19, 138, 5, 'Active', '2026-10-01 00:41:38'),
+(139, 19, 139, 6, 'Active', '2026-10-01 00:41:38'),
+(140, 19, 140, 10, 'Active', '2026-10-01 00:41:38'),
+(141, 19, 141, 9, 'Active', '2026-10-01 00:41:38'),
+(142, 19, 142, 13, 'Active', '2026-10-01 00:41:38'),
+(143, 19, 143, 14, 'Active', '2026-10-01 00:41:38'),
+(144, 19, 144, 3, 'Active', '2026-10-01 00:41:38'),
+(145, 19, 145, 4, 'Active', '2026-10-01 00:41:38'),
+(146, 19, 146, 7, 'Active', '2026-10-01 01:22:52'),
+(147, 19, 147, 11, 'Active', '2026-10-01 01:40:53'),
+(148, 19, 148, 8, 'Active', '2026-10-01 01:52:38'),
+(149, 20, 149, 10, 'Active', '2026-10-01 02:31:10'),
+(150, 20, 150, 9, 'Active', '2026-10-01 02:31:43'),
+(151, 20, 151, 6, 'Active', '2026-10-01 02:31:43'),
+(152, 20, 152, 1, 'Active', '2026-10-01 02:32:08'),
+(153, 20, 153, 7, 'Active', '2026-10-01 03:30:58'),
+(154, 20, 154, 15, 'Expired', '2026-10-01 04:22:49'),
+(155, 20, 155, 16, 'Expired', '2026-10-01 04:23:12'),
+(156, 20, 156, 12, 'Expired', '2026-10-01 04:23:34'),
+(157, 20, 157, 8, 'Expired', '2026-10-01 04:23:34'),
+(158, 20, 158, 11, 'Expired', '2026-10-01 04:23:34'),
+(159, 20, 159, 3, 'Active', '2026-10-01 04:23:55'),
+(160, 20, 160, 4, 'Active', '2026-10-01 04:24:13'),
+(161, 20, 161, 14, 'Active', '2026-10-01 04:24:34'),
+(162, 20, 162, 13, 'Expired', '2026-10-01 04:24:50'),
+(163, 20, 163, 5, 'Active', '2026-10-01 04:25:06'),
+(164, 20, 164, 2, 'Active', '2026-10-01 04:25:26'),
+(165, 20, 165, 19, 'Active', '2026-10-01 04:25:44'),
+(166, 20, 166, 20, 'Active', '2026-10-01 18:15:31'),
+(167, 20, 167, 24, 'Active', '2026-10-01 18:15:31'),
+(168, 20, 168, 23, 'Active', '2026-10-01 18:15:31'),
+(169, 21, 169, 45, 'Active', '2026-10-01 18:33:16'),
+(170, 21, 170, 6, 'Active', '2026-10-01 18:34:50'),
+(171, 21, 171, 10, 'Active', '2026-10-01 18:34:50'),
+(172, 21, 172, 9, 'Active', '2026-10-01 18:34:50'),
+(173, 21, 173, 14, 'Active', '2026-10-01 19:07:53'),
+(174, 21, 174, 5, 'Active', '2026-10-01 20:15:40'),
+(175, 21, 175, 1, 'Active', '2026-10-01 20:15:40'),
+(176, 21, 176, 2, 'Active', '2026-10-01 20:15:40'),
+(177, 21, 177, 3, 'Active', '2026-10-01 20:15:40'),
+(178, 21, 178, 4, 'Active', '2026-10-01 20:15:40'),
+(179, 21, 179, 7, 'Active', '2026-10-01 20:15:40'),
+(180, 21, 180, 8, 'Active', '2026-10-01 20:15:40'),
+(181, 21, 181, 11, 'Active', '2026-10-01 20:15:40'),
+(182, 21, 182, 12, 'Active', '2026-10-01 20:15:40'),
+(183, 21, 183, 13, 'Active', '2026-10-01 20:15:40'),
+(184, 21, 184, 15, 'Active', '2026-10-01 20:16:17'),
+(185, 21, 185, 16, 'Active', '2026-10-01 20:16:17'),
+(186, 21, 186, 19, 'Active', '2026-10-01 20:16:17'),
+(187, 21, 187, 23, 'Active', '2026-10-01 20:16:17'),
+(188, 21, 188, 20, 'Active', '2026-10-01 20:16:17'),
+(189, 21, 189, 24, 'Active', '2026-10-01 20:16:17'),
+(190, 21, 190, 27, 'Active', '2026-10-01 20:16:17'),
+(191, 21, 191, 28, 'Active', '2026-10-01 20:16:17'),
+(192, 21, 192, 31, 'Active', '2026-10-01 20:16:17'),
+(193, 21, 193, 32, 'Active', '2026-10-01 20:16:17'),
+(194, 21, 194, 17, 'Active', '2026-10-01 20:16:54'),
+(195, 21, 195, 18, 'Active', '2026-10-01 20:16:54'),
+(196, 21, 196, 21, 'Active', '2026-10-01 20:16:54'),
+(197, 21, 197, 26, 'Active', '2026-10-01 20:16:55'),
+(198, 21, 198, 25, 'Active', '2026-10-01 20:16:55'),
+(199, 21, 199, 22, 'Active', '2026-10-01 20:16:55'),
+(200, 21, 200, 30, 'Active', '2026-10-01 20:16:55'),
+(201, 21, 201, 29, 'Active', '2026-10-01 20:16:55'),
+(202, 21, 202, 35, 'Active', '2026-10-01 20:16:55'),
+(203, 21, 203, 36, 'Active', '2026-10-01 20:16:55'),
+(204, 21, 204, 40, 'Active', '2026-10-01 20:17:37'),
+(205, 21, 205, 44, 'Active', '2026-10-01 20:17:37'),
+(206, 21, 206, 39, 'Active', '2026-10-01 20:17:37'),
+(207, 21, 207, 43, 'Active', '2026-10-01 20:17:37'),
+(208, 21, 208, 42, 'Active', '2026-10-01 20:17:37'),
+(209, 21, 209, 38, 'Active', '2026-10-01 20:17:37'),
+(210, 21, 210, 34, 'Active', '2026-10-01 20:17:37'),
+(211, 21, 211, 33, 'Active', '2026-10-01 20:17:37'),
+(212, 21, 212, 37, 'Active', '2026-10-01 20:24:46'),
+(213, 21, 213, 41, 'Active', '2026-10-01 20:24:46'),
+(214, 24, 214, 10, 'Active', '2026-10-02 04:14:06'),
+(215, 24, 215, 6, 'Active', '2026-10-02 04:14:06'),
+(216, 24, 216, 2, 'Active', '2026-10-02 04:14:06'),
+(217, 24, 217, 1, 'Active', '2026-10-02 04:14:06'),
+(218, 24, 218, 5, 'Active', '2026-10-02 04:14:06'),
+(219, 24, 219, 9, 'Active', '2026-10-02 04:14:06'),
+(220, 24, 220, 13, 'Active', '2026-10-02 04:14:06'),
+(221, 24, 221, 14, 'Active', '2026-10-02 04:14:06'),
+(222, 24, 222, 15, 'Active', '2026-10-02 04:14:06'),
+(223, 24, 223, 11, 'Active', '2026-10-02 04:14:06'),
+(224, 25, 224, 1, 'Active', '2026-10-02 17:49:24');
 
 -- --------------------------------------------------------
 
@@ -589,7 +958,16 @@ INSERT INTO `trips` (`trip_id`, `bus_id`, `route_id`, `departure_date`, `departu
 (11, 9, 5, '2026-09-25', '00:00:00', 27, 'Departed'),
 (12, 10, 5, '2026-09-25', '00:00:00', 20, 'Departed'),
 (13, 11, 12, '2026-09-25', '00:00:00', 20, 'Departed'),
-(14, 12, 5, '2026-09-25', '22:30:00', 30, 'Departed');
+(15, 5, 4, '2026-09-29', '03:30:00', 39, 'Departed'),
+(16, 6, 4, '2026-09-29', '02:30:00', 19, 'Departed'),
+(18, 5, 4, '2026-08-04', '03:30:00', 40, 'Departed'),
+(19, 5, 4, '2026-10-01', '02:00:00', 27, 'Departed'),
+(20, 5, 4, '2026-10-03', '00:00:00', 26, 'Boarding'),
+(21, 12, 16, '2026-10-01', '23:00:00', 0, 'Departed'),
+(22, 14, 5, '2026-10-01', '23:00:00', 25, 'Departed'),
+(23, 5, 5, '2026-11-12', '00:30:00', 40, 'Scheduled'),
+(24, 6, 4, '2026-10-03', '00:00:00', 10, 'Scheduled'),
+(25, 8, 4, '2026-10-03', '00:00:00', 29, 'Scheduled');
 
 --
 -- Indexes for dumped tables
@@ -601,6 +979,25 @@ INSERT INTO `trips` (`trip_id`, `bus_id`, `route_id`, `departure_date`, `departu
 ALTER TABLE `accounts`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  ADD PRIMARY KEY (`log_id`);
+
+--
+-- Indexes for table `boarding_gates`
+--
+ALTER TABLE `boarding_gates`
+  ADD PRIMARY KEY (`gate`),
+  ADD UNIQUE KEY `trip_id` (`trip_id`);
+
+--
+-- Indexes for table `boarding_skips`
+--
+ALTER TABLE `boarding_skips`
+  ADD PRIMARY KEY (`queue_entry_id`);
 
 --
 -- Indexes for table `bookings`
@@ -663,6 +1060,19 @@ ALTER TABLE `queue_entries`
   ADD KEY `idx_queue_created_at` (`created_at`);
 
 --
+-- Indexes for table `queue_payment_progress`
+--
+ALTER TABLE `queue_payment_progress`
+  ADD PRIMARY KEY (`queue_entry_id`);
+
+--
+-- Indexes for table `queue_stations`
+--
+ALTER TABLE `queue_stations`
+  ADD PRIMARY KEY (`kind`,`station`),
+  ADD UNIQUE KEY `assigned_queue` (`kind`,`queue_entry_id`);
+
+--
 -- Indexes for table `routes`
 --
 ALTER TABLE `routes`
@@ -698,6 +1108,12 @@ ALTER TABLE `accounts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
+-- AUTO_INCREMENT for table `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
 -- AUTO_INCREMENT for table `bookings`
 --
 ALTER TABLE `bookings`
@@ -707,13 +1123,13 @@ ALTER TABLE `bookings`
 -- AUTO_INCREMENT for table `booking_passengers`
 --
 ALTER TABLE `booking_passengers`
-  MODIFY `booking_passenger_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=134;
+  MODIFY `booking_passenger_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=225;
 
 --
 -- AUTO_INCREMENT for table `buses`
 --
 ALTER TABLE `buses`
-  MODIFY `bus_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `bus_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -725,7 +1141,7 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `queue_entries`
 --
 ALTER TABLE `queue_entries`
-  MODIFY `queue_entry_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `queue_entry_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT for table `routes`
@@ -737,13 +1153,13 @@ ALTER TABLE `routes`
 -- AUTO_INCREMENT for table `seat_reservations`
 --
 ALTER TABLE `seat_reservations`
-  MODIFY `seat_reservation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=134;
+  MODIFY `seat_reservation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=225;
 
 --
 -- AUTO_INCREMENT for table `trips`
 --
 ALTER TABLE `trips`
-  MODIFY `trip_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `trip_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- Constraints for dumped tables
@@ -782,6 +1198,12 @@ ALTER TABLE `queue_entries`
   ADD CONSTRAINT `fk_queue_entries_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON UPDATE CASCADE;
 
 --
+-- Constraints for table `queue_payment_progress`
+--
+ALTER TABLE `queue_payment_progress`
+  ADD CONSTRAINT `queue_payment_progress_ibfk_1` FOREIGN KEY (`queue_entry_id`) REFERENCES `queue_entries` (`queue_entry_id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `seat_reservations`
 --
 ALTER TABLE `seat_reservations`
@@ -798,16 +1220,3 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
--- Import into qpal for a new installation. Existing records are preserved.
-CREATE TABLE IF NOT EXISTS activity_logs (
-    log_id INT AUTO_INCREMENT PRIMARY KEY,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    account_id INT NULL,
-    user_name VARCHAR(100) NOT NULL DEFAULT '',
-    email VARCHAR(100) NOT NULL,
-    role VARCHAR(100) NOT NULL,
-    module VARCHAR(100) NOT NULL,
-    action VARCHAR(50) NOT NULL,
-    description TEXT NOT NULL,
-    INDEX activity_account (account_id, log_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
