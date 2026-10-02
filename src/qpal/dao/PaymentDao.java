@@ -73,6 +73,7 @@ public class PaymentDao {
                         + "THEN COALESCE(paid_at,NOW()) ELSE NULL END,status=? WHERE payment_id=?",commuter.trim(),amount,method,status,status,original.id());
                 syncBooking(c,choice.bookingId());
                 c.commit();
+                ActivityLogDao.recordActivity("Revenue", original == null ? "Create" : "Update", "Saved payment for trip #" + choice.tripId() + ", amount: " + amount + ", status: " + status + ".");
             } catch(SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }
@@ -84,6 +85,7 @@ public class PaymentDao {
                 update(c,"DELETE FROM payments WHERE payment_id=?",original.id());
                 syncBooking(c,original.bookingId());
                 c.commit();
+                ActivityLogDao.recordActivity("Revenue", "Delete", "Deleted payment #" + original.id() + ".");
             } catch(SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }

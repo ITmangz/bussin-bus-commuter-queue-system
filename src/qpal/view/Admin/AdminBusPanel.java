@@ -591,6 +591,7 @@ private void printBuses() {
         boolean complete = table.print();
 
         if(complete){
+                qpal.dao.ActivityLogDao.recordActivity("Bus Management", "Print", "Printed the bus management table.");
 
             qpal.components.AppDialogs.showMessageDialog(
                     this,

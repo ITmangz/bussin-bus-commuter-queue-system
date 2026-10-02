@@ -556,6 +556,7 @@ public class AdminManageAccountsPanel extends JPanel {
             boolean complete = table.print();
 
             if(complete) {
+                qpal.dao.ActivityLogDao.recordActivity("Manage Accounts", "Print", "Printed the manage accounts table.");
 
                 qpal.components.AppDialogs.showMessageDialog(this,"Table printed successfully.","Print", JOptionPane.INFORMATION_MESSAGE);
 

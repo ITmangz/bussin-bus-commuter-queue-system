@@ -77,6 +77,7 @@ public class QueuePaymentDao {
                 update(c,"UPDATE bookings SET status='Confirmed' WHERE booking_id=?",booking);
                 update(c,"INSERT INTO queue_payment_progress(queue_entry_id,received) VALUES(?,?)",queue,received);
                 c.commit();
+                ActivityLogDao.recordActivity("Queue Management", "Update", "Recorded payment for queue #" + queue + " at counter " + station + ".");
             } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }
@@ -97,6 +98,7 @@ public class QueuePaymentDao {
                         throw new SQLException("Print and collect the payment receipt first.");
                 } else update(c,"UPDATE queue_payment_progress SET receipt_printed=TRUE WHERE queue_entry_id=?",queue);
                 c.commit();
+                ActivityLogDao.recordActivity("Queue Management", "Print", "Printed " + (tickets ? "tickets" : "receipt") + " for queue #" + queue + ".");
             } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }

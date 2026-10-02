@@ -103,7 +103,9 @@ public class BusDao {
             pst.setInt(3, bus.getAvailableSeats());
             pst.setString(4, bus.getBusStatus());
 
-            return pst.executeUpdate() > 0;
+            boolean saved = pst.executeUpdate() > 0;
+            if (saved) ActivityLogDao.recordActivity("Bus Management", "Create", "Added bus " + bus.getBusNumber() + " with " + bus.getSeatCapacity() + " seats.");
+            return saved;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -127,7 +129,9 @@ public class BusDao {
             pst.setInt(5, bus.getBusID());
             pst.setInt(6, bus.getSeatCapacity());
 
-            return pst.executeUpdate() > 0;
+            boolean saved = pst.executeUpdate() > 0;
+            if (saved) ActivityLogDao.recordActivity("Bus Management", "Update", "Updated bus #" + bus.getBusID() + " (" + bus.getBusNumber() + "), status: " + bus.getBusStatus() + ".");
+            return saved;
 
         } catch (Exception e) {
             e.printStackTrace();

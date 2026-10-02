@@ -55,6 +55,7 @@ public class QueueDao {
                     update(c,"REPLACE INTO queue_stations(kind,station,queue_entry_id) VALUES('Boarding',?,?)",station,next.id());
                 }
                 c.commit();
+                ActivityLogDao.recordActivity("Queue Management", "Update", (skip ? "Skipped" : "Called") + " boarding queue #" + queueId + " at gate " + station + ".");
             } catch(SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }
@@ -113,6 +114,7 @@ public class QueueDao {
                 if (update(c,"INSERT IGNORE INTO queue_boarding(queue_entry_id) VALUES (?)",queueId)==0)
                     throw new SQLException("Boarding has already been completed for this queue.");
                 c.commit();
+                ActivityLogDao.recordActivity("Queue Management", "Update", "Marked queue #" + queueId + " as boarded.");
             } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }
@@ -223,6 +225,7 @@ public class QueueDao {
                     default: throw new SQLException("Unknown queue action.");
                 }
                 c.commit();
+                ActivityLogDao.recordActivity("Queue Management", "Update", action + " for queue #" + queueId + " at counter " + station + ".");
             } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }

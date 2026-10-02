@@ -104,6 +104,7 @@ public class BookingDao {
                 update(c, "INSERT INTO queue_entries (booking_id,queue_date,queue_number,status) VALUES (?,?,?,'Waiting')", booking, day, number);
                 Receipt receipt = receipt(c, booking);
                 c.commit();
+                ActivityLogDao.recordActivity("Queue Management", "Create", "Created booking #" + booking + " with queue number " + number + ".");
                 return receipt;
             } catch (SQLException | RuntimeException ex) {
                 c.rollback();

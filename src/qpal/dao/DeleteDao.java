@@ -40,6 +40,7 @@ public class DeleteDao {
                 }
                 if (target != Target.TRIP) update(c, "DELETE FROM " + table + " WHERE " + key + "=?", id);
                 c.commit();
+                ActivityLogDao.recordActivity(target == Target.BUS ? "Bus Management" : "Route & Schedule", "Delete", "Deleted " + target.toString().toLowerCase(java.util.Locale.ROOT) + " #" + id + " and its related records.");
                 return true;
             } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }

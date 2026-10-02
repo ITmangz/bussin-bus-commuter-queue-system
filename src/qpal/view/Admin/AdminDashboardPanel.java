@@ -9,7 +9,7 @@ import qpal.model.Account;
 public class AdminDashboardPanel extends JPanel {
     private final AdminDashboard dashboard;
     private final JLabel greeting = label("", 25, Color.BLACK, true);
-    private final JLabel avatar = label("", 24, new Color(180,0,50), true);
+    private String selectedGreeting;
     private final JLabel available = label("—", 32, new Color(170,0,45), true);
     private final JPanel departures = new JPanel();
     private final JPanel fleet = new JPanel();
@@ -29,6 +29,17 @@ public class AdminDashboardPanel extends JPanel {
 
     public AdminDashboardPanel(AdminDashboard dashboard) {
         this.dashboard = dashboard;
+
+        String[] greetings = {
+            "Hello",
+            "Welcome back",
+            "Good to see you",
+            "Have a great day"
+        };
+
+        int randomGreeting = (int) (Math.random() * greetings.length);
+        selectedGreeting = greetings[randomGreeting];
+
         setLayout(new BorderLayout(0, 16));
         setBackground(new Color(245,245,245));
         setBorder(new EmptyBorder(20,25,20,25));
@@ -43,30 +54,11 @@ public class AdminDashboardPanel extends JPanel {
         JPanel profile = card();
         profile.setLayout(new BorderLayout(16,0));
         profile.setPreferredSize(new Dimension(0,100));
-        avatar.setHorizontalAlignment(SwingConstants.CENTER);
-        avatar.setOpaque(true);
-        avatar.setBackground(new Color(255,235,240));
-        avatar.setPreferredSize(new Dimension(64,64));
-        profile.add(avatar, BorderLayout.WEST);
         JPanel welcome = new JPanel(new GridLayout(2,1));
         welcome.setOpaque(false);
         welcome.add(greeting);
         welcome.add(label("Here's what's happening with your system.",14,Color.GRAY,false));
         profile.add(welcome, BorderLayout.CENTER);
-        JButton edit = new JButton("›");
-        edit.setFont(new Font("SansSerif",Font.PLAIN,38));
-        edit.setContentAreaFilled(false);
-        edit.setBorderPainted(false);
-        edit.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        edit.setToolTipText("Edit profile");
-        edit.getAccessibleContext().setAccessibleName("Edit profile");
-        edit.addActionListener(e -> {
-            if(dashboard != null) {
-
-                dashboard.showPage("profile");
-            }
-        });
-        profile.add(edit, BorderLayout.EAST);
         body.add(profile, BorderLayout.NORTH);
 
         JPanel details = new JPanel(new BorderLayout(0,16));
@@ -105,19 +97,7 @@ public class AdminDashboardPanel extends JPanel {
 
             name = "Admin";
         }
-        greeting.setText("Hi, " + name + "!");
-        avatar.setIcon(null);
-        avatar.setText(name.substring(0,1).toUpperCase());
-        if(account != null && account.getProfileImage() != null
-                && !account.getProfileImage().isEmpty()) {
-            ImageIcon photo = new ImageIcon(account.getProfileImage());
-            if(photo.getIconWidth() > 0) {
-
-                avatar.setIcon(new ImageIcon(photo.getImage()
-                        .getScaledInstance(64,64,Image.SCALE_SMOOTH)));
-                avatar.setText("");
-            }
-        }
+        greeting.setText(selectedGreeting + ", " + name + "!");
     }
 
     public void refreshData() {

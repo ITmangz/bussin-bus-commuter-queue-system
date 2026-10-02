@@ -415,7 +415,11 @@ public class AdminRevenuePanel extends JPanel {
         buttons.add(print); buttons.add(close); content.add(buttons,BorderLayout.SOUTH);
         close.addActionListener(e -> dialog.dispose());
         print.addActionListener(e -> {
-            try { preview.print(JTable.PrintMode.FIT_WIDTH,new MessageFormat("Revenue Management"),new MessageFormat("Page {0}")); }
+            try {
+                if (preview.print(JTable.PrintMode.FIT_WIDTH,new MessageFormat("Revenue Management"),new MessageFormat("Page {0}"))) {
+                    qpal.dao.ActivityLogDao.recordActivity("Revenue", "Print", "Printed the revenue report.");
+                }
+            }
             catch (PrinterException ex) { qpal.components.AppDialogs.showMessageDialog(dialog,"Unable to print revenue.","Print Error",JOptionPane.ERROR_MESSAGE); }
         });
         dialog.setContentPane(content); dialog.setSize(900,450); dialog.setLocationRelativeTo(this);

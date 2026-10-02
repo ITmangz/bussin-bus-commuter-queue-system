@@ -55,7 +55,9 @@ public class RouteDao {
             pst.setDouble(3, route.getFare());
             pst.setString(4, route.getStatus());
 
-            return pst.executeUpdate() > 0;
+            boolean saved = pst.executeUpdate() > 0;
+            if (saved) ActivityLogDao.recordActivity("Route & Schedule", "Create", "Added route " + route.getOrigin() + " to " + route.getDestination() + ".");
+            return saved;
 
         } catch (SQLException e) {
             e.printStackTrace();

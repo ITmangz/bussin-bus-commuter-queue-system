@@ -12,6 +12,7 @@ public class AdminSidebarPanel extends JPanel {
     private JButton routeBtn;
     private JButton revenueBtn;
     private JButton accountsBtn;
+    private JButton activityBtn;
     private JButton logoutBtn;
 
     public AdminSidebarPanel(AdminDashboard dashboard) {
@@ -53,12 +54,15 @@ public class AdminSidebarPanel extends JPanel {
         routeBtn = createButton("Route &amp; Schedule<br>Management");
         revenueBtn = createButton("Revenue<br>Management");
         accountsBtn = createButton("Manage<br>Accounts");
+        activityBtn = createButton("Activity Log");
+
         addMenuIcon(dashboardBtn,"dashboardicon");
         addMenuIcon(queueBtn,"queueicon");
         addMenuIcon(busBtn,"busicon");
         addMenuIcon(routeBtn,"routeicon");
         addMenuIcon(revenueBtn,"revenueicon");
         addMenuIcon(accountsBtn,"manageaccsicon");
+        addMenuIcon(activityBtn, "activitylogicon");
 
         dashboardBtn.addActionListener(e -> dashboard.showPage("dashboard"));
         queueBtn.addActionListener(e -> dashboard.showPage("queue"));
@@ -66,9 +70,10 @@ public class AdminSidebarPanel extends JPanel {
         routeBtn.addActionListener(e -> dashboard.showPage("route"));
         revenueBtn.addActionListener(e -> dashboard.showPage("revenue"));
         accountsBtn.addActionListener(e -> dashboard.showPage("accounts"));
+        activityBtn.addActionListener(e -> dashboard.showPage("activity"));
 
         JButton[] buttons = {
-                dashboardBtn, queueBtn, busBtn, routeBtn, revenueBtn, accountsBtn
+                dashboardBtn, queueBtn, busBtn, routeBtn, revenueBtn, accountsBtn, activityBtn
         };
         for(int i = 0; i < buttons.length; i++) {
             menuPanel.add(buttons[i]);
@@ -107,8 +112,7 @@ public class AdminSidebarPanel extends JPanel {
                 RenderingHints.VALUE_ANTIALIAS_ON);
         g.setPaint(new GradientPaint(0, 0, new Color(240, 0, 55),
                 0, getHeight(), new Color(82, 8, 30)));
-        g.fillRoundRect(0, 0, getWidth(), getHeight(), 36, 36);
-        g.fillRect(0, 0, getWidth() / 2, getHeight());
+        g.fillRect(0, 0, getWidth(), getHeight());
         g.dispose();
     }
 
@@ -120,6 +124,7 @@ public class AdminSidebarPanel extends JPanel {
         routeBtn.setSelected("route".equals(page));
         revenueBtn.setSelected("revenue".equals(page));
         accountsBtn.setSelected("accounts".equals(page));
+        activityBtn.setSelected("activity".equals(page));
 
         repaint();
     }

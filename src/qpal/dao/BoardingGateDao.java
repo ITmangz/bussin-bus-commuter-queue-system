@@ -40,6 +40,7 @@ public class BoardingGateDao {
                 update(c,"UPDATE boarding_gates SET trip_id=? WHERE gate=?",trip,gate);
                 update(c,"UPDATE trips SET status='Boarding' WHERE trip_id=?",trip);
                 c.commit();
+                ActivityLogDao.recordActivity("Queue Management", "Update", "Assigned trip #" + trip + " to gate " + gate + ".");
             } catch(SQLException | RuntimeException ex) {c.rollback();throw ex;}
         }
     }
@@ -68,6 +69,7 @@ public class BoardingGateDao {
                 update(c,"UPDATE boarding_gates SET trip_id=NULL WHERE gate=?",gate);
                 update(c,"DELETE FROM queue_stations WHERE kind='Boarding' AND station=?",gate);
                 c.commit();
+                ActivityLogDao.recordActivity("Queue Management", "Update", (depart ? "Departed trip and closed" : "Closed") + " gate " + gate + ".");
             } catch(SQLException | RuntimeException ex) {c.rollback();throw ex;}
         }
     }

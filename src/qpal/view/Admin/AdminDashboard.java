@@ -17,6 +17,7 @@ public class AdminDashboard {
     private CardLayout cardLayout;
     private JPanel contentPanel;
     private AdminSidebarPanel sidebar;
+    private AdminTopPanel topPanel;
 
     public AdminDashboard() {
 
@@ -25,6 +26,7 @@ public class AdminDashboard {
 
     public AdminDashboard(qpal.model.Account account) {
         this.currentAccount = account;
+        qpal.dao.ActivityLogDao.setCurrentAccount(account);
         qpal.util.DepartureService.start();
 
         dashpage = new JFrame("QPAL - Admin Dashboard");
@@ -48,6 +50,7 @@ public class AdminDashboard {
         contentPanel.add(AdminCard.scrollPage(new AdminRouteSchedPanel(), 880), "route");
         contentPanel.add(new AdminRevenuePanel(), "revenue");
         contentPanel.add(AdminCard.scrollPage(new AdminManageAccountsPanel(), 880), "accounts");
+        contentPanel.add(new AdminActivityLogPanel(currentAccount), "activity");
 
         AdminFormStyle.styleInputs(contentPanel);
         cardLayout.show(contentPanel, "dashboard");
@@ -60,7 +63,7 @@ public class AdminDashboard {
         lblDateTime.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         lblDateTime.setFont(new java.awt.Font("SansSerif",java.awt.Font.PLAIN,12));
         lblDateTime.setForeground(new java.awt.Color(110,110,110));
-        lblDateTime.setBorder(new javax.swing.border.EmptyBorder(12,25,0,25));
+
 
         java.time.format.DateTimeFormatter dateFormat =
                 java.time.format.DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy  |  hh:mm:ss a",java.util.Locale.ENGLISH);
@@ -79,7 +82,8 @@ public class AdminDashboard {
             }
         });
 
-        mainPanel.add(lblDateTime,BorderLayout.NORTH);
+        topPanel = new AdminTopPanel(this, lblDateTime);
+        mainPanel.add(topPanel,BorderLayout.NORTH);
         mainPanel.add(contentPanel,BorderLayout.CENTER);
         dashpage.add(mainPanel,BorderLayout.CENTER);
 
@@ -96,6 +100,8 @@ public class AdminDashboard {
                 JOptionPane.QUESTION_MESSAGE);
 
         if (choice == JOptionPane.YES_OPTION) {
+            qpal.dao.ActivityLogDao.recordActivity("Authentication", "Logout", "User logged out of the system.");
+            qpal.dao.ActivityLogDao.setCurrentAccount(null);
             currentAccount = null;
             dashpage.dispose();
             new LoginPage();
@@ -111,14 +117,18 @@ public class AdminDashboard {
         if("profile".equals(page)) {
 
             profilePanel.showDialog(contentPanel);
+            topPanel.updateProfile(currentAccount);
+            dashboardPanel.updateProfile();
             return;
         }
         if("dashboard".equals(page)) {
 
             dashboardPanel.refreshData();
         }
+        topPanel.updateProfile(currentAccount);
         cardLayout.show(contentPanel, page);
         sidebar.setSelectedPage(page);
+        topPanel.setSelectedPage(page);
     }
 
     public static void main(String[] args) {

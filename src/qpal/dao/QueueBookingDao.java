@@ -44,6 +44,7 @@ public class QueueBookingDao {
                 }
                 update(c,"UPDATE payments SET commuter_name=? WHERE booking_id=?",people.get(0).name().trim(),booking);
                 c.commit();
+                ActivityLogDao.recordActivity("Queue Management", "Update", "Updated passenger details for booking #" + booking + ".");
             } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }
@@ -74,6 +75,7 @@ public class QueueBookingDao {
                 // Preserve collected payments; cancelling a booking is not a refund.
                 update(c,"UPDATE payments SET status='Cancelled' WHERE booking_id=? AND status='Pending'",booking);
                 c.commit();
+                ActivityLogDao.recordActivity("Queue Management", "Delete", "Cancelled booking #" + booking + " and released its seats.");
             } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }

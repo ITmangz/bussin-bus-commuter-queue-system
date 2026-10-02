@@ -690,6 +690,7 @@ public class AdminRouteSchedPanel extends JPanel {
             boolean complete = table.print();
 
             if(complete){
+                qpal.dao.ActivityLogDao.recordActivity("Route & Schedule", "Print", "Printed the route & schedule table.");
 
                 qpal.components.AppDialogs.showMessageDialog(
                         this,

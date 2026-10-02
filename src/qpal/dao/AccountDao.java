@@ -164,7 +164,9 @@ public class AccountDao {
             statement.setString(5, "Active");
 
 
-            return statement.executeUpdate() > 0;
+            boolean saved = statement.executeUpdate() > 0;
+            if (saved) ActivityLogDao.recordActivity("Manage Accounts", "Create", "Created account " + account.getEmail() + " with role " + account.getRole() + ".");
+            return saved;
 
 
         } catch(Exception e) {
@@ -197,7 +199,9 @@ public class AccountDao {
             statement.setString(5, account.getStatus());
             statement.setInt(6, account.getID());
 
-            return statement.executeUpdate() > 0;
+            boolean saved = statement.executeUpdate() > 0;
+            if (saved) ActivityLogDao.recordActivity("Manage Accounts", "Update", "Updated account #" + account.getID() + " (" + account.getEmail() + ").");
+            return saved;
 
         } catch(Exception e) {
 
@@ -225,7 +229,9 @@ public class AccountDao {
             statement.setInt(1, id);
 
 
-            return statement.executeUpdate() > 0;
+            boolean saved = statement.executeUpdate() > 0;
+            if (saved) ActivityLogDao.recordActivity("Manage Accounts", "Delete", "Deleted account #" + id + ".");
+            return saved;
 
 
         } catch(Exception e) {
@@ -304,7 +310,9 @@ public class AccountDao {
             statement.setString(5, profileImage == null || profileImage.isEmpty() ? null : profileImage);
             statement.setInt(6, id);
 
-            return statement.executeUpdate() > 0;
+            boolean saved = statement.executeUpdate() > 0;
+            if (saved) ActivityLogDao.recordActivity("Profile", "Update", "Updated personal profile for account #" + id + ".");
+            return saved;
 
         } catch(Exception e) {
 

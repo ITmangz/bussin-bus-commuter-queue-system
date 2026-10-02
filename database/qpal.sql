@@ -798,3 +798,16 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+-- Import into qpal for a new installation. Existing records are preserved.
+CREATE TABLE IF NOT EXISTS activity_logs (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    account_id INT NULL,
+    user_name VARCHAR(100) NOT NULL DEFAULT '',
+    email VARCHAR(100) NOT NULL,
+    role VARCHAR(100) NOT NULL,
+    module VARCHAR(100) NOT NULL,
+    action VARCHAR(50) NOT NULL,
+    description TEXT NOT NULL,
+    INDEX activity_account (account_id, log_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -193,6 +193,7 @@ public class TripDao {
 
         boolean saved = pst.executeUpdate() > 0;
         conn.commit();
+        if (saved) ActivityLogDao.recordActivity("Route & Schedule", "Create", "Added trip for bus #" + trip.getBusID() + " on " + trip.getDepartureDate() + " at " + trip.getDepartureTime() + ".");
         return saved;
         } catch (SQLException | RuntimeException ex) {
             conn.rollback();
@@ -218,6 +219,7 @@ public class TripDao {
                     p.setInt(5, trip.getAvailableSeats()); p.setString(6, trip.getStatus()); p.setInt(7, trip.getTripID());
                     boolean updated = p.executeUpdate() > 0;
                     conn.commit();
+                    if (updated) ActivityLogDao.recordActivity("Route & Schedule", "Update", "Updated trip #" + trip.getTripID() + ", status: " + trip.getStatus() + ".");
                     return updated;
                 }
             } catch (SQLException | RuntimeException ex) { conn.rollback(); throw ex; }
@@ -278,6 +280,7 @@ public class TripDao {
                 }
 
                 conn.commit();
+                ActivityLogDao.recordActivity("Route & Schedule", editing ? "Update" : "Create", (editing ? "Updated" : "Added") + " trip for bus #" + trip.getBusID() + " on " + trip.getDepartureDate() + " at " + trip.getDepartureTime() + ", fare: " + fare + ".");
                 return true;
 
             } catch(ScheduleConflictException | DepartedTripException e) {

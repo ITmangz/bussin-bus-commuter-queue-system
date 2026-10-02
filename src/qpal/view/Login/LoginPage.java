@@ -280,11 +280,15 @@ public class LoginPage{
                     qpal.components.AppDialogs.showMessageDialog(null,"Login successful!","Success!", JOptionPane.INFORMATION_MESSAGE);
 
                     if (account.getRole().equalsIgnoreCase("admin")) {
+                        qpal.dao.ActivityLogDao.setCurrentAccount(account);
+                        qpal.dao.ActivityLogDao.recordActivity("Authentication", "Login", "User logged in to the system.");
 
                         lpage.dispose();
                         new AdminDashboard(account);
 
                     } else if (account.getRole().equalsIgnoreCase("employee")) {
+                        qpal.dao.ActivityLogDao.setCurrentAccount(account);
+                        qpal.dao.ActivityLogDao.recordActivity("Authentication", "Login", "User logged in to the system.");
                         
                         lpage.dispose();
                         new EmployeeDashboard();

@@ -320,6 +320,7 @@ public class AdminQueuePanel extends JPanel {
     }
 
     private JPanel createBoardingPanel() {
+
         JPanel boarding = card();
         boarding.setLayout(new BorderLayout(0, 10));
         JPanel toolbar = transparent(new BorderLayout(16, 0));
@@ -382,7 +383,7 @@ public class AdminQueuePanel extends JPanel {
         scroll.getViewport().setBackground(Color.WHITE);
         AdminCard.styleScrollBar(scroll,Color.WHITE);
         boarding.add(scroll, BorderLayout.CENTER);
-        JPanel footer = transparent(new BorderLayout());
+        JPanel footer = transparent(new BorderLayout(0, 10));
         footer.setBorder(new EmptyBorder(18,0,0,0));
         JPanel pageRow = transparent(new BorderLayout());
         boardingPageInfo.setFont(new Font("SansSerif",Font.PLAIN,12));
@@ -390,8 +391,8 @@ public class AdminQueuePanel extends JPanel {
         pageRow.add(boardingPageInfo,BorderLayout.WEST);
         pageRow.add(boardingPagination,BorderLayout.EAST);
         footer.add(pageRow,BorderLayout.CENTER);
-        JPanel gateActions = transparent(new FlowLayout(FlowLayout.LEFT, 8, 8));
-        JButton assign = button("Assign trip to gate", true);
+        JPanel gateActions = transparent(new GridLayout(1, 3, 8, 0));
+        JButton assign = button("Assign trip to gate", false);
         JButton release = button("Release gate", false);
         JButton depart = button("Confirm departure", true);
         assign.addActionListener(e -> manageGate("assign"));
