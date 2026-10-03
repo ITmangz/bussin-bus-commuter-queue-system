@@ -96,6 +96,32 @@ public class EmployeeIntegrationTest {
                 signIn(four,replacement); rejects(() -> queues.act(0,"Call Next Queue",1));
                 stations.release(replacement); stations.release(second); stations.release(gate);
                 check(stations.occupied().isEmpty(),"Logout releases all stations");
+                var summaries=new EmployeeSummaryDao();
+                summaries.logout(first); summaries.logout(first);
+                var logoutLogs=new ActivityLogDao().getAllActivities(one).stream().filter(l -> l.getAction().equals("Logout")).toList();
+                check(logoutLogs.size()==1 && logoutLogs.get(0).getDescription().contains("Session collected: PHP 100.00")
+                        && logoutLogs.get(0).getDescription().contains("Today's total: PHP 100.00"),"Logout credits fare once, excluding change");
+                var again=stations.claim(one,counter1); signIn(one,again);
+                check(new EmployeeDashboardDao().load(again).collected().compareTo(new BigDecimal("100"))==0,"Same-day login retains today's total");
+                summaries.logout(again);
+                check(new ActivityLogDao().getAllActivities(one).stream().anyMatch(l -> l.getDescription().contains("Session collected: PHP 0.00")
+                        && l.getDescription().contains("Today's total: PHP 100.00")),"New session starts at zero without resetting daily collections");
+                sql("UPDATE employee_queue_work SET created_at=CURRENT_DATE-INTERVAL 1 DAY WHERE account_id=1");
+                summaries.reconcile(); summaries.reconcile();
+                var daily=new ActivityLogDao().getAllActivities(one).stream().filter(l -> l.getAction().equals("Daily Summary")).toList();
+                check(daily.size()==1 && daily.get(0).getDescription().contains("PHP 100.00") && daily.get(0).getDescription().contains("Commuters served: 2"),"Catch-up creates one final daily summary");
+                check(new EmployeeDashboardDao().load(again).collected().signum()==0,"New day displays zero without deleting historical earnings");
+                sql("UPDATE employee_work_sessions SET started_at=CURRENT_DATE-INTERVAL 3 DAY,ended_at=CURRENT_DATE-INTERVAL 2 DAY WHERE token='"+second.token()+"'");
+                summaries.reconcile();
+                check(new ActivityLogDao().getAllActivities(two).stream().filter(l -> l.getAction().equals("Daily Summary")).count()==2,"Zero-collection days catch up too");
+                sql("INSERT INTO employee_queue_work(event,queue_entry_id,account_id,kind,station,amount,created_at) VALUES('Payment',999999,1,'Payment',1,25,CURRENT_DATE-INTERVAL 5 DAY)");
+                sql("RENAME TABLE activity_logs TO summary_test_logs");
+                try { rejects(summaries::reconcile); }
+                finally { sql("RENAME TABLE summary_test_logs TO activity_logs"); }
+                summaries.reconcile(); summaries.reconcile();
+                check(new ActivityLogDao().getAllActivities(one).stream().filter(l -> l.getAction().equals("Daily Summary") && l.getDescription().contains("PHP 25.00")).count()==1,
+                        "Failed log insertion rolls back the daily marker and safely retries");
+                System.out.println("PASS: session logout totals, same-day re-login, daily rollover, catch-up, zero-collection days, duplicate prevention, and log-failure retry.");
                 System.out.println("PASS: concurrent/exclusive claims, duplicate employee protection, station authorization, payment rollback/attribution, own queue scope, passenger counts, gate completion, private logs, expiry, stale release, inactive account rejection.");
             } finally {
                 signIn(null,null);

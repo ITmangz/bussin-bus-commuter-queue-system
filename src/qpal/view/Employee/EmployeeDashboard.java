@@ -93,12 +93,13 @@ public final class EmployeeDashboard extends JFrame {
         closing=true; heartbeat.stop(); setEnabled(false);
         var active=session;
         UiTask.run(() -> {
-            new EmployeeStationDao().release(active);
-            new ActivityLogDao().addActivity(account,"Authentication","Logout","Employee logged out"+(active==null?".":" from "+active.station().title()+"."));
+            if(active!=null) new EmployeeSummaryDao().logout(active);
+            else if(!new ActivityLogDao().addActivity(account,"Authentication","Logout","Employee logged out before selecting a station."))
+                throw new java.sql.SQLException("Unable to save logout activity.");
             return true;
         }, ok -> finishLogout(exit), ex -> {
-            AppDialogs.showMessageDialog(this,"You have been logged out. The offline station reservation will expire automatically within 90 seconds.");
-            finishLogout(exit);
+            closing=false; setEnabled(true); if(session!=null) heartbeat.start();
+            AppDialogs.showMessageDialog(this,"Could not save your logout summary. Check the connection and retry logout.");
         });
     }
     private void finishLogout(boolean exit) {

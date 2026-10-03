@@ -4,8 +4,8 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.time.ZoneId;
-import java.util.prefs.Preferences;
+
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -24,13 +24,13 @@ public class EditProfilePanel extends JPanel {
 
     private JTextField txtName;
     private JTextField txtEmail;
-    private JComboBox<String> cmbTimezone;
-    private JTextField txtWorkingHours;
+    private JTextField txtAssignment;
+    private JTextField txtSessionDetails;
     private JPasswordField txtPassword;
 
     private JLabel lblPreviewName;
     private JLabel lblPreviewRole;
-    private JLabel lblPreviewHours;
+    private JLabel lblPreviewDetails;
     private JLabel lblPhoto;
 
     private JButton btnSave;
@@ -50,9 +50,9 @@ public class EditProfilePanel extends JPanel {
         this.accountSupplier = accountSupplier;
         this.profileSaved = profileSaved;
 
-        setLayout(new GridLayout(1,2,0,0));
+        setLayout(new GridLayout(1,2));
         setBackground(Color.WHITE);
-        setBorder(new EmptyBorder(35,35,35,35));
+        setBorder(new EmptyBorder(24,24,24,24));
 
         add(createForm());
         add(createPreview());
@@ -62,7 +62,7 @@ public class EditProfilePanel extends JPanel {
     public void showDialog(Component owner) {
 
         loadProfile();
-        setPreferredSize(new Dimension(820,500));
+        setPreferredSize(new Dimension(740,460));
 
         dialog = new JDialog(SwingUtilities.getWindowAncestor(owner),
                 "Edit Profile",Dialog.ModalityType.APPLICATION_MODAL);
@@ -79,7 +79,7 @@ public class EditProfilePanel extends JPanel {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
-        panel.setBorder(new EmptyBorder(0,0,0,35));
+        panel.setBorder(new EmptyBorder(0,0,0,24));
 
         JLabel lblTitle = new JLabel("Edit your Profile");
         lblTitle.setFont(new Font("SansSerif",Font.BOLD,22));
@@ -150,73 +150,44 @@ public class EditProfilePanel extends JPanel {
         details.setAlignmentX(Component.LEFT_ALIGNMENT);
         details.setMaximumSize(new Dimension(Integer.MAX_VALUE,66));
 
-        cmbTimezone = new JComboBox<>(ZoneId.getAvailableZoneIds().stream().sorted().toArray(String[]::new));
-        cmbTimezone.setBackground(new Color(220,220,220));
-        cmbTimezone.setFont(new Font("SansSerif",Font.PLAIN,12));
-        cmbTimezone.setPreferredSize(new Dimension(150,36));
-        cmbTimezone.setMaximumSize(new Dimension(Integer.MAX_VALUE,36));
-        cmbTimezone.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        txtWorkingHours = createTextField();
-
-            txtWorkingHours.setDocument(new javax.swing.text.PlainDocument() {
-
-                @Override
-                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
-                        throws javax.swing.text.BadLocationException {
-
-                    if (str == null) {
-                        return;
-                    }
-
-                    if (!str.matches("[0-9: -]*")) {
-                        Toolkit.getDefaultToolkit().beep();
-                        return;
-                    }
-
-                    if (getLength() + str.length() <= 11) {
-                        super.insertString(offs, str, a);
-
-                    } else {
-                        txtWorkingHours.setText("");
-                        Toolkit.getDefaultToolkit().beep();
-                        qpal.components.AppDialogs.showMessageDialog(null, "Working Hours must not exceed 11 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    }
-                }
-            });
-        JPanel timezone = new JPanel();
-        timezone.setOpaque(false);
-        timezone.setLayout(new BoxLayout(timezone,BoxLayout.Y_AXIS));
-        addField(timezone,"Timezone",cmbTimezone);
-        JPanel hours = new JPanel();
-        hours.setOpaque(false);
-        hours.setLayout(new BoxLayout(hours,BoxLayout.Y_AXIS));
-        addField(hours,"Working Hours",txtWorkingHours);
-        details.add(timezone);
-        details.add(hours);
+        txtAssignment = createTextField();
+        txtSessionDetails = createTextField();
+        for (JTextField field : new JTextField[]{txtAssignment,txtSessionDetails}) {
+            field.setEditable(false);
+            field.setFont(new Font("SansSerif",Font.PLAIN,12));
+            field.setBackground(new Color(245,246,248));
+        }
+        boolean employee = isEmployee();
+        JPanel assignment = new JPanel();
+        assignment.setOpaque(false);
+        assignment.setLayout(new BoxLayout(assignment,BoxLayout.Y_AXIS));
+        addField(assignment,employee ? "Assigned Station" : "Role",txtAssignment);
+        JPanel sessionDetails = new JPanel();
+        sessionDetails.setOpaque(false);
+        sessionDetails.setLayout(new BoxLayout(sessionDetails,BoxLayout.Y_AXIS));
+        addField(sessionDetails,employee ? "Session Started" : "Account Status",txtSessionDetails);
+        details.add(assignment);
+        details.add(sessionDetails);
         panel.add(details);
-        panel.add(Box.createVerticalStrut(10));
-
-        JLabel lblLocal = new JLabel("Timezone and hours are saved on this computer.");
-        lblLocal.setFont(new Font("SansSerif",Font.PLAIN,10));
-        lblLocal.setForeground(Color.GRAY);
-        panel.add(lblLocal);
-        panel.add(Box.createVerticalStrut(24));
+        panel.add(Box.createVerticalStrut(14));
 
         JSeparator separator = new JSeparator();
         separator.setMaximumSize(new Dimension(Integer.MAX_VALUE,1));
         separator.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(separator);
-        panel.add(Box.createVerticalStrut(22));
+        panel.add(Box.createVerticalStrut(14));
+        panel.add(Box.createVerticalGlue());
 
         JLabel lblPassword = createLabel("Password");
         panel.add(lblPassword);
-        panel.add(Box.createVerticalGlue());
+        panel.add(Box.createVerticalStrut(8));
 
         JPanel password = new JPanel(new GridLayout(1,2,16,0));
         password.setOpaque(false);
         password.setAlignmentX(Component.LEFT_ALIGNMENT);
         password.setMaximumSize(new Dimension(Integer.MAX_VALUE,36));
+        password.setPreferredSize(new Dimension(0,36));
+        password.setMinimumSize(new Dimension(0,36));
         txtPassword = new JPasswordField("unchanged");
         txtPassword.setEditable(false);
         txtPassword.setBackground(new Color(220,220,220));
@@ -232,11 +203,11 @@ public class EditProfilePanel extends JPanel {
 
     private JPanel createPreview() {
 
-        JPanel panel = new JPanel(new BorderLayout(0,20));
+        JPanel panel = new JPanel(new BorderLayout(0,16));
         panel.setOpaque(false);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0,1,0,0,new Color(230,230,230)),
-                new EmptyBorder(28,35,0,0)));
+                new EmptyBorder(16,23,0,0)));
 
         JPanel preview = new JPanel();
         preview.setOpaque(false);
@@ -247,7 +218,7 @@ public class EditProfilePanel extends JPanel {
         lblPreview.setFont(new Font("SansSerif",Font.PLAIN,15));
         lblPreview.setAlignmentX(Component.CENTER_ALIGNMENT);
         preview.add(lblPreview);
-        preview.add(Box.createVerticalStrut(20));
+        preview.add(Box.createVerticalStrut(16));
 
         lblPhoto = new JLabel();
         lblPhoto.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -262,7 +233,7 @@ public class EditProfilePanel extends JPanel {
         btnPhoto.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnPhoto.addActionListener(e -> choosePhoto());
         preview.add(btnPhoto);
-        preview.add(Box.createVerticalStrut(18));
+        preview.add(Box.createVerticalStrut(14));
 
         lblPreviewName = new JLabel("Your name");
         lblPreviewName.setFont(new Font("SansSerif",Font.BOLD,22));
@@ -275,21 +246,28 @@ public class EditProfilePanel extends JPanel {
         lblPreviewRole.setForeground(Color.GRAY);
         lblPreviewRole.setAlignmentX(Component.CENTER_ALIGNMENT);
         preview.add(lblPreviewRole);
-        preview.add(Box.createVerticalStrut(20));
+        preview.add(Box.createVerticalStrut(12));
 
-        lblPreviewHours = new JLabel("Working hours not set");
-        lblPreviewHours.setFont(new Font("SansSerif",Font.PLAIN,14));
-        lblPreviewHours.setForeground(Color.GRAY);
-        lblPreviewHours.setAlignmentX(Component.CENTER_ALIGNMENT);
-        preview.add(lblPreviewHours);
+        lblPreviewDetails = new JLabel(" ");
+        lblPreviewDetails.setFont(new Font("SansSerif",Font.PLAIN,14));
+        lblPreviewDetails.setForeground(Color.GRAY);
+        lblPreviewDetails.setAlignmentX(Component.CENTER_ALIGNMENT);
+        preview.add(lblPreviewDetails);
         panel.add(preview,BorderLayout.CENTER);
 
-        JPanel buttons = new JPanel(new GridLayout(1,2,16,0));
+        JPanel buttons = new JPanel();
+        buttons.setLayout(new BoxLayout(buttons,BoxLayout.X_AXIS));
         buttons.setOpaque(false);
-        buttons.setPreferredSize(new Dimension(0,36));
+        buttons.setPreferredSize(new Dimension(276,36));
         btnCancel = createButton("Cancel",new Color(220,220,220));
         btnCancel.setForeground(Color.DARK_GRAY);
         btnSave = createButton("Save Changes",new Color(240,0,55));
+        for (JButton button : new JButton[]{btnCancel,btnSave}) {
+            Dimension size = new Dimension(132,36);
+            button.setPreferredSize(size);
+            button.setMinimumSize(size);
+            button.setMaximumSize(new Dimension(Integer.MAX_VALUE,36));
+        }
         btnCancel.addActionListener(e -> {
             loadProfile();
             if(dialog != null) {
@@ -299,8 +277,16 @@ public class EditProfilePanel extends JPanel {
         });
         btnSave.addActionListener(e -> saveProfile());
         buttons.add(btnCancel);
+        buttons.add(Box.createHorizontalStrut(12));
         buttons.add(btnSave);
-        panel.add(buttons,BorderLayout.SOUTH);
+        JPanel buttonRow = new JPanel(new GridBagLayout());
+        buttonRow.setOpaque(false);
+        buttonRow.setPreferredSize(new Dimension(0,36));
+        GridBagConstraints row = new GridBagConstraints();
+        row.weightx = 1;
+        row.fill = GridBagConstraints.HORIZONTAL;
+        buttonRow.add(buttons,row);
+        panel.add(buttonRow,BorderLayout.SOUTH);
 
         return panel;
     }
@@ -335,25 +321,36 @@ public class EditProfilePanel extends JPanel {
         newPassword = "";
         txtPassword.setText("unchanged");
         photoPath = "";
-        cmbTimezone.setSelectedItem(ZoneId.systemDefault().getId());
-        txtWorkingHours.setText("");
-
-        if(account != null) {
-
-            Preferences settings = getSettings(account);
-            cmbTimezone.setSelectedItem(settings.get("timezone",ZoneId.systemDefault().getId()));
-            txtWorkingHours.setText(settings.get("workingHours",""));
-            photoPath = account.getProfileImage() == null ? "" : account.getProfileImage();
+        txtAssignment.setText(account == null ? "—" : account.getRole());
+        txtSessionDetails.setText(account == null ? "—" : account.getStatus());
+        txtSessionDetails.setToolTipText(null);
+        if(account != null) photoPath = account.getProfileImage() == null ? "" : account.getProfileImage();
+        if(isEmployee()) {
+            var session = qpal.dao.EmployeeStationDao.current();
+            boolean assigned = session != null && session.accountId() == account.getID();
+            txtAssignment.setText(assigned ? session.station().title() : "Not assigned");
+            txtSessionDetails.setText(assigned ? "Loading…" : "Not started");
+            if(assigned) qpal.util.UiTask.run(() -> new qpal.dao.EmployeeSummaryDao().sessionStarted(session), started -> {
+                if(qpal.dao.EmployeeStationDao.current() != session) return;
+                txtSessionDetails.setText(started == null ? "Unavailable" : started.format(
+                        java.time.format.DateTimeFormatter.ofPattern("MMM d, h:mm a",java.util.Locale.ENGLISH)));
+                txtSessionDetails.setToolTipText(started == null ? null : started.format(
+                        java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy, h:mm a",java.util.Locale.ENGLISH))+" (Asia/Manila)");
+            }, ex -> {
+                if(qpal.dao.EmployeeStationDao.current() == session) {
+                    txtSessionDetails.setText("Unavailable");
+                    txtSessionDetails.setToolTipText("Could not load the session start time. Reopen your profile to retry.");
+                }
+            });
         }
-
         btnSave.setEnabled(account != null);
         updatePreview();
     }
 
-    private Preferences getSettings(Account account) {
-        return Preferences.userNodeForPackage(EditProfilePanel.class).node("account-" + account.getID());
+    private boolean isEmployee() {
+        Account account = accountSupplier.get();
+        return account != null && "Employee".equalsIgnoreCase(account.getRole());
     }
-
     private void addPreviewListeners() {
 
         DocumentListener listener = new DocumentListener() {
@@ -371,7 +368,7 @@ public class EditProfilePanel extends JPanel {
             }
         };
         txtName.getDocument().addDocumentListener(listener);
-        txtWorkingHours.getDocument().addDocumentListener(listener);
+
     }
 
     private void updatePreview() {
@@ -385,15 +382,7 @@ public class EditProfilePanel extends JPanel {
 
             lblPreviewName.setText(name);
         }
-        String hours = txtWorkingHours.getText().trim();
-        if(hours.isEmpty()) {
-
-            lblPreviewHours.setText("Working hours not set");
-
-        } else {
-
-            lblPreviewHours.setText(hours);
-        }
+        lblPreviewDetails.setText(isEmployee() ? txtAssignment.getText() : txtSessionDetails.getText());
 
         BufferedImage image = new BufferedImage(150,150,BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
@@ -470,8 +459,6 @@ public class EditProfilePanel extends JPanel {
         String name = txtName.getText().trim();
         String email = txtEmail.getText().trim();
         String password = newPassword;
-        String timezone = cmbTimezone.getSelectedItem().toString();
-        String workingHours = txtWorkingHours.getText().trim();
         String selectedPhoto = photoPath;
         if(selectedPhoto.length() > 255) {
 
@@ -518,19 +505,7 @@ public class EditProfilePanel extends JPanel {
                             account.setPassword(password);
                         }
 
-                        Preferences settings = getSettings(account);
-                        settings.put("timezone",timezone);
-                        settings.put("workingHours",workingHours);
                         account.setProfileImage(selectedPhoto);
-
-                        try {
-
-                            settings.flush();
-
-                        } catch(Exception e) {
-
-                            qpal.components.AppDialogs.showMessageDialog(dialog,"Account saved, but local preferences could not be saved.","Warning",JOptionPane.WARNING_MESSAGE);
-                        }
 
                         newPassword = "";
                         txtPassword.setText("unchanged");
@@ -571,8 +546,8 @@ public class EditProfilePanel extends JPanel {
         btnPhoto.setEnabled(!saving);
         txtName.setEnabled(!saving);
         txtEmail.setEnabled(!saving);
-        cmbTimezone.setEnabled(!saving);
-        txtWorkingHours.setEnabled(!saving);
+
+
     }
 
     private JTextField createTextField() {

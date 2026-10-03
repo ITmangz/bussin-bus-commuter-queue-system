@@ -17,6 +17,9 @@ public class DbConnection {
         properties.setProperty("connectTimeout", "5000");
         properties.setProperty("socketTimeout", "15000");
         Connection connection = DriverManager.getConnection(System.getProperty("qpal.db.url", URL), properties);
+        try (java.sql.Statement statement=connection.createStatement()) {
+            statement.execute("SET time_zone = '+08:00'");
+        } catch(SQLException ex) { connection.close(); throw ex; }
         return connection;
     }
 }

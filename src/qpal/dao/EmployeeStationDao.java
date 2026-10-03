@@ -20,6 +20,7 @@ public final class EmployeeStationDao {
     }
 
     public static void ensure(Connection c) throws SQLException {
+        EmployeeSummaryDao.ensure(c);
         try (Statement s = c.createStatement()) {
             s.executeUpdate("CREATE TABLE IF NOT EXISTS employee_stations (kind VARCHAR(16) NOT NULL, station INT NOT NULL, "
                     + "account_id INT NULL, session_token VARCHAR(36) NULL, expires_at DATETIME NULL, PRIMARY KEY(kind,station)) ENGINE=InnoDB");
@@ -59,6 +60,7 @@ public final class EmployeeStationDao {
                     }
                 }
                 Session session = new Session(account.getID(),station,UUID.randomUUID().toString());
+                EmployeeSummaryDao.start(c,session);
                 update(c,"UPDATE employee_stations SET account_id=?,session_token=?,expires_at=DATE_ADD(NOW(),INTERVAL 90 SECOND) WHERE kind=? AND station=?",
                         session.accountId(),session.token(),station.kind(),station.number());
                 c.commit();
@@ -70,16 +72,27 @@ public final class EmployeeStationDao {
 
     public void heartbeat(Session session) throws SQLException {
         try (Connection c=DbConnection.getConnection()) {
+            c.setAutoCommit(false);
+            try {
             int changed=update(c,"UPDATE employee_stations es JOIN accounts a ON a.id=es.account_id SET es.expires_at=DATE_ADD(NOW(),INTERVAL 90 SECOND) "
                     + "WHERE es.session_token=? AND es.account_id=? AND es.expires_at>NOW() AND a.role='Employee' AND a.status='Active'",session.token(),session.accountId());
             if (changed!=1) throw new SQLException("Your station session has ended. Select an available station again.");
+            if(update(c,"UPDATE employee_work_sessions SET last_seen=NOW() WHERE token=? AND ended_at IS NULL",session.token())!=1)
+                throw new SQLException("Your work session has ended. Select your station again.");
+            c.commit();
+            } catch(SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }
 
     public void release(Session session) throws SQLException {
         if (session==null) return;
         try (Connection c=DbConnection.getConnection()) {
+            c.setAutoCommit(false);
+            try {
             update(c,"UPDATE employee_stations SET account_id=NULL,session_token=NULL,expires_at=NULL WHERE session_token=? AND account_id=?",session.token(),session.accountId());
+            update(c,"UPDATE employee_work_sessions SET ended_at=COALESCE(ended_at,NOW()) WHERE token=?",session.token());
+            c.commit();
+            } catch(SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }
 
@@ -116,5 +129,6 @@ public final class EmployeeStationDao {
                 + "SELECT ?,q.queue_entry_id,?,?,?,(SELECT COUNT(*) FROM booking_passengers bp WHERE bp.booking_id=q.booking_id),"
                 + "CASE WHEN ?='Payment' THEN COALESCE((SELECT amount FROM payments WHERE booking_id=q.booking_id ORDER BY payment_id DESC LIMIT 1),0) ELSE 0 END "
                 + "FROM queue_entries q WHERE q.queue_entry_id=?",event,session.accountId(),kind,station,event,queue);
+        EmployeeSummaryDao.credit(c,session,event,queue);
     }
 }

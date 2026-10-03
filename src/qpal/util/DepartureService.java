@@ -25,6 +25,13 @@ public final class DepartureService {
                 System.err.println("Payment deadline update failed; retrying: " + ex.getMessage());
             }
         }, 0, 5, TimeUnit.SECONDS);
+        executor.scheduleWithFixedDelay(() -> {
+            try {
+                new qpal.dao.EmployeeSummaryDao().reconcile();
+            } catch (SQLException ex) {
+                System.err.println("Employee daily summary failed; retrying: " + ex.getMessage());
+            }
+        }, 0, 60, TimeUnit.SECONDS);
     }
 
     public static void reconcile(Connection connection) throws SQLException {

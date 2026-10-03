@@ -39,7 +39,7 @@ public class ActivityLogTest {
                     public void refreshData() {}
                 };
                 List<Object[]> rows = (List<Object[]>)field(panel,"activities");
-                for (int i = 0; i < 23; i++) rows.add(new Object[]{23-i,"2026-10-03 00:30:00",
+                for (int i = 0; i < 23; i++) rows.add(new Object[]{23-i,java.time.LocalDate.now(java.time.ZoneId.of("Asia/Manila"))+" 00:30:00",
                         i % 2 == 0 ? "admin@example.com" : "staff@example.com",i % 2 == 0 ? "Admin" : "Employee",
                         "Bus Management",i % 2 == 0 ? "Create" : "Update","Added bus Bus01 with 40 seats."});
                 call(panel,"searchActivities");
@@ -49,15 +49,15 @@ public class ActivityLogTest {
                 ((JButton)field(panel,"btnNext")).doClick();
                 check(model.getRowCount()==3 && !((JButton)field(panel,"btnNext")).isEnabled(),"Last page");
                 check(((JButton)field(panel,"btnOne")).getText().equals("3"),"Numbered page pairs");
-                ((JComboBox<?>)field(panel,"cmbAction")).setSelectedItem("Create");
-                check(((JLabel)field(panel,"lblInfo")).getText().contains("of 12 activities"),"Action filter");
+                ((JComboBox<?>)field(panel,"cmbPeriod")).setSelectedItem("Last 7 Days");
+                check(((JLabel)field(panel,"lblInfo")).getText().contains("of 23 activities"),"Date filter");
                 Field search = AdminActivityLogPanel.class.getDeclaredField("appliedSearch");
                 search.setAccessible(true);
                 search.set(panel,"missing");
                 call(panel,"searchActivities");
                 check(model.getRowCount()==0 && !((JButton)field(panel,"btnPrint")).isEnabled(),"Empty search and disabled print");
                 search.set(panel,"staff@example.com");
-                ((JComboBox<?>)field(panel,"cmbAction")).setSelectedIndex(0);
+                ((JComboBox<?>)field(panel,"cmbPeriod")).setSelectedIndex(0);
                 check(((JLabel)field(panel,"lblInfo")).getText().contains("of 11 activities"),"Email search");
                 search.set(panel,"");
                 call(panel,"searchActivities");
@@ -77,7 +77,7 @@ public class ActivityLogTest {
                 graphics.dispose();
                 ImageIO.write(image,"png",new File("build/activity-log-preview.png"));
                 panel.removeNotify();
-                System.out.println("PASS: pagination, search, action filter, empty state, read-only rows, layout render");
+                System.out.println("PASS: pagination, search, date filter, empty state, read-only rows, layout render");
             } catch (Exception e) { throw new RuntimeException(e); }
         });
         if (args.length == 0) return;

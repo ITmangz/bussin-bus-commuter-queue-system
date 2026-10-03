@@ -22,16 +22,22 @@ Station artwork is left blank in `EmployeeStationPanel`: `lblCounter1Image`, `lb
 
 ## Dashboard totals
 
-Totals cover the current database day and the signed-in employee across their station sessions:
+Totals cover the current Philippine day (UTC+08:00) and the signed-in employee across their station sessions. Database connections explicitly use this timezone:
 
 - **Total number of commuters served:** passenger counts from successful payment-queue completion or boarding completion performed by the employee. Failed/repeated completions are not counted. If one employee serves the same booking at both stages, both completed services count.
 - **Total amount collected:** paid fare attributed to the employee, excluding change. Collection is credited when payment succeeds, independently of later ticket printing or queue completion.
-- **Pending queues:** the unfinished queue assigned to the payment counter, or all unboarded queues for the trip at the assigned boarding gate. The shared payment waiting-line count appears separately under Queue Status.
+- **Pending queues:** the unfinished queue assigned to the payment counter, or all unboarded queues for the trip at the assigned boarding gate.
 
 Attribution is inserted in the same transaction as payment/completion. Historical actions before this feature have no reliable employee attribution and are not backfilled from free-text logs.
 
+At midnight, the next automatic refresh shows the new day's totals starting at zero. No earnings records are deleted. Logging back in on the same day restores that day's cumulative total.
+
+Logout saves an Activity Log entry with the station, session collection, today's total, and session commuters served. Session collection can span midnight, while today's total always refers to the current Philippine date. The log and station release commit together. If saving fails, logout stays open for retry; the app does not silently discard the summary.
+
+A background check runs on startup and every minute. It writes one Daily Summary per employee and completed day, including zero-collection days with recorded station sessions. Missed days catch up after restarting the app. Summary markers and activity entries commit together, preventing duplicates and allowing failed saves to retry. The log timestamp is the time the summary is generated; the description identifies the day being summarized. Employees see their own entries; admins can see all entries.
+
 ## Database and verification
 
-The app creates `employee_stations` and `employee_queue_work` automatically, following the existing queue-table initialization pattern. The database user needs CREATE TABLE permission on first use. Existing business records are not rewritten.
+The app creates `employee_stations`, `employee_queue_work`, `employee_work_sessions`, and `employee_daily_summaries` automatically, following the existing queue-table initialization pattern. The database user needs CREATE TABLE permission on first use. Existing business records are not rewritten. Restart the app after updating so employees begin tracked sessions.
 
 `EmployeeUiTest` covers the four-station selector, locked queue modes, read-only controls, navigation, and dashboard previews. `EmployeeIntegrationTest` creates its own temporary database, copies table definitions only, seeds fixtures, and removes that database afterward. It covers concurrent claims, account/session restrictions, payment rollback, ownership, attribution, private logs, expired leases, and inactive accounts. Run these with the existing queue, payment, and boarding regression tests.

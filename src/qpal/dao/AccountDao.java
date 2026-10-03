@@ -13,7 +13,7 @@ public class AccountDao {
     // LOGIN
     public Account Login(String email, String password) {
 
-        String sql = "SELECT * FROM accounts WHERE email = ? AND password = ? AND status = 'Active'";
+        String sql = "SELECT * FROM accounts WHERE CAST(email AS BINARY) = CAST(? AS BINARY) AND CAST(password AS BINARY) = CAST(? AS BINARY) AND status = 'Active'";
 
         try (
             Connection connection = DbConnection.getConnection();
