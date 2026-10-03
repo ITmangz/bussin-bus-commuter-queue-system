@@ -21,7 +21,7 @@ public final class QueueMonitor extends JPanel {
         JFrame frame=new JFrame(boarding ? "Boarding Queue Monitor" : "Payment Queue Monitor");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setContentPane(new QueueMonitor(boarding));
-        frame.setSize(1020,680); frame.setMinimumSize(new Dimension(780,560));
+        frame.setSize(1020,680); frame.setMinimumSize(new Dimension(780,680));
         frame.setLocationRelativeTo(owner); frame.setVisible(true);
     }
     public QueueMonitor(boolean boarding) {
@@ -73,16 +73,18 @@ public final class QueueMonitor extends JPanel {
             };
             title.setFont(new Font("Segoe UI",Font.BOLD,30)); title.setForeground(Color.WHITE);
             title.setBorder(new EmptyBorder(14,18,14,18)); card.add(title,BorderLayout.NORTH);
-            JPanel content=new JPanel(new GridLayout(boarding ? 5 : 2,1,0,8)); content.setOpaque(false);
+            JPanel content=new JPanel(new GridBagLayout()); content.setOpaque(false);
+            content.setBorder(new EmptyBorder(0,20,0,20));
+            JPanel details=new JPanel(new GridBagLayout()); details.setOpaque(false);
             if(boarding) {
-                content.add(text(row==null ? "Awaiting next trip" : String.format("T%03d",trips.getOrDefault(row.bookingId(),0)),32,INK));
-                content.add(text(row==null ? "No active boarding call" : row.route(),20,INK));
-                content.add(text(row==null ? "—" : row.bus()+"  •  "+row.schedule(),14,MUTED));
+                addDetail(details,row==null ? "Awaiting next trip" : String.format("T%03d",trips.getOrDefault(row.bookingId(),0)),30,INK,0);
+                addDetail(details,row==null ? "No active boarding call" : row.route(),20,row==null ? MUTED : INK,12);
+                if(row!=null) addDetail(details,row.bus()+"  •  "+row.schedule(),14,MUTED,10);
             }
-            JLabel number=text(row==null ? "—" : String.format(boarding ? "B-%03d" : "P%03d",row.number()),boarding ? 40 : 68,RED);
-            number.setHorizontalAlignment(SwingConstants.CENTER); content.add(number);
-            JLabel state=text(row==null ? "Available" : boarding ? row.passengers()+" passengers • BOARDING" : "Now Serving",20,row==null ? MUTED : RED);
-            state.setHorizontalAlignment(SwingConstants.CENTER); content.add(state); card.add(content,BorderLayout.CENTER); cards.add(card);
+            if(!boarding || row!=null) addDetail(details,row==null ? "—" : String.format(boarding ? "B-%03d" : "P%03d",row.number()),boarding ? 40 : 68,RED,boarding ? 20 : 0);
+            addDetail(details,row==null ? "Available" : boarding ? row.passengers()+" passengers • BOARDING" : "Now Serving",20,row==null ? MUTED : RED,20);
+            GridBagConstraints group=new GridBagConstraints(); group.weightx=1; group.fill=GridBagConstraints.HORIZONTAL;
+            content.add(details,group); card.add(content,BorderLayout.CENTER); cards.add(card);
         }
         upcoming.removeAll();
         var next=rows.stream().filter(r -> boarding ? !stations.containsValue(r.id()) : r.status().equals("Waiting")).limit(boarding ? 1 : 5).toList();
@@ -92,25 +94,52 @@ public final class QueueMonitor extends JPanel {
         GridBagConstraints headingCell=new GridBagConstraints(); headingCell.gridx=0; headingCell.gridy=0;
         headingCell.gridwidth=Math.max(1,next.size()*2-1); headingCell.fill=GridBagConstraints.HORIZONTAL;
         headingCell.insets=new Insets(0,0,16,0); line.add(heading,headingCell);
-        if(next.isEmpty()) line.add(text("No waiting queues",20,MUTED));
+        if(next.isEmpty()) {
+            GridBagConstraints empty=new GridBagConstraints(); empty.gridx=0; empty.gridy=1;
+            line.add(text("No waiting queues",20,MUTED),empty);
+        }
         int column=0;
         for(var row:next) {
             GridBagConstraints cell=new GridBagConstraints(); cell.gridx=column++; cell.gridy=1; cell.weightx=1; cell.fill=GridBagConstraints.HORIZONTAL;
             if (next.size()>1 && (row==next.get(0) || row==next.get(next.size()-1))) {
                 JLabel indicator=text(row==next.get(0) ? "Next" : "Last",16,MUTED);
                 indicator.setHorizontalAlignment(SwingConstants.CENTER);
-                GridBagConstraints position=new GridBagConstraints(); position.gridx=cell.gridx; position.gridy=0;
-                position.fill=GridBagConstraints.HORIZONTAL; position.insets=new Insets(0,0,16,0);
+                GridBagConstraints position=new GridBagConstraints(); position.gridx=cell.gridx; position.gridy=2;
+                position.fill=GridBagConstraints.HORIZONTAL; position.insets=new Insets(4,0,0,0);
                 line.add(indicator,position);
             }
-            JLabel queue=text(boarding ? String.format("T%03d • %s • %s • %s • B-%03d",trips.getOrDefault(row.bookingId(),0),row.route(),row.schedule(),row.bus(),row.number()) : String.format("P%03d",row.number()),boarding ? 16 : 34,RED);
-            queue.setHorizontalAlignment(SwingConstants.CENTER); line.add(queue,cell);
+            if(boarding) {
+                JPanel trip=new JPanel(new GridBagLayout()); trip.setOpaque(false);
+                addDetail(trip,String.format("T%03d • %s • B-%03d",trips.getOrDefault(row.bookingId(),0),row.route(),row.number()),18,RED,0);
+                addDetail(trip,row.bus()+" • "+row.schedule(),14,MUTED,8);
+                trip.setMinimumSize(new Dimension(0,trip.getPreferredSize().height)); line.add(trip,cell);
+            } else {
+                JLabel queue=text(String.format("P%03d",row.number()),34,RED);
+                queue.setHorizontalAlignment(SwingConstants.CENTER); line.add(queue,cell);
+            }
             if (row!=next.get(next.size()-1)) {
                 GridBagConstraints divider=new GridBagConstraints(); divider.gridx=column++; divider.gridy=1;
                 line.add(text("|",30,MUTED),divider);
             }
         }
         upcoming.add(line,BorderLayout.CENTER); revalidate(); repaint();
+    }
+    private static void addDetail(JPanel panel,String value,int size,Color color,int gap) {
+        JLabel label=new JLabel(value,SwingConstants.CENTER) {
+            @Override protected void paintComponent(Graphics g) {
+                Font font=new Font("Segoe UI",Font.BOLD,size);
+                int available=Math.max(1,getWidth()-getInsets().left-getInsets().right);
+                int width=getFontMetrics(font).stringWidth(getText());
+                if(width>available) font=font.deriveFont(Math.max(10f,size*(float)available/width));
+                if(!font.equals(getFont())) setFont(font);
+                super.paintComponent(g);
+            }
+        };
+        label.setFont(new Font("Segoe UI",Font.BOLD,size)); label.setForeground(color);
+        label.setMinimumSize(new Dimension(0,label.getPreferredSize().height));
+        GridBagConstraints cell=new GridBagConstraints(); cell.gridx=0; cell.gridy=panel.getComponentCount();
+        cell.weightx=1; cell.fill=GridBagConstraints.HORIZONTAL; cell.insets=new Insets(gap,0,0,0);
+        panel.add(label,cell);
     }
     private static JLabel text(String value,int size,Color color) {
         JLabel label=new JLabel(value); label.setFont(new Font("Segoe UI",Font.BOLD,size)); label.setForeground(color); return label;

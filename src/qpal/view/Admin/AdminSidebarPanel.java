@@ -16,6 +16,10 @@ public class AdminSidebarPanel extends JPanel {
     private JButton logoutBtn;
 
     public AdminSidebarPanel(AdminDashboard dashboard) {
+        this(dashboard::showPage, dashboard::logout, false);
+    }
+
+    public AdminSidebarPanel(java.util.function.Consumer<String> navigate, Runnable logout, boolean employee) {
 
         setPreferredSize(new Dimension(220, 700));
         setOpaque(false);
@@ -64,17 +68,17 @@ public class AdminSidebarPanel extends JPanel {
         addMenuIcon(accountsBtn,"manageaccsicon");
         addMenuIcon(activityBtn, "activitylogicon");
 
-        dashboardBtn.addActionListener(e -> dashboard.showPage("dashboard"));
-        queueBtn.addActionListener(e -> dashboard.showPage("queue"));
-        busBtn.addActionListener(e -> dashboard.showPage("bus"));
-        routeBtn.addActionListener(e -> dashboard.showPage("route"));
-        revenueBtn.addActionListener(e -> dashboard.showPage("revenue"));
-        accountsBtn.addActionListener(e -> dashboard.showPage("accounts"));
-        activityBtn.addActionListener(e -> dashboard.showPage("activity"));
+        dashboardBtn.addActionListener(e -> navigate.accept("dashboard"));
+        queueBtn.addActionListener(e -> navigate.accept("queue"));
+        busBtn.addActionListener(e -> navigate.accept("bus"));
+        routeBtn.addActionListener(e -> navigate.accept("route"));
+        revenueBtn.addActionListener(e -> navigate.accept("revenue"));
+        accountsBtn.addActionListener(e -> navigate.accept("accounts"));
+        activityBtn.addActionListener(e -> navigate.accept("activity"));
 
-        JButton[] buttons = {
-                dashboardBtn, queueBtn, busBtn, routeBtn, revenueBtn, accountsBtn, activityBtn
-        };
+        JButton[] buttons = employee
+                ? new JButton[]{dashboardBtn, queueBtn, busBtn, routeBtn, activityBtn}
+                : new JButton[]{dashboardBtn, queueBtn, busBtn, routeBtn, revenueBtn, accountsBtn, activityBtn};
         for(int i = 0; i < buttons.length; i++) {
             menuPanel.add(buttons[i]);
             if(i < buttons.length - 1) {
@@ -91,7 +95,7 @@ public class AdminSidebarPanel extends JPanel {
 
         addMenuIcon(logoutBtn,"logouticon");
 
-        logoutBtn.addActionListener(e -> dashboard.logout());
+        logoutBtn.addActionListener(e -> logout.run());
         bottom.add(logoutBtn, BorderLayout.CENTER);
         add(bottom, BorderLayout.SOUTH);
         setSelectedPage("dashboard");

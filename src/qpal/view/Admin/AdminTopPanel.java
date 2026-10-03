@@ -15,6 +15,10 @@ public class AdminTopPanel extends JPanel {
     private final JLabel currentPage = new JLabel();
 
     public AdminTopPanel(AdminDashboard dashboard, JLabel clock) {
+        this(dashboard.getCurrentAccount(), clock, dashboard::showPage);
+    }
+
+    public AdminTopPanel(Account currentAccount, JLabel clock, java.util.function.Consumer<String> navigate) {
         setLayout(new BorderLayout(16, 0));
         setBackground(new Color(248, 249, 251));
         setBorder(BorderFactory.createCompoundBorder(
@@ -28,7 +32,7 @@ public class AdminTopPanel extends JPanel {
         home.setBorder(BorderFactory.createEmptyBorder());
         home.setContentAreaFilled(false);
         home.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        home.addActionListener(e -> dashboard.showPage("dashboard"));
+        home.addActionListener(e -> navigate.accept("dashboard"));
 
         JPanel breadcrumb = new JPanel(new BorderLayout(8, 0));
         breadcrumb.setOpaque(false);
@@ -67,11 +71,11 @@ public class AdminTopPanel extends JPanel {
         edit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         edit.setToolTipText("Edit profile");
         edit.getAccessibleContext().setAccessibleName("Edit profile");
-        edit.addActionListener(e -> dashboard.showPage("profile"));
+        edit.addActionListener(e -> navigate.accept("profile"));
         account.add(edit, BorderLayout.EAST);
         right.add(account, BorderLayout.EAST);
         add(right, BorderLayout.EAST);
-        updateProfile(dashboard.getCurrentAccount());
+        updateProfile(currentAccount);
     }
 
     public void setSelectedPage(String page) {

@@ -16,6 +16,7 @@ import qpal.dao.TripDao;
 import qpal.model.Trip;
 
 public class AdminRouteSchedPanel extends JPanel {
+    private final boolean readOnly;
 
     private JTable table;
     private DefaultTableModel model;
@@ -42,6 +43,11 @@ public class AdminRouteSchedPanel extends JPanel {
     private RouteDao routeDao = new RouteDao();
 
     public AdminRouteSchedPanel() {
+        this(false);
+    }
+
+    public AdminRouteSchedPanel(boolean readOnly) {
+        this.readOnly = readOnly;
 
         setLayout(new BorderLayout());
         setBackground(new Color(245,245,245));
@@ -140,7 +146,7 @@ public class AdminRouteSchedPanel extends JPanel {
         south.setOpaque(false);
 
         south.add(createBottomPanel(), BorderLayout.NORTH);
-        south.add(createActionButtons(), BorderLayout.SOUTH);
+        if (!readOnly) south.add(createActionButtons(), BorderLayout.SOUTH);
 
         panel.add(south, BorderLayout.SOUTH);
 

@@ -33,6 +33,7 @@ public class QueueDao {
             ensureStations(c);
             c.setAutoCommit(false);
             try {
+                EmployeeStationDao.requireStation(c,"Boarding",station);
                 int trip=BoardingGateDao.assignedTrip(c,station);
                 update(c,"INSERT INTO queue_daily_counters(queue_date,last_queue_number) VALUES(CURRENT_DATE,0) ON DUPLICATE KEY UPDATE last_queue_number=last_queue_number");
                 Map<Integer,Integer> assigned=new HashMap<>();
@@ -93,6 +94,21 @@ public class QueueDao {
         }
     }
 
+    public void recallBoarding(int queueId,int station) throws SQLException {
+        try (Connection c=DbConnection.getConnection()) {
+            ensureStations(c); ensureBoardingTable(c); c.setAutoCommit(false);
+            try {
+                EmployeeStationDao.requireStation(c,"Boarding",station);
+                try (PreparedStatement p=statement(c,"SELECT s.queue_entry_id FROM queue_stations s WHERE s.kind='Boarding' AND s.station=? AND s.queue_entry_id=? "
+                        + "AND NOT EXISTS(SELECT 1 FROM queue_boarding b WHERE b.queue_entry_id=s.queue_entry_id) FOR UPDATE",station,queueId); ResultSet r=p.executeQuery()) {
+                    if (!r.next()) throw new SQLException("This queue is no longer being called at your gate.");
+                }
+                c.commit();
+                ActivityLogDao.recordActivity("Queue Management","Update","Recalled boarding queue #"+queueId+" at gate "+station+".");
+            } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
+        }
+    }
+
     public void completeBoarding(int queueId) throws SQLException {
         try (Connection c = DbConnection.getConnection()) {
             ensureBoardingTable(c);
@@ -101,6 +117,7 @@ public class QueueDao {
             QueuePaymentDao.ensureTable(c);
             c.setAutoCommit(false);
             try {
+                EmployeeStationDao.requireQueue(c,"Boarding",queueId);
                 try (PreparedStatement p = statement(c,
                         "SELECT q.queue_entry_id FROM queue_entries q JOIN bookings bk ON bk.booking_id=q.booking_id "
                         + "JOIN trips t ON t.trip_id=bk.trip_id WHERE q.queue_entry_id=? "
@@ -113,6 +130,7 @@ public class QueueDao {
                 QueuePaymentDao.requirePrinted(c,queueId);
                 if (update(c,"INSERT IGNORE INTO queue_boarding(queue_entry_id) VALUES (?)",queueId)==0)
                     throw new SQLException("Boarding has already been completed for this queue.");
+                if (EmployeeStationDao.isEmployee()) EmployeeStationDao.recordWork(c,"Boarded","Boarding",EmployeeStationDao.current().station().number(),queueId);
                 c.commit();
                 ActivityLogDao.recordActivity("Queue Management", "Update", "Marked queue #" + queueId + " as boarded.");
             } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
@@ -147,6 +165,9 @@ public class QueueDao {
             QueuePaymentDao.ensureTable(c);
             c.setAutoCommit(false);
             try {
+                EmployeeStationDao.requireStation(c,"Payment",station);
+                if (EmployeeStationDao.isEmployee() && !action.equals("Call Next Queue") && !action.equals("Recall"))
+                    EmployeeStationDao.requireQueue(c,"Payment",queueId);
                 if (action.equals("Mark as Paid")) PaymentDeadlineDao.requireOpen(c, queueId);
                 // The day's counter is also a mutex for admin queue transitions.
                 update(c, "INSERT INTO queue_daily_counters (queue_date,last_queue_number) VALUES (CURRENT_DATE,0) "
@@ -211,6 +232,7 @@ public class QueueDao {
                         if (update(c, "UPDATE payments SET status='Paid',paid_at=NOW() WHERE booking_id=? AND status='Pending'", booking) == 0)
                             throw new SQLException("There is no pending payment for this booking.");
                         update(c, "UPDATE bookings SET status='Confirmed' WHERE booking_id=?", booking);
+                        EmployeeStationDao.recordWork(c,"Payment","Payment",station,queueId);
                         break;
                     case "Complete":
                         if (!status.equals("Serving")) throw new SQLException("Only the serving queue can be completed.");
@@ -221,6 +243,7 @@ public class QueueDao {
                         }
                         update(c, "UPDATE queue_entries SET status='Completed',completed_at=NOW() WHERE queue_entry_id=?", queueId);
                         update(c, "UPDATE bookings SET status='Completed' WHERE booking_id=?", booking);
+                        EmployeeStationDao.recordWork(c,"Served","Payment",station,queueId);
                         break;
                     default: throw new SQLException("Unknown queue action.");
                 }

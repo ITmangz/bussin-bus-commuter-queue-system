@@ -22,7 +22,7 @@ public class AdminActivityLogPanel extends JPanel {
     private JTable table;
     private DefaultTableModel model;
     private JTextField searchField;
-    private JComboBox<String> cmbAction;
+    private JComboBox<String> cmbPeriod;
     private JLabel lblInfo;
     private JLabel connectionStatus;
     private JButton btnOne;
@@ -87,7 +87,8 @@ public class AdminActivityLogPanel extends JPanel {
         JLabel title = new JLabel("Activity Log");
         title.setFont(new Font("SansSerif",Font.BOLD,30));
         title.setForeground(new Color(228,0,70));
-        JLabel subtitle = new JLabel("View recorded user actions and system activity.");
+        JLabel subtitle = new JLabel(account != null && "Employee".equalsIgnoreCase(account.getRole())
+                ? "View your recorded actions and activity." : "View recorded user actions and system activity.");
         subtitle.setFont(new Font("SansSerif",Font.PLAIN,13));
         subtitle.setForeground(new Color(120,120,120));
         panel.add(title);
@@ -126,12 +127,14 @@ public class AdminActivityLogPanel extends JPanel {
         searchField.setFont(new Font("SansSerif",Font.PLAIN,13));
         searchField.setMargin(new Insets(0,10,0,10));
         searchField.setToolTipText("Search timestamp, email, role, module or description");
-        cmbAction = new JComboBox<>(new String[]{"All Actions","Login","Logout","Create","Update","Delete","Print","Export"});
-        AdminFormStyle.tableFilter(cmbAction);
-        cmbAction.setFont(new Font("SansSerif",Font.PLAIN,13));
-        cmbAction.setBackground(Color.WHITE);
-        cmbAction.setFocusable(false);
-        cmbAction.addActionListener(e -> searchActivities());
+        cmbPeriod = new JComboBox<>(new String[]{"Day","Last 7 Days","Last Month"});
+        AdminFormStyle.tableFilter(cmbPeriod);
+        cmbPeriod.setToolTipText("Today, seven days including today, or the previous calendar month");
+        cmbPeriod.getAccessibleContext().setAccessibleName("Activity date range");
+        cmbPeriod.setFont(new Font("SansSerif",Font.PLAIN,13));
+        cmbPeriod.setBackground(Color.WHITE);
+        cmbPeriod.setFocusable(false);
+        cmbPeriod.addActionListener(e -> searchActivities());
         JButton btnSearch = createButton("Search",new Color(225,29,72));
         btnSearch.addActionListener(e -> {
             if (AdminFormStyle.validateSearch(searchField)) {
@@ -144,7 +147,7 @@ public class AdminActivityLogPanel extends JPanel {
         btnPrint.setToolTipText("Print the current page of activity records");
         btnPrint.addActionListener(e -> printActivities());
         controls.add(searchField);
-        controls.add(cmbAction);
+        controls.add(cmbPeriod);
         controls.add(btnSearch);
         controls.add(btnPrint);
         panel.add(controls,BorderLayout.EAST);
@@ -192,12 +195,17 @@ public class AdminActivityLogPanel extends JPanel {
     private void searchActivities() {
         filteredActivities.clear();
         String search = appliedSearch.toLowerCase(Locale.ROOT);
-        String action = cmbAction.getSelectedItem().toString();
+        String period = cmbPeriod.getSelectedItem().toString();
+        java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Manila"));
+        java.time.LocalDate start = period.equals("Day") ? today : period.equals("Last 7 Days")
+                ? today.minusDays(6) : today.withDayOfMonth(1).minusMonths(1);
+        java.time.LocalDate end = period.equals("Last Month") ? today.withDayOfMonth(1) : today.plusDays(1);
         for (Object[] activity : activities) {
+            java.time.LocalDate date = java.time.LocalDate.parse(activity[1].toString().substring(0,10));
             String details = "";
             for (Object value : activity) details += value + " ";
             if (details.toLowerCase(Locale.ROOT).contains(search)
-                    && (action.equals("All Actions") || action.equalsIgnoreCase(activity[5].toString()))) {
+                    && (!date.isBefore(start) && date.isBefore(end))) {
                 filteredActivities.add(activity);
             }
         }
@@ -369,4 +377,5 @@ public class AdminActivityLogPanel extends JPanel {
         return button;
     }
 }
+
 

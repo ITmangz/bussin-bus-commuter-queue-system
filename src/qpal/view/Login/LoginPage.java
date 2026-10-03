@@ -291,7 +291,7 @@ public class LoginPage{
                         qpal.dao.ActivityLogDao.recordActivity("Authentication", "Login", "User logged in to the system.");
                         
                         lpage.dispose();
-                        new EmployeeDashboard();
+                        new EmployeeDashboard(account);
 
                     } else {
 

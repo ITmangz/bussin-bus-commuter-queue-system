@@ -9,6 +9,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableRowSorter;
 
 public class AdminQueuePanel extends JPanel {
+    private final qpal.model.EmployeeStation employeeStation;
     private final DefaultTableModel boardingModel = new DefaultTableModel(
             new String[]{"Queue No.", "Destination", "Bus", "Time", "Payment", "Status", "Passengers"}, 0) {
         @Override public boolean isCellEditable(int row, int column) { return false; }
@@ -137,13 +138,28 @@ public class AdminQueuePanel extends JPanel {
 
 
     public AdminQueuePanel() {
-        setLayout(new BorderLayout(0, 16));
+        this(null);
+    }
+
+    public AdminQueuePanel(qpal.model.EmployeeStation employeeStation) {
+        this.employeeStation = employeeStation;
+        setLayout(new BorderLayout(0, 18));
         setBackground(new Color(245, 245, 245));
         setBorder(new EmptyBorder(20, 25, 18, 25));
 
-        JPanel heading = transparent(new GridLayout(2, 1, 0, 2));
-        heading.add(label("Queue Management", 30, RED, true));
-        heading.add(label("Unpaid passengers become No-show 30 minutes before departure; seats are released.", 14, MUTED, false));
+        JPanel heading = transparent(null);
+        heading.setLayout(new BoxLayout(heading, BoxLayout.Y_AXIS));
+        JLabel title = new JLabel("Queue Management");
+        title.setFont(new Font("SansSerif", Font.BOLD, 30));
+        title.setForeground(new Color(228, 0, 70));
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel subtitle = new JLabel("Manage and monitor commuter queues in real time.");
+        subtitle.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        subtitle.setForeground(new Color(120, 120, 120));
+        subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        heading.add(title);
+        heading.add(Box.createVerticalStrut(4));
+        heading.add(subtitle);
         add(heading, BorderLayout.NORTH);
 
         JPanel body = transparent(new BorderLayout(0, 14));
@@ -307,6 +323,13 @@ public class AdminQueuePanel extends JPanel {
             showSelectedDetails();
             revalidate(); repaint();
         });
+        if (employeeStation != null) {
+            counter.setSelectedIndex(employeeStation.boarding() ? 0 : employeeStation.number());
+            gate.setSelectedIndex(employeeStation.boarding() ? employeeStation.number() : 0);
+            queues.setSelectedIndex(employeeStation.boarding() ? 1 : 0);
+            queues.setEnabledAt(employeeStation.boarding() ? 0 : 1, false);
+            counter.setEnabled(false); gate.setEnabled(false);
+        }
         body.add(queues, BorderLayout.CENTER);
         add(body, BorderLayout.CENTER);
         loadStatus.setFont(new Font("Segoe UI",Font.PLAIN,11));
@@ -410,9 +433,13 @@ public class AdminQueuePanel extends JPanel {
         loading = true;
         showSelectedDetails();
         qpal.util.UiTask.run(() -> {
-            var queues = new qpal.dao.QueueDao().today();
+            var scoped = employeeStation == null ? null : new qpal.dao.EmployeeDashboardDao().stationQueues(employeeStation);
+            var queues = employeeStation == null ? new qpal.dao.QueueDao().today()
+                    : employeeStation.boarding() ? java.util.List.<qpal.model.BookingData.QueueRow>of() : scoped;
             long buses = new qpal.dao.BookingDao().availableTrips().stream().map(t -> t.bus()).distinct().count();
-            return new Object[]{queues, buses, new qpal.dao.QueueDao().boarding(), new qpal.dao.QueueDao().stations("Payment"), new qpal.dao.QueueDao().stations("Boarding")};
+            var boardingQueues = employeeStation == null ? new qpal.dao.QueueDao().boarding()
+                    : employeeStation.boarding() ? scoped : java.util.List.<qpal.model.BookingData.QueueRow>of();
+            return new Object[]{queues, buses, boardingQueues, new qpal.dao.QueueDao().stations("Payment"), new qpal.dao.QueueDao().stations("Boarding")};
         }, data -> {
             qpal.model.BookingData.QueueRow selected = waitingSelectedRow();
             var selectedBoarding = boardingTable.getSelectedRow() < 0 ? null
@@ -458,6 +485,11 @@ public class AdminQueuePanel extends JPanel {
                 }
             }
             stats.get(2).setText(currentQueues[0] + " | " + currentQueues[1]);
+            if (employeeStation != null) {
+                var active = stationRow();
+                stats.get(0).setText(String.valueOf((employeeStation.boarding() ? boardingRows : rows).stream().mapToInt(r -> r.passengers()).sum()));
+                stats.get(2).setText(active == null ? "—" : String.format(employeeStation.boarding() ? "B%03d" : "P%03d",active.number()));
+            }
             number.setText(serving == null ? "—" : String.format("P%03d",serving.number()));
             detailLabels.get("Route").setText(serving == null ? "—" : serving.route());
             detailLabels.get("Bus").setText(serving == null ? "—" : serving.bus());
@@ -466,12 +498,17 @@ public class AdminQueuePanel extends JPanel {
             detailLabels.get("Payment Status").setText(serving == null ? "—" : serving.payment());
             detailLabels.get("Boarding Status").setText(serving == null ? "—" : serving.status());
             loadStatus.setText(rows.isEmpty() ? "No bookings in today's queue." : "Today's queues: " + rows.size());
+            if (employeeStation != null) loadStatus.setText(employeeStation.title()+" • "
+                    +(employeeStation.boarding() ? boardingRows.size()+" queues for the assigned trip"
+                    : rows.size()+" queues in your counter and the shared waiting line"));
             loading = false;
             showSelectedDetails();
         }, ex -> { loading = false; showSelectedDetails(); loadStatus.setText("Unable to refresh queues. Retrying in 5 seconds."); });
     }
 
-    private int station() { return (isBoarding() ? gate : counter).getSelectedIndex(); }
+    public boolean isActionInProgress() { return acting; }
+
+    private int station() { return employeeStation != null ? employeeStation.number() : (isBoarding() ? gate : counter).getSelectedIndex(); }
     private qpal.model.BookingData.QueueRow stationRow() {
         Integer id=(isBoarding() ? boardingStations : paymentStations).get(station());
         return (isBoarding() ? boardingRows : rows).stream().filter(r -> java.util.Objects.equals(id,r.id())
@@ -496,7 +533,7 @@ public class AdminQueuePanel extends JPanel {
         var row = selectedRow();
         detailTitle.setText(isBoarding() ? "Currently Boarding" : row == null ? "Currently Serving" : "Selected Queue Details");
         if (row == null) row = stationRow();
-        counter.setEnabled(!acting && !loading); gate.setEnabled(!acting && !loading);
+        counter.setEnabled(employeeStation == null && !acting && !loading); gate.setEnabled(employeeStation == null && !acting && !loading);
         final boolean hasRow = row != null;
         for (JButton button : actionButtons) button.setEnabled(station() > 0 && !loading && !acting
                 && (!isBoarding() || hasRow || (button.getText().equals("Call Next Queue") && boardingTable.getRowCount() > 0)));
@@ -610,7 +647,11 @@ public class AdminQueuePanel extends JPanel {
                 qpal.components.AppDialogs.showDetailsDialog(this,receipt.detailsText("B"),"Boarding Details");
             }, ex -> qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage()));
         } else if (action.equals("Recall")) {
-            announceQueue(action,true,station(),row);
+            final int selectedStation=station();
+            acting=true; showSelectedDetails();
+            qpal.util.UiTask.run(() -> { new qpal.dao.QueueDao().recallBoarding(row.id(),selectedStation); return true; }, result -> {
+                announceQueue(action,true,selectedStation,row); acting=false; refreshData();
+            }, ex -> { acting=false; qpal.components.AppDialogs.showMessageDialog(this,ex.getMessage()); refreshData(); });
         } else if (action.equals("Complete Boarding")) {
             acting = true;
             showSelectedDetails();

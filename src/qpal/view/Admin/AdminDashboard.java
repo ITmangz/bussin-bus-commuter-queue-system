@@ -13,6 +13,8 @@ public class AdminDashboard {
     private qpal.model.Account currentAccount;
     private AdminDashboardPanel dashboardPanel;
     private EditProfilePanel profilePanel;
+    private AdminQueuePanel queuePanel;
+    private boolean closing;
 
     private CardLayout cardLayout;
     private JPanel contentPanel;
@@ -34,7 +36,7 @@ public class AdminDashboard {
         dashpage.setSize(1200, 700);
         dashpage.setResizable(false);
         dashpage.setLocationRelativeTo(null);
-        dashpage.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        dashpage.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         dashpage.setLayout(new BorderLayout());
 
         sidebar = new AdminSidebarPanel(this);
@@ -45,7 +47,8 @@ public class AdminDashboard {
         dashboardPanel = new AdminDashboardPanel(this);
         profilePanel = new EditProfilePanel(this);
         contentPanel.add(AdminCard.scrollPage(dashboardPanel, 880), "dashboard");
-        contentPanel.add(AdminCard.scrollPage(new AdminQueuePanel(), 880), "queue");
+        queuePanel = new AdminQueuePanel();
+        contentPanel.add(AdminCard.scrollPage(queuePanel, 880), "queue");
         contentPanel.add(AdminCard.scrollPage(new AdminBusPanel(), 880), "bus");
         contentPanel.add(AdminCard.scrollPage(new AdminRouteSchedPanel(), 880), "route");
         contentPanel.add(new AdminRevenuePanel(), "revenue");
@@ -77,6 +80,11 @@ public class AdminDashboard {
         dashpage.addWindowListener(new java.awt.event.WindowAdapter() {
 
             @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                logout(true);
+            }
+
+            @Override
             public void windowClosed(java.awt.event.WindowEvent e) {
                 clockTimer.stop();
             }
@@ -92,6 +100,17 @@ public class AdminDashboard {
     }
 
     public void logout() {
+        logout(false);
+    }
+
+    private void logout(boolean exit) {
+        if (closing) return;
+        if (queuePanel.isActionInProgress()) {
+            qpal.components.AppDialogs.showMessageDialog(dashpage,
+                    "Finish the current queue action or close its dialog before logging out.");
+            return;
+        }
+        closing = true;
         int choice = qpal.components.AppDialogs.showConfirmDialog(
                 dashpage,
                 "Are you sure you want to log out?",
@@ -104,7 +123,10 @@ public class AdminDashboard {
             qpal.dao.ActivityLogDao.setCurrentAccount(null);
             currentAccount = null;
             dashpage.dispose();
-            new LoginPage();
+            if (exit) System.exit(0);
+            else new LoginPage();
+        } else {
+            closing = false;
         }
     }
 

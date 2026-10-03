@@ -19,6 +19,8 @@ public class ActivityLogDao {
         currentAccount = account;
     }
 
+    public static Account getCurrentAccount() { return currentAccount; }
+
     public static boolean hasSaveFailed() {
         return saveFailed;
     }

@@ -6,7 +6,7 @@ import com.toedter.calendar.JDateChooser;
 import qpal.components.FormInputStyle;
 
 /** Single dashboard-style outline around forms. */
-final class AdminFormStyle {
+public final class AdminFormStyle {
     private AdminFormStyle() {}
     static void limitCharacters(JTextField field,int limit,String name) {
         field.setDocument(new javax.swing.text.PlainDocument() {
@@ -85,7 +85,7 @@ final class AdminFormStyle {
         });
         return card;
     }
-    static void styleInputs(Component component) {
+    public static void styleInputs(Component component) {
         if (component instanceof JDateChooser chooser) {
             sizeInput(chooser);
             FormInputStyle.styleCalendar(chooser);

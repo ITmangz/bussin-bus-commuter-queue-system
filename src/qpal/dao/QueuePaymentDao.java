@@ -56,6 +56,7 @@ public class QueuePaymentDao {
             ensureTable(c);
             c.setAutoCommit(false);
             try {
+                EmployeeStationDao.requireStation(c,"Payment",station);
                 PaymentDeadlineDao.requireOpen(c, queue);
                 int booking;
                 try (PreparedStatement p = statement(c,"SELECT q.booking_id FROM queue_entries q JOIN queue_stations s "
@@ -76,6 +77,7 @@ public class QueuePaymentDao {
                 update(c,"UPDATE payments SET status='Paid',paid_at=NOW() WHERE payment_id=?",payment);
                 update(c,"UPDATE bookings SET status='Confirmed' WHERE booking_id=?",booking);
                 update(c,"INSERT INTO queue_payment_progress(queue_entry_id,received) VALUES(?,?)",queue,received);
+                EmployeeStationDao.recordWork(c,"Payment","Payment",station,queue);
                 c.commit();
                 ActivityLogDao.recordActivity("Queue Management", "Update", "Recorded payment for queue #" + queue + " at counter " + station + ".");
             } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
@@ -87,6 +89,7 @@ public class QueuePaymentDao {
             ensureTable(c);
             c.setAutoCommit(false);
             try {
+                EmployeeStationDao.requireQueue(c,"Payment",queue);
                 try (PreparedStatement p = statement(c,"SELECT q.status,(SELECT status FROM payments WHERE booking_id=q.booking_id ORDER BY payment_id DESC LIMIT 1) "
                         + "FROM queue_entries q WHERE queue_entry_id=? FOR UPDATE",queue); ResultSet r=p.executeQuery()) {
                     if (!r.next() || "Cancelled".equals(r.getString(1)) || !"Paid".equals(r.getString(2)))

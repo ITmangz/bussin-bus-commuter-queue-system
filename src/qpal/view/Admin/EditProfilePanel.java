@@ -17,7 +17,8 @@ import qpal.model.Account;
 
 public class EditProfilePanel extends JPanel {
 
-    private AdminDashboard parent;
+    private final java.util.function.Supplier<Account> accountSupplier;
+    private final Runnable profileSaved;
     private JDialog dialog;
     private AccountDao accountDao = new AccountDao();
 
@@ -41,8 +42,13 @@ public class EditProfilePanel extends JPanel {
     private String newPassword = "";
 
     public EditProfilePanel(AdminDashboard parent) {
+        this(() -> parent == null ? null : parent.getCurrentAccount(), () -> { if (parent != null) parent.showPage("dashboard"); });
+    }
 
-        this.parent = parent;
+    public EditProfilePanel(java.util.function.Supplier<Account> accountSupplier, Runnable profileSaved) {
+
+        this.accountSupplier = accountSupplier;
+        this.profileSaved = profileSaved;
 
         setLayout(new GridLayout(1,2,0,0));
         setBackground(Color.WHITE);
@@ -301,7 +307,7 @@ public class EditProfilePanel extends JPanel {
 
     public void loadProfile() {
 
-        Account account = parent == null ? null : parent.getCurrentAccount();
+        Account account = accountSupplier.get();
         if(account == null) {
 
             txtName.setText("");
@@ -455,7 +461,7 @@ public class EditProfilePanel extends JPanel {
     }
     private void saveProfile() {
 
-        Account account = parent == null ? null : parent.getCurrentAccount();
+        Account account = accountSupplier.get();
         if(account == null) {
 
             return;
@@ -536,7 +542,7 @@ public class EditProfilePanel extends JPanel {
                             dialog.dispose();
                         }
 
-                        parent.showPage("dashboard");
+                        profileSaved.run();
 
                     } else {
 

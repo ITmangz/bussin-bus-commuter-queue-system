@@ -31,6 +31,7 @@ public class BoardingGateDao {
         try(Connection c=DbConnection.getConnection()) {
             ensure(c); c.setAutoCommit(false);
             try {
+                EmployeeStationDao.requireStation(c,"Boarding",gate);
                 try(PreparedStatement p=c.prepareStatement("SELECT gate,trip_id FROM boarding_gates ORDER BY gate FOR UPDATE");ResultSet r=p.executeQuery()) {
                     while(r.next()) if((r.getInt(1)==gate && r.getObject(2)!=null) || (r.getObject(2)!=null && r.getInt(2)==trip)) throw new SQLException("Gate or trip is already assigned. Release the gate first.");
                 }
@@ -55,6 +56,7 @@ public class BoardingGateDao {
             ensure(c); new QueueDao().stations("Boarding"); new QueueDao().boarding();
             c.setAutoCommit(false);
             try {
+                EmployeeStationDao.requireStation(c,"Boarding",gate);
                 int trip=assignedTrip(c,gate);
                 try(PreparedStatement p=statement(c,"SELECT trip_id FROM trips WHERE trip_id=? FOR UPDATE",trip);ResultSet r=p.executeQuery()) {if(!r.next()) throw new SQLException("Trip no longer exists.");}
                 if(depart) try(PreparedStatement p=statement(c,"SELECT booking_id FROM bookings WHERE trip_id=? AND status='Pending' LIMIT 1",trip);ResultSet r=p.executeQuery()) {

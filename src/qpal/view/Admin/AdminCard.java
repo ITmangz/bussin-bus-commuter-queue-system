@@ -5,8 +5,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 /** Shared subtle outline for admin content cards. */
-final class AdminCard extends JPanel {
-    AdminCard(int padding) {
+public final class AdminCard extends JPanel {
+    public AdminCard(int padding) {
         setOpaque(false);
         setBorder(new EmptyBorder(padding, padding, padding, padding));
     }
@@ -21,7 +21,7 @@ final class AdminCard extends JPanel {
         g.dispose();
     }
 
-    static JScrollPane scrollPage(JPanel page, int minimumHeight) {
+    public static JScrollPane scrollPage(JPanel page, int minimumHeight) {
         JPanel canvas = new JPanel(new BorderLayout()) {
             @Override public Dimension getPreferredSize() {
                 Container viewport = getParent();

@@ -146,7 +146,7 @@ public class AdminDashboardPanel extends JPanel {
         }.execute();
     }
 
-    private JPanel boardingCard(DashboardDao.BoardingTrip trip) {
+    public static JPanel boardingCard(DashboardDao.BoardingTrip trip) {
         JPanel panel = new AdminCard(12);
         panel.setLayout(new BorderLayout(0, 10));
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 154));
@@ -178,7 +178,7 @@ public class AdminDashboardPanel extends JPanel {
         return panel;
     }
 
-    private JPanel stationCard(DashboardDao.Station station) {
+    public static JPanel stationCard(DashboardDao.Station station) {
         JPanel panel = new AdminCard(12);
         panel.setLayout(new BorderLayout(0, 8));
         panel.setPreferredSize(new Dimension(0, 128));
@@ -192,7 +192,7 @@ public class AdminDashboardPanel extends JPanel {
         JPanel details = new JPanel(new GridLayout(3, 1, 0, 4));
         details.setOpaque(false);
         details.add(label(queue == null ? "No queue assigned" : String.format(java.util.Locale.ROOT,
-                "Queue P%03d • %d passenger(s)", queue.number(), queue.passengers()), 13,
+                station.name().startsWith("Boarding") ? "Queue B%03d • %d passenger(s)" : "Queue P%03d • %d passenger(s)", queue.number(), queue.passengers()), 13,
                 new Color(170,0,45), true));
         details.add(label(queue == null ? station.trip() == null ? "Ready for the next queue" : station.trip() : queue.passenger(), 12, Color.GRAY, false));
         details.add(label(queue == null ? " " : queue.route(), 12, Color.GRAY, false));
@@ -200,7 +200,7 @@ public class AdminDashboardPanel extends JPanel {
         return panel;
     }
 
-    private JLabel badge(String text, boolean active) {
+    private static JLabel badge(String text, boolean active) {
         JLabel badge = label(text, 10, active ? new Color(0,125,75) : Color.GRAY, true);
         badge.setOpaque(true);
         badge.setBackground(active ? new Color(220,252,231) : new Color(243,244,246));
@@ -208,7 +208,7 @@ public class AdminDashboardPanel extends JPanel {
         return badge;
     }
 
-    private JPanel stat(String title, JLabel value, JLabel lblImage, String caption) {
+    public static JPanel stat(String title, JLabel value, JLabel lblImage, String caption) {
 
         JPanel panel = card();
         panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
@@ -239,6 +239,10 @@ public class AdminDashboardPanel extends JPanel {
         return panel;
     }
     private JPanel section(String title, JPanel content, String action, String page) {
+        return section(title, content, action, () -> { if (dashboard != null) dashboard.showPage(page); });
+    }
+
+    public static JPanel section(String title, JPanel content, String action, Runnable navigate) {
         JPanel panel = card();
         panel.setLayout(new BorderLayout(0,14));
         panel.add(label(title,19,new Color(55,55,55),true),BorderLayout.NORTH);
@@ -259,13 +263,7 @@ public class AdminDashboardPanel extends JPanel {
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder());
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.addActionListener(e -> {
-
-            if(dashboard != null) {
-
-                dashboard.showPage(page);
-            }
-        });
+        button.addActionListener(e -> navigate.run());
         panel.add(button,BorderLayout.SOUTH);
         return panel;
     }

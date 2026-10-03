@@ -14,6 +14,7 @@ import qpal.dao.BusDao;
 import qpal.model.Bus;
 
 public class AdminBusPanel extends JPanel {
+    private final boolean readOnly;
 
     private boolean loading;
     private JTable table;
@@ -39,6 +40,11 @@ public class AdminBusPanel extends JPanel {
     private BusDao busDao = new BusDao();
 
     public AdminBusPanel() {
+        this(false);
+    }
+
+    public AdminBusPanel(boolean readOnly) {
+        this.readOnly = readOnly;
 
         setLayout(new BorderLayout());
         setBackground(new Color(245,245,245));
@@ -147,7 +153,7 @@ public class AdminBusPanel extends JPanel {
         south.setOpaque(false);
 
         south.add(createBottomPanel(), BorderLayout.NORTH);
-        south.add(createActionButtons(), BorderLayout.SOUTH);
+        if (!readOnly) south.add(createActionButtons(), BorderLayout.SOUTH);
 
         panel.add(south, BorderLayout.SOUTH);
 
