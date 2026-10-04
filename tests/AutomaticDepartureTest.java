@@ -32,10 +32,14 @@ public class AutomaticDepartureTest {
                     QueueDao queue = new QueueDao();
                     check(queue.boarding().isEmpty(),"Unpaid passengers excluded");
                     queue.act(queue.today().get(0).id(),"Mark as Paid");
+                    sql.executeUpdate("UPDATE queue_entries SET status='Completed'");
+                    sql.executeUpdate("UPDATE bookings SET status='Completed'");
                     check(queue.boarding().size()==1,"Paid passenger appears in boarding queue");
                     sql.executeUpdate("UPDATE queue_entries SET queue_date=CURRENT_DATE-INTERVAL 1 DAY");
                     check(queue.boarding().size()==1,"Earlier bookings remain in boarding queue");
                     int boardingId = queue.boarding().get(0).id();
+                    new BoardingGateDao().assign(1,1);
+                    queue.callBoarding(boardingId,1,false);
                     try { queue.completeBoarding(boardingId); throw new AssertionError("Unprinted boarding accepted"); }
                     catch (SQLException expected) { }
                     new qpal.dao.QueuePaymentDao().printed(boardingId,false);
@@ -46,7 +50,11 @@ public class AutomaticDepartureTest {
                     catch (SQLException expected) { }
                     booking.book("BOARDING-SECOND",trip,List.of(new Passenger("Second","Regular",2)),"Cash");
                     queue.act(queue.today().get(0).id(),"Mark as Paid");
+                    sql.executeUpdate("UPDATE queue_entries SET status='Completed'");
+                    sql.executeUpdate("UPDATE bookings SET status='Completed'");
                     check(queue.boarding().size()==1,"Other boarding queues remain actionable");
+                    int missingId=queue.boarding().get(0).id();
+                    queue.callBoarding(missingId,1,false);
                     DepartureService.reconcile(c);
                     try (ResultSet r = sql.executeQuery("SELECT trip_id,status,available_seats FROM trips ORDER BY trip_id")) {
                         String[] expected = {"Boarding","Departed","Departed","Cancelled"};
@@ -55,6 +63,16 @@ public class AutomaticDepartureTest {
                     sql.executeUpdate("UPDATE trips SET departure_date=CURRENT_DATE,departure_time=CURRENT_TIME WHERE trip_id=1");
                     DepartureService.reconcile(c);
                     check(queue.boarding().isEmpty(),"Departure removes boarding entries without attendance requirement");
+                    try (ResultSet r=sql.executeQuery("SELECT b.status,p.status,q.status FROM bookings b JOIN payments p ON p.booking_id=b.booking_id JOIN queue_entries q ON q.booking_id=b.booking_id WHERE q.queue_entry_id="+missingId)) {
+                        check(r.next() && "No-show".equals(r.getString(1)) && "Paid".equals(r.getString(2)) && "No-show".equals(r.getString(3)),"Unboarded passenger is No-show without changing paid payment");
+                    }
+                    try (ResultSet r=sql.executeQuery("SELECT b.status FROM bookings b JOIN queue_entries q ON q.booking_id=b.booking_id WHERE q.queue_entry_id="+boardingId)) {
+                        check(r.next() && !"No-show".equals(r.getString(1)),"Boarded passenger is preserved");
+                    }
+                    check(queue.stations("Boarding").isEmpty(),"Departure clears active boarding calls");
+                    try (ResultSet r=sql.executeQuery("SELECT trip_id FROM boarding_gates WHERE gate=1")) {
+                        check(r.next() && r.getObject(1)==null,"Departure frees gate");
+                    }
                     check("Departed".equals(new BusDao().departureStatuses().get(1)),"Bus displays departed trip");
                     qpal.model.Trip departed = new TripDao().getTrip(1);
                     departed.setStatus("Scheduled");

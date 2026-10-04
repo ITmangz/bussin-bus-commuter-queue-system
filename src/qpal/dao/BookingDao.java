@@ -11,7 +11,7 @@ public class BookingDao {
     private static final String TRIP_SELECT = "SELECT t.*, b.bus_number, b.seat_capacity, r.origin, r.destination, r.fare "
             + "FROM trips t JOIN buses b ON b.bus_id=t.bus_id JOIN routes r ON r.route_id=t.route_id ";
     private static final String BOOKABLE = "t.status IN ('Scheduled','Boarding') AND r.status='Active' "
-            + "AND b.bus_status='Available' AND TIMESTAMP(t.departure_date,t.departure_time)>DATE_ADD(NOW(),INTERVAL 30 MINUTE) ";
+            + "AND b.bus_status='Available' AND TIMESTAMP(t.departure_date,t.departure_time)>NOW() ";
 
     private TripOption trip(ResultSet r) throws SQLException {
         return new TripOption(r.getInt("trip_id"), r.getString("bus_number"), r.getString("origin"),

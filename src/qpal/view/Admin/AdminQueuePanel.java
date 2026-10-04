@@ -603,11 +603,9 @@ public class AdminQueuePanel extends JPanel {
                 }
                 JComboBox<qpal.dao.BoardingGateDao.GateTrip> choices = new JComboBox<>(
                         trips.toArray(new qpal.dao.BoardingGateDao.GateTrip[0]));
-                JPanel prompt = new JPanel(new BorderLayout(0, 8));
-                prompt.add(new JLabel("Earliest departure is suggested. Confirm the bus is ready."), BorderLayout.NORTH);
-                prompt.add(choices, BorderLayout.CENTER);
-                if (JOptionPane.showConfirmDialog(this, prompt, "Assign Gate " + selectedGate,
-                        JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
+                if (GateActionDialog.show(this, "Assign Gate " + selectedGate,
+                        "Earliest departure is suggested. Confirm the bus is ready.",
+                        choices, "Assign Gate", "Cancel") != 0) return;
                 var trip = (qpal.dao.BoardingGateDao.GateTrip)choices.getSelectedItem();
                 acting = true;
                 qpal.util.UiTask.run(() -> { new qpal.dao.BoardingGateDao().assign(selectedGate, trip.id()); return true; },
@@ -619,10 +617,11 @@ public class AdminQueuePanel extends JPanel {
         boolean departure = action.equals("depart");
         String[] options = departure ? new String[]{"Depart if everyone boarded", "Mark remaining No-show and depart", "Cancel"}
                 : new String[]{"Release gate", "Cancel"};
-        int choice = JOptionPane.showOptionDialog(this,
+        int choice = GateActionDialog.show(this,
+                (departure ? "Depart from Gate " : "Release Gate ") + selectedGate,
                 departure ? "Confirm actual departure. No-show payments will remain paid; no refund is issued."
                         : "Return this trip to Awaiting Gate? Boarded passengers remain recorded.",
-                "Gate " + selectedGate, JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[options.length-1]);
+                null, options);
         if (choice < 0 || choice == options.length-1) return;
         acting = true;
         qpal.util.UiTask.run(() -> { new qpal.dao.BoardingGateDao().close(selectedGate, departure, departure && choice==1); return true; },

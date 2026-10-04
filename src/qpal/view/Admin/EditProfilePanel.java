@@ -71,7 +71,7 @@ public class EditProfilePanel extends JPanel {
         dialog.setContentPane(AdminFormStyle.frame(this));
         dialog.pack();
         dialog.setResizable(false);
-        dialog.setLocationRelativeTo(owner);
+        dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
     }
     private JPanel createForm() {

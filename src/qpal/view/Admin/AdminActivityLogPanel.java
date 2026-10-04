@@ -160,6 +160,7 @@ public class AdminActivityLogPanel extends JPanel {
             public boolean isCellEditable(int row,int column) { return false; }
         };
         table = new JTable(model);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.setFont(new Font("SansSerif",Font.PLAIN,12));
         table.setRowHeight(42);
         table.setShowVerticalLines(false);
@@ -188,7 +189,7 @@ public class AdminActivityLogPanel extends JPanel {
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(Color.WHITE);
         AdminCard.styleScrollBar(scroll,Color.WHITE);
-        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         return scroll;
     }
 
@@ -289,6 +290,18 @@ public class AdminActivityLogPanel extends JPanel {
             model.addRow(filteredActivities.get(i));
         }
 
+        // Fit action badges and descriptions; horizontal scrolling handles overflow.
+        int actionWidth = 90;
+        int descriptionWidth = 245;
+        for (int row = 0; row < table.getRowCount(); row++) {
+            Component action = table.prepareRenderer(table.getCellRenderer(row, 5), row, 5);
+            actionWidth = Math.max(actionWidth, action.getPreferredSize().width + 24);
+            Component cell = table.prepareRenderer(table.getCellRenderer(row, 6), row, 6);
+            descriptionWidth = Math.max(descriptionWidth, cell.getPreferredSize().width + 24);
+        }
+        table.getColumnModel().getColumn(5).setPreferredWidth(actionWidth);
+        table.getColumnModel().getColumn(6).setPreferredWidth(descriptionWidth);
+
         int first = 0;
 
         if(!filteredActivities.isEmpty()) {
@@ -334,7 +347,6 @@ public class AdminActivityLogPanel extends JPanel {
     private void printActivities() {
         if (loading || editing) return;
         editing = true;
-        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Print Activity Log", Dialog.ModalityType.APPLICATION_MODAL);
         DefaultTableModel snapshot = new DefaultTableModel(new String[]{"#","Timestamp","Email","Role","Module","Action","Description"},0) {
             @Override public boolean isCellEditable(int row,int column) { return false; }
         };
@@ -344,24 +356,16 @@ public class AdminActivityLogPanel extends JPanel {
             snapshot.addRow(values);
         }
         JTable preview = new JTable(snapshot); preview.setRowHeight(30);
-        JPanel content = new JPanel(new BorderLayout(12,12));
-        content.setBorder(new EmptyBorder(20,20,20,20));
-        content.add(new JLabel("Print current page of activity records"),BorderLayout.NORTH);
-        content.add(new JScrollPane(preview),BorderLayout.CENTER);
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton print = new JButton("Print"), close = new JButton("Close");
-        buttons.add(print); buttons.add(close); content.add(buttons,BorderLayout.SOUTH);
-        close.addActionListener(e -> dialog.dispose());
-        print.addActionListener(e -> {
+        // Lay out the detached snapshot before opening the printer dialog directly.
+        preview.setSize(900, Math.max(30, snapshot.getRowCount() * 30));
+        preview.doLayout();
             try {
                 if (preview.print(JTable.PrintMode.FIT_WIDTH,new MessageFormat("Activity Log"),new MessageFormat("Page {0}"))) {
                     ActivityLogDao.recordActivity("Activity Log","Print","Printed the current page of activity records.");
                 }
             }
-            catch (PrinterException ex) { qpal.components.AppDialogs.showMessageDialog(dialog,"Unable to print activity logs.","Print Error",JOptionPane.ERROR_MESSAGE); }
-        });
-        dialog.setContentPane(content); dialog.setSize(900,450); dialog.setLocationRelativeTo(this);
-        try { dialog.setVisible(true); } finally { editing=false; }
+            catch (PrinterException ex) { qpal.components.AppDialogs.showMessageDialog(this,"Unable to print activity logs.","Print Error",JOptionPane.ERROR_MESSAGE); }
+            finally { editing=false; }
     }
     private JButton createButton(String text, Color color) {
 

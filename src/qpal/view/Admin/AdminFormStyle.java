@@ -114,6 +114,7 @@ public final class AdminFormStyle {
     private static void styleActions(Container container) {
         // Fixed button sizes also hold in the wider queue, revenue and profile forms.
         if (container instanceof JPanel row && row.getLayout() instanceof GridLayout
+                && !Boolean.TRUE.equals(row.getClientProperty("fullWidthActions"))
                 && row.getComponentCount() == 2
                 && row.getComponent(0) instanceof JButton && row.getComponent(1) instanceof JButton) {
             row.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));

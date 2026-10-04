@@ -1,13 +1,14 @@
 package qpal.view.Admin;
 
 import java.awt.*;
-import java.awt.print.*;
 import java.math.BigDecimal;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import qpal.dao.*;
 import qpal.model.BookingData.*;
+import qpal.model.BookingData.QueueRow;
+import qpal.model.BookingData.Receipt;
 import qpal.util.UiTask;
 
 /** Payment, receipt collection, and one boarding pass per reserved seat. */
@@ -67,7 +68,7 @@ public final class QueuePaymentDialog extends JDialog {
                 closed.run(); return;
             }
             QueuePaymentDialog dialog=new QueuePaymentDialog(parent,row,station,receipt,progress);
-            try { dialog.preview(true); }
+            try { dialog.printAnimated(true); }
             finally { dialog.dispose(); closed.run(); }
         }, ex -> { qpal.components.AppDialogs.showMessageDialog(parent,ex.getMessage()); closed.run(); });
     }
@@ -132,7 +133,7 @@ public final class QueuePaymentDialog extends JDialog {
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override public void windowOpened(java.awt.event.WindowEvent e) {
                 if ("Paid".equals(QueuePaymentDialog.this.receipt.paymentStatus()) && !QueuePaymentDialog.this.progress.receiptPrinted())
-                    SwingUtilities.invokeLater(() -> preview(false));
+                    SwingUtilities.invokeLater(() -> printAnimated(false));
             }
         });
         received.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
@@ -173,24 +174,7 @@ public final class QueuePaymentDialog extends JDialog {
     }
 
     private void autoPrintReceipt() {
-        List<String> pages=List.of(receiptText());
-        busy=true; updateButtons();
-        hideForPrinting();
-        UiTask.run(() -> {
-            PrinterJob job=PrinterJob.getPrinterJob();
-            if (job.getPrintService()==null) throw new PrinterException("No printer is available. Payment is saved; connect a printer and retry.");
-            job.setJobName("BUSSIN Payment Receipt"); job.setCopies(1);
-            job.setPrintable((graphics,format,index) -> {
-                if (index>0) return Printable.NO_SUCH_PAGE;
-                Graphics2D g=(Graphics2D)graphics.create();
-                g.translate(format.getImageableX(),format.getImageableY());
-                drawDocument(g,pages.get(0),format.getImageableWidth(),format.getImageableHeight());
-                g.dispose(); return Printable.PAGE_EXISTS;
-            });
-            job.print(); return true;
-        }, result -> collect(false,pages), ex -> {
-            error(ex); returnToQueue();
-        });
+        printAnimated(false);
     }
 
     private void updateChange() {
@@ -225,60 +209,91 @@ public final class QueuePaymentDialog extends JDialog {
                 + "\nDeparture: " + receipt.schedule() + "\nSeat: " + seat + "\n\nOne passenger · Keep this ticket for boarding.").toList();
     }
     private String receiptText() {
-        return "BUSSIN | PAYMENT RECEIPT\n\n" + receipt.text() + "\nTotal seats: " + row.passengers()
-                + (progress.received()==null ? "\nAmount received: previously paid" : "\nAmount received: PHP " + progress.received()
-                + "\nChange: PHP " + progress.received().subtract(receipt.total()));
+        String divider = "===================================";
+        BigDecimal fare = receipt.total().divide(BigDecimal.valueOf(row.passengers()),2,java.math.RoundingMode.HALF_UP);
+        return divider + "\nBUSSIN PAYMENT RECEIPT\n" + divider
+                + "\nFare: PHP " + money(fare)
+                + "\nTotal Number of Seats: " + row.passengers()
+                + "\nTotal: PHP " + money(receipt.total())
+                + "\nMode of Payment: " + receipt.method()
+                + "\n" + divider
+                + "\nAmount Received: " + (progress.received()==null ? "Not recorded" : "PHP " + money(progress.received()))
+                + "\nChange: " + (progress.received()==null ? "Not recorded" : "PHP " + money(progress.received().subtract(receipt.total())))
+                + "\n" + divider + "\nThank You!\nEnjoy your trip!";
     }
-    private void preview(boolean tickets) {
+
+    private static String money(BigDecimal value) {
+        return value.setScale(2,java.math.RoundingMode.HALF_UP).toPlainString();
+    }
+    private void printAnimated(boolean tickets) {
         List<String> pages = tickets ? boardingTickets(receipt) : List.of(receiptText());
         if (tickets && pages.size()!=row.passengers()) { error(new IllegalStateException("Seat count changed. Reopen Payment before printing.")); return; }
-        if (tickets) { collect(true,pages); return; }
-        JDialog preview = new JDialog(this,tickets ? "Boarding Tickets" : "Payment Receipt",true);
-        JPanel panel = new JPanel(new BorderLayout(10,10)); panel.setBorder(new EmptyBorder(18,18,18,18)); panel.setBackground(Color.WHITE);
-        JTextArea text = new JTextArea(String.join("\n\n------------------------------\n\n",pages),18,44);
-        text.setEditable(false); text.setFont(new Font("Monospaced",Font.PLAIN,13)); panel.add(new JScrollPane(text),BorderLayout.CENTER);
-        JButton print = new JButton(tickets ? "Print all " + pages.size() + " boarding tickets" : "Print payment receipt");
-        panel.add(print,BorderLayout.SOUTH);
-        print.addActionListener(e -> {
-            PrinterJob job = PrinterJob.getPrinterJob(); job.setJobName(tickets ? "BUSSIN Boarding Tickets" : "BUSSIN Payment Receipt");
-            job.setCopies(1);
-            job.setPrintable((graphics,format,index) -> {
-                if (index>=pages.size()) return Printable.NO_SUCH_PAGE;
-                Graphics2D g=(Graphics2D)graphics.create();
-                g.translate(format.getImageableX(),format.getImageableY());
-                drawDocument(g,pages.get(index),format.getImageableWidth(),format.getImageableHeight());
-                g.dispose(); return Printable.PAGE_EXISTS;
-            });
-            if (!job.printDialog()) return;
-            busy=true; updateButtons(); print.setEnabled(false); preview.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-            UiTask.run(() -> { job.print(); return true; }, ok -> {
-                preview.dispose(); collect(tickets,pages);
-            }, ex -> { busy=false; updateButtons(); print.setEnabled(true); preview.setDefaultCloseOperation(DISPOSE_ON_CLOSE); error(ex); });
-        });
-        preview.setContentPane(panel); preview.pack(); preview.setLocationRelativeTo(this); preview.setVisible(true);
+        busy=true; updateButtons();
+        collect(tickets,pages);
     }
 
     static void drawDocument(Graphics2D g,String text,double width,double height) {
-        g.setFont(new Font("SansSerif",Font.PLAIN,13));
+        g.setFont(new Font("Monospaced",Font.PLAIN,13));
         String[] lines=text.split("\n");
         int widest=java.util.Arrays.stream(lines).mapToInt(s -> g.getFontMetrics().stringWidth(s)).max().orElse(300);
         double scale=Math.min(1,Math.min(width/(widest+30.0),height/(lines.length*22.0+30)));
-        g.scale(scale,scale); g.setColor(new Color(210,0,50)); g.fillRect(0,0,widest+30,30);
+        g.scale(scale,scale); g.setColor(Color.BLACK);
         int y=21;
-        for (int i=0;i<lines.length;i++) { g.setColor(i==0 ? Color.WHITE : Color.BLACK); g.drawString(lines[i],12,y); y+=22; }
+        for (int i=0;i<lines.length;i++) { g.drawString(lines[i],12,y); y+=22; }
     }
 
     private static void drawReceiptPaper(Graphics2D g,String text,int width,int height) {
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g.setFont(new Font("SansSerif",Font.PLAIN,12));
-        String[] lines=text.split("\n");
-        int widest=java.util.Arrays.stream(lines).mapToInt(line -> g.getFontMetrics().stringWidth(line)).max().orElse(1);
-        double scale=Math.min(width/(double)Math.max(1,widest),height/(lines.length*18.0));
-        g.scale(scale,scale); g.setColor(Color.BLACK);
-        int y=13;
-        for (String line:lines) { g.drawString(line,0,y); y+=18; }
+        Color ink=new Color(45,45,45), muted=new Color(110,110,110), burgundy=new Color(140,16,47);
+        int left=8, right=width-8;
+        g.setColor(burgundy);
+        g.setFont(new Font("Serif",Font.BOLD,19));
+        centeredReceiptText(g,"BUSSIN",width,27);
+        g.setColor(muted);
+        g.setFont(new Font("SansSerif",Font.PLAIN,10));
+        centeredReceiptText(g,"PAYMENT RECEIPT",width,46);
+        receiptDivider(g,left,right,64);
+        int y=92;
+        boolean paymentSection=false;
+        for(String line:text.split("\n")) {
+            int colon=line.indexOf(':');
+            if(colon<0) continue;
+            String label=line.substring(0,colon), value=line.substring(colon+1).trim();
+            if(label.equals("Amount Received") && !paymentSection) {
+                receiptDivider(g,left,right,y-8);
+                y+=20;
+                paymentSection=true;
+            }
+            boolean total=label.equals("Total");
+            g.setFont(new Font("SansSerif",total ? Font.BOLD : Font.PLAIN,11));
+            g.setColor(total ? burgundy : ink);
+            g.drawString(label,left,y);
+            int valueWidth=g.getFontMetrics().stringWidth(value);
+            // Long values get their own line instead of colliding with the label.
+            if(g.getFontMetrics().stringWidth(label)+valueWidth+16>right-left) y+=17;
+            g.drawString(value,right-valueWidth,y);
+            y+=32;
+        }
+        receiptDivider(g,left,right,y-7);
+        g.setColor(burgundy);
+        g.setFont(new Font("Serif",Font.BOLD,14));
+        centeredReceiptText(g,"Thank You!",width,y+19);
+        g.setColor(muted);
+        g.setFont(new Font("SansSerif",Font.PLAIN,11));
+        centeredReceiptText(g,"Enjoy your trip!",width,y+38);
     }
 
+    private static void centeredReceiptText(Graphics2D g,String text,int width,int y) {
+        g.drawString(text,(width-g.getFontMetrics().stringWidth(text))/2,y);
+    }
+
+    private static void receiptDivider(Graphics2D g,int left,int right,int y) {
+        g.setColor(new Color(185,185,185));
+        Stroke previous=g.getStroke();
+        g.setStroke(new BasicStroke(1,BasicStroke.CAP_BUTT,BasicStroke.JOIN_MITER,10,new float[]{3,3},0));
+        g.drawLine(left,y,right,y);
+        g.setStroke(previous);
+    }
     private void collect(boolean tickets,List<String> pages) {
         // Independent owner keeps the printer visible while both application windows are hidden.
         JDialog popup=new JDialog((Window)null,"Collect " + (tickets ? "boarding tickets" : "receipt"),Dialog.ModalityType.APPLICATION_MODAL);
@@ -290,7 +305,8 @@ public final class QueuePaymentDialog extends JDialog {
         final double[] fraction={0};
         final int[] current={0};
         final String[] seats=receipt.seats().split(",\\s*");
-        final int paperX=86, paperY=99, paperWidth=220, paperHeight=tickets ? 592 : 251;
+        final int paperX=86, paperY=99, paperWidth=220;
+        final int paperHeight=tickets ? 592 : 390;
         Image machine=new ImageIcon("resources/icons/printmachine.png").getImage();
         JPanel paper=new JPanel(null) {
             @Override protected void paintComponent(Graphics graphics) {
@@ -320,7 +336,7 @@ public final class QueuePaymentDialog extends JDialog {
                 g.dispose();
             }
         };
-        paper.setOpaque(false); paper.setPreferredSize(new Dimension(420,tickets ? 710 : 410));
+        paper.setOpaque(false); paper.setPreferredSize(new Dimension(420,tickets ? 710 : 508));
         JButton collect=new JButton(); collect.setEnabled(false); collect.setVisible(false);
         collect.setBounds(paperX,paperY,paperWidth,paperHeight);
         collect.setOpaque(false); collect.setContentAreaFilled(false); collect.setBorderPainted(false);
@@ -330,7 +346,9 @@ public final class QueuePaymentDialog extends JDialog {
         paper.add(collect);
         long[] start={System.nanoTime()};
         Timer timer=new Timer(30,null);
-        timer.addActionListener(e -> { fraction[0]=Math.min(1,(System.nanoTime()-start[0])/1_800_000_000.0); paper.repaint();
+        timer.addActionListener(e -> {
+            double elapsedMillis=(System.nanoTime()-start[0])/1000000.0;
+            fraction[0]=Math.min(1,elapsedMillis/1000); paper.repaint();
             if (fraction[0]>=1) { timer.stop(); collect.setVisible(true); collect.setEnabled(true); collect.requestFocusInWindow(); }
         });
         Runnable printNext = () -> {
@@ -338,17 +356,7 @@ public final class QueuePaymentDialog extends JDialog {
             busy=true; updateButtons();
             UiTask.run(() -> {
                 new QueuePaymentDao().requireBoardingPayment(row.id());
-                PrinterJob job=PrinterJob.getPrinterJob();
-                if (job.getPrintService()==null) throw new PrinterException("No printer is available. Connect a printer and retry.");
-                job.setJobName("BUSSIN Boarding Pass " + (current[0]+1) + " of " + pages.size()); job.setCopies(1);
-                final String seat=seats[current[0]];
-                job.setPrintable((graphics,format,index) -> {
-                    if (index>0) return Printable.NO_SUCH_PAGE;
-                    Graphics2D g=(Graphics2D)graphics.create(); g.translate(format.getImageableX(),format.getImageableY());
-                    BoardingPass.draw(g,receipt,seat,format.getImageableWidth(),format.getImageableHeight());
-                    g.dispose(); return Printable.PAGE_EXISTS;
-                });
-                job.print(); return true;
+                return true;
             }, printed -> {
                 collect.setToolTipText("Click to collect boarding ticket " + (current[0]+1) + " of " + pages.size());
                 collect.getAccessibleContext().setAccessibleName(collect.getToolTipText());

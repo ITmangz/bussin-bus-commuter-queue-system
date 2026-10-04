@@ -8,7 +8,7 @@ import qpal.util.DbConnection;
 import static qpal.dao.BookingDao.*;
 
 public class QueueDao {
-    private void ensureStations(Connection c) throws SQLException {
+    static void ensureStations(Connection c) throws SQLException {
         try (Statement s=c.createStatement()) {
             s.executeUpdate("CREATE TABLE IF NOT EXISTS queue_stations (kind VARCHAR(16) NOT NULL, station INT NOT NULL, queue_entry_id INT NOT NULL, PRIMARY KEY(kind,station), UNIQUE KEY assigned_queue(kind,queue_entry_id)) ENGINE=InnoDB");
         }
@@ -60,7 +60,7 @@ public class QueueDao {
             } catch(SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }
-    private void ensureBoardingTable(Connection c) throws SQLException {
+    static void ensureBoardingTable(Connection c) throws SQLException {
         try (Statement s = c.createStatement()) {
             s.executeUpdate("CREATE TABLE IF NOT EXISTS queue_boarding ("
                     + "queue_entry_id INT PRIMARY KEY, boarded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, "
@@ -122,6 +122,7 @@ public class QueueDao {
                         "SELECT q.queue_entry_id FROM queue_entries q JOIN bookings bk ON bk.booking_id=q.booking_id "
                         + "JOIN trips t ON t.trip_id=bk.trip_id WHERE q.queue_entry_id=? "
                         + "AND t.status='Boarding' AND EXISTS(SELECT 1 FROM boarding_gates g JOIN queue_stations s ON s.station=g.gate AND s.kind='Boarding' WHERE g.trip_id=t.trip_id AND s.queue_entry_id=q.queue_entry_id) "
+                        + "AND TIMESTAMP(t.departure_date,t.departure_time)>NOW() "
                         + "AND q.status='Completed' AND bk.status NOT IN ('Cancelled','Expired','No-show') "
                         + "AND (SELECT status FROM payments WHERE booking_id=bk.booking_id ORDER BY payment_id DESC LIMIT 1)='Paid' "
                         + "FOR UPDATE", queueId); ResultSet r = p.executeQuery()) {

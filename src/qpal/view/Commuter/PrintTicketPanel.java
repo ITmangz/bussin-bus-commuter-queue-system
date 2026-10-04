@@ -21,8 +21,8 @@ public class PrintTicketPanel extends JPanel {
 
 
     private void advanceAnimation() {
-        double elapsed = (System.nanoTime() - animationStarted) / 1_000_000_000.0;
-        progress = Math.min(1.0, elapsed / 3.5);
+        double elapsedMillis = (System.nanoTime() - animationStarted) / 1000000.0;
+        progress = Math.min(1.0, elapsedMillis / 1000);
         if (progress >= 1) {
             state = State.READY;
             print.setText("Collect your ticket in the popup");
@@ -284,6 +284,5 @@ public class PrintTicketPanel extends JPanel {
         }
     }
 }
-
 
 

@@ -15,23 +15,23 @@ public final class PaymentDeadlineDao {
             if (!r.next()) throw new SQLException("Queue no longer exists.");
             trip = r.getInt(1);
         }
-        try (PreparedStatement p = statement(c, "SELECT status,TIMESTAMP(departure_date,departure_time)>DATE_ADD(NOW(),INTERVAL 30 MINUTE) FROM trips WHERE trip_id=? FOR UPDATE", trip);
+        try (PreparedStatement p = statement(c, "SELECT status,TIMESTAMP(departure_date,departure_time)>NOW() FROM trips WHERE trip_id=? FOR UPDATE", trip);
                 ResultSet r = p.executeQuery()) {
             if (!r.next() || !r.getBoolean(2) || !java.util.Set.of("Scheduled","Boarding").contains(r.getString(1)))
-                throw new SQLException("Payment closes 30 minutes before departure. This unpaid reservation has expired; refresh the queue.");
+                throw new SQLException("Payment closes at departure time. This unpaid reservation has expired; refresh the queue.");
         }
     }
 
     public static void expire(Connection c) throws SQLException {
         if (!c.getAutoCommit()) throw new SQLException("Expiry requires its own transaction.");
         var trips = new ArrayList<Integer>();
-        try (PreparedStatement p = c.prepareStatement("SELECT trip_id FROM trips WHERE status IN ('Scheduled','Boarding') AND TIMESTAMP(departure_date,departure_time)<=DATE_ADD(NOW(),INTERVAL 30 MINUTE)"); ResultSet r = p.executeQuery()) {
+        try (PreparedStatement p = c.prepareStatement("SELECT trip_id FROM trips WHERE status IN ('Scheduled','Boarding') AND TIMESTAMP(departure_date,departure_time)<=NOW()"); ResultSet r = p.executeQuery()) {
             while(r.next()) trips.add(r.getInt(1));
         }
         for (int trip : trips) {
             c.setAutoCommit(false);
             try {
-                try (PreparedStatement p = statement(c,"SELECT trip_id FROM trips WHERE trip_id=? AND status IN ('Scheduled','Boarding') AND TIMESTAMP(departure_date,departure_time)<=DATE_ADD(NOW(),INTERVAL 30 MINUTE) FOR UPDATE",trip); ResultSet r=p.executeQuery()) {
+                try (PreparedStatement p = statement(c,"SELECT trip_id FROM trips WHERE trip_id=? AND status IN ('Scheduled','Boarding') AND TIMESTAMP(departure_date,departure_time)<=NOW() FOR UPDATE",trip); ResultSet r=p.executeQuery()) {
                     if (!r.next()) { c.rollback(); continue; }
                 }
                 var bookings = new ArrayList<Integer>();

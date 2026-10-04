@@ -119,7 +119,7 @@ public class AvailableTripPanel extends JPanel {
         title.setForeground(new Color(225,0,45));
         availabletrippanel.add(title);
 
-        JLabel subtext = new JLabel("Payment is due 30 minutes before departure; unpaid seats are released.");
+        JLabel subtext = new JLabel("Payment is due before departure; unpaid seats are released at departure.");
         subtext.setBounds(0,245,1000,30);
         subtext.setHorizontalAlignment(SwingConstants.CENTER);
         subtext.setFont(new Font("Segoe UI",Font.PLAIN,18));

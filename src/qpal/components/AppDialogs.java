@@ -147,11 +147,13 @@ public final class AppDialogs {
         javax.swing.text.StyleConstants.setAlignment(alignment, details
                 ? javax.swing.text.StyleConstants.ALIGN_LEFT : javax.swing.text.StyleConstants.ALIGN_CENTER);
         body.getStyledDocument().setParagraphAttributes(0, body.getDocument().getLength(), alignment, false);
-        // Measure at the available width, including space for a vertical scrollbar.
-        int textWidth = 448 - 12;
+        // Alerts expand to fit wrapped text; only detailed record views scroll.
+        int textWidth = details ? 448 - 12 : 448;
         body.setSize(textWidth, Short.MAX_VALUE);
-        int height = Math.min(220, body.getPreferredSize().height + 6);
-        JScrollPane scroll = new JScrollPane(body, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+        int height = details ? Math.min(220, body.getPreferredSize().height + 6)
+                : body.getPreferredSize().height + 6;
+        JScrollPane scroll = new JScrollPane(body, details ? JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+                : JScrollPane.VERTICAL_SCROLLBAR_NEVER,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.setBorder(BorderFactory.createEmptyBorder()); scroll.setOpaque(false);
         scroll.getViewport().setBackground(Color.WHITE);

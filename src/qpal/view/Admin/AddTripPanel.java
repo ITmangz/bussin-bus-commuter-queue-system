@@ -232,7 +232,7 @@ public class AddTripPanel {
         dialog.setContentPane(AdminFormStyle.frame(panel));
         dialog.pack();
         dialog.setResizable(false);
-        dialog.setLocationRelativeTo(parent);
+        dialog.setLocationRelativeTo(null);
 
         btnCancel.addActionListener(e -> dialog.dispose());
         ManagementComboBoxes.validateBusOnSelection(cmbBus, dialog);

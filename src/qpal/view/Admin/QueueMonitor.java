@@ -36,7 +36,7 @@ public final class QueueMonitor extends JPanel {
         body.add(cards,BorderLayout.CENTER); upcoming.setLayout(new BorderLayout(0,16));
         upcoming.setPreferredSize(new Dimension(0,135)); body.add(upcoming,BorderLayout.SOUTH);
         add(body,BorderLayout.CENTER); add(status,BorderLayout.SOUTH); status.setVisible(false);
-        render(java.util.List.of(),Map.of(),Map.of());
+        render(java.util.List.of(),Map.of(),Map.of(),Map.of());
         timer=new javax.swing.Timer(3000,e -> refresh());
         addHierarchyListener(e -> { if(isShowing()) {timer.start(); refresh();} else timer.stop(); });
     }
@@ -46,16 +46,20 @@ public final class QueueMonitor extends JPanel {
             QueueDao dao=new QueueDao();
             var rows=boarding ? dao.boarding() : dao.today();
             Map<Integer,Integer> trips=new HashMap<>();
+            Map<Integer,Integer> gates=new HashMap<>();
             if(boarding) try(var c=qpal.util.DbConnection.getConnection(); var p=c.prepareStatement("SELECT booking_id,trip_id FROM bookings"); var r=p.executeQuery()) {
                 while(r.next()) trips.put(r.getInt(1),r.getInt(2));
             }
-            return new Snapshot(rows,dao.stations(boarding ? "Boarding" : "Payment"),trips);
-        }, data -> { loading=false; render(data.rows(),data.stations(),data.trips());
+            if(boarding) try(var c=qpal.util.DbConnection.getConnection(); var p=c.prepareStatement("SELECT gate,trip_id FROM boarding_gates WHERE trip_id IS NOT NULL"); var r=p.executeQuery()) {
+                while(r.next()) gates.put(r.getInt(1),r.getInt(2));
+            }
+            return new Snapshot(rows,dao.stations(boarding ? "Boarding" : "Payment"),trips,gates);
+        }, data -> { loading=false; render(data.rows(),data.stations(),data.trips(),data.gates());
             status.setVisible(false);
         }, ex -> {loading=false; status.setText("Connection unavailable • Display may be out of date • Retrying…"); status.setVisible(true);});
     }
-    private record Snapshot(java.util.List<QueueRow> rows,Map<Integer,Integer> stations,Map<Integer,Integer> trips) {}
-    private void render(java.util.List<QueueRow> rows,Map<Integer,Integer> stations,Map<Integer,Integer> trips) {
+    private record Snapshot(java.util.List<QueueRow> rows,Map<Integer,Integer> stations,Map<Integer,Integer> trips,Map<Integer,Integer> gates) {}
+    private void render(java.util.List<QueueRow> rows,Map<Integer,Integer> stations,Map<Integer,Integer> trips,Map<Integer,Integer> gates) {
         cards.removeAll();
         for(int station=1;station<=2;station++) {
             Integer id=stations.get(station);
@@ -87,6 +91,28 @@ public final class QueueMonitor extends JPanel {
             content.add(details,group); card.add(content,BorderLayout.CENTER); cards.add(card);
         }
         upcoming.removeAll();
+        if (boarding) {
+            upcoming.setLayout(new GridLayout(1,2,24,0));
+            for (int gate=1; gate<=2; gate++) {
+                JPanel queue=new JPanel(new GridBagLayout()); queue.setOpaque(false);
+                addDetail(queue,"Gate "+gate+" • Boarding Queue",18,MUTED,0);
+                Integer assignedTrip=gates.get(gate);
+                var waiting=rows.stream().filter(r -> assignedTrip!=null && assignedTrip.equals(trips.get(r.bookingId()))
+                        && !stations.containsValue(r.id())).toList();
+                if (assignedTrip==null) addDetail(queue,"Awaiting next trip",18,MUTED,12);
+                else if (waiting.isEmpty()) addDetail(queue,"No waiting queues",18,MUTED,12);
+                else {
+                    String numbers=waiting.stream().limit(5).map(r -> String.format("B-%03d",r.number()))
+                            .collect(java.util.stream.Collectors.joining(" • "));
+                    addDetail(queue,numbers+(waiting.size()>5 ? " • +"+(waiting.size()-5) : ""),20,RED,12);
+                    QueueRow first=waiting.get(0);
+                    addDetail(queue,String.format("T%03d • %s • %s",assignedTrip,first.route(),first.bus()),14,MUTED,8);
+                }
+                upcoming.add(queue);
+            }
+            revalidate(); repaint();
+            return;
+        }
         var next=rows.stream().filter(r -> boarding ? !stations.containsValue(r.id()) : r.status().equals("Waiting")).limit(boarding ? 1 : 5).toList();
         JPanel line=new JPanel(new GridBagLayout()); line.setOpaque(false);
         JLabel heading=text(boarding ? "Boarding Queue" : "Waiting Queue",18,MUTED);

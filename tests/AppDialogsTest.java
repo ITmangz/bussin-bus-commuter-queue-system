@@ -32,7 +32,9 @@ public class AppDialogsTest {
     }
     graphics.dispose();javax.imageio.ImageIO.write(image,"png",new java.io.File("build/dialog-preview.png"));
     JPanel longCard=AppDialogs.buildCard("Passenger details\n".repeat(100),"Booking Details",JOptionPane.PLAIN_MESSAGE,JOptionPane.DEFAULT_OPTION,v->{});
-    check(longCard.getPreferredSize().height<450,"Long messages must scroll");
+    check(longCard.getPreferredSize().height>450,"Long alerts expand to fit their text");
+    JScrollPane alertScroll=(JScrollPane)messageBody(longCard).getParent().getParent();
+    check(alertScroll.getVerticalScrollBarPolicy()==JScrollPane.VERTICAL_SCROLLBAR_NEVER,"Alerts have no vertical scrollbar");
     String seats="1A, 1B, 1C, 1D, 2A, 2B, 2C, 2D, 3A, 3B";
     var receipt=new qpal.model.BookingData.Receipt(1,"BK-1044decd9f82461eb3012679b2",
             java.time.LocalDate.of(2026,10,1),13,"Bus01","PITX - Alfonso ".repeat(40),

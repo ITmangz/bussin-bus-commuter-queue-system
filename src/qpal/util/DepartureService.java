@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** Releases unpaid reservations at the cutoff; departures require staff confirmation. */
+/** Expires unpaid reservations and departs due trips using the database clock. */
 public final class DepartureService {
     private static final AtomicBoolean started = new AtomicBoolean();
     private DepartureService() {}
@@ -22,7 +22,7 @@ public final class DepartureService {
             try (Connection connection = DbConnection.getConnection()) {
                 reconcile(connection);
             } catch (SQLException ex) {
-                System.err.println("Payment deadline update failed; retrying: " + ex.getMessage());
+                System.err.println("Departure/deadline update failed; retrying: " + ex.getMessage());
             }
         }, 0, 5, TimeUnit.SECONDS);
         executor.scheduleWithFixedDelay(() -> {
@@ -36,5 +36,6 @@ public final class DepartureService {
 
     public static void reconcile(Connection connection) throws SQLException {
         qpal.dao.PaymentDeadlineDao.expire(connection);
+        qpal.dao.AutomaticDepartureDao.departDue(connection);
     }
 }
