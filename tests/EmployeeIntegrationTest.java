@@ -52,7 +52,7 @@ public class EmployeeIntegrationTest {
                 rejects(() -> queues.act(0,"Call Next Queue",2));
                 queues.act(0,"Call Next Queue",1); int queue=queues.stations("Payment").get(1);
                 var summary=new EmployeeDashboardDao().load(first);
-                check(summary.pending()==1 && summary.sharedWaiting()==1,"Assigned pending distinct from shared line");
+                check(summary.transactions()==0 && summary.sharedWaiting()==1,"Unfinished booking is not a transaction");
                 rejects(() -> payments.pay(queue,2,new BigDecimal("100")));
                 rejects(() -> payments.pay(queue,1,new BigDecimal("99")));
                 check(new EmployeeDashboardDao().load(first).collected().signum()==0,"Failed payment not attributed");
@@ -68,7 +68,8 @@ public class EmployeeIntegrationTest {
                 check(new EmployeeDashboardDao().load(first).commuters()==0,"Failed completion not counted");
                 payments.printed(queue,false); payments.printed(queue,true); queues.act(queue,"Complete",1);
                 check(new EmployeeDashboardDao().load(first).commuters()==2,"Counts passengers, not bookings");
-                check(new EmployeeDashboardDao().load(first).pending()==0,"Completed payment no longer pending");
+                check(new ActivityLogDao().getAllActivities(one).stream().anyMatch(l -> l.getDescription().contains("2 boarding ticket(s)")), "Print log includes boarding ticket quantity");
+                check(new EmployeeDashboardDao().load(first).transactions()==1,"Completed booking counts as one transaction");
                 var gate=stations.claim(three,new EmployeeStation("Boarding",1)); signIn(three,gate);
                 var gates=new BoardingGateDao(); rejects(() -> gates.assign(2,trip.id())); gates.assign(1,trip.id());
                 sql("INSERT INTO buses(bus_id,bus_number,seat_capacity,available_seats,bus_status) VALUES(2,'SECOND',30,30,'Available')");
@@ -86,7 +87,7 @@ public class EmployeeIntegrationTest {
                 rejects(() -> queues.recallBoarding(queue,1));
                 rejects(() -> queues.completeBoarding(queue));
                 var boarded=new EmployeeDashboardDao().load(gate);
-                check(boarded.commuters()==2 && boarded.collected().signum()==0 && boarded.pending()==0,"Boarding service credited once, no payment revenue");
+                check(boarded.commuters()==2 && boarded.collected().signum()==0 && boarded.transactions()==1,"Boarding service credited once, no payment revenue");
                 var logs=new ActivityLogDao().getAllActivities(three);
                 check(!logs.isEmpty() && logs.stream().allMatch(l -> l.getEmail().equals(three.getEmail())),"Only own activity logs");
                 sql("UPDATE employee_stations SET expires_at=NOW()-INTERVAL 1 SECOND WHERE kind='Payment' AND station=1");

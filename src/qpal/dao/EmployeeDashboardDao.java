@@ -9,7 +9,7 @@ import qpal.util.DbConnection;
 import static qpal.dao.BookingDao.*;
 
 public final class EmployeeDashboardDao {
-    public record Summary(int commuters, BigDecimal collected, int pending, int sharedWaiting,
+    public record Summary(int commuters, BigDecimal collected, int transactions, int sharedWaiting,
             QueueRow current, List<DashboardDao.BoardingTrip> activeBoarding, String stationTrip) {}
 
     public List<QueueRow> stationQueues(EmployeeStation station) throws SQLException {
@@ -34,20 +34,20 @@ public final class EmployeeDashboardDao {
         var rows=stationQueues(station);
         var assigned=new QueueDao().stations(station.kind()).get(station.number());
         QueueRow current=rows.stream().filter(r -> Objects.equals(assigned,r.id())).findFirst().orElse(null);
-        int served=0; BigDecimal collected=BigDecimal.ZERO;
+        int served=0, transactions=0; BigDecimal collected=BigDecimal.ZERO;
         var live=new DashboardDao().loadSummary();
         String stationName=(station.boarding() ? "Boarding Gate " : "Payment Counter ")+station.number();
         String stationTrip=live.stations.stream().filter(s -> s.name().equals(stationName)).map(DashboardDao.Station::trip)
                 .filter(Objects::nonNull).findFirst().orElse(null);
         try (Connection c=DbConnection.getConnection()) {
             try (PreparedStatement p=statement(c,"SELECT COALESCE(SUM(CASE WHEN event IN ('Served','Boarded') THEN passengers ELSE 0 END),0),"
-                    + "COALESCE(SUM(CASE WHEN event='Payment' THEN amount ELSE 0 END),0) FROM employee_queue_work "
+                    + "COALESCE(SUM(CASE WHEN event='Payment' THEN amount ELSE 0 END),0), COUNT(DISTINCT CASE WHEN event IN ('Served','Boarded') THEN queue_entry_id END) FROM employee_queue_work "
                     + "WHERE account_id=? AND created_at>=CURRENT_DATE AND created_at<CURRENT_DATE+INTERVAL 1 DAY",session.accountId()); ResultSet r=p.executeQuery()) {
-                r.next(); served=r.getInt(1); collected=r.getBigDecimal(2);
+                r.next(); served=r.getInt(1); collected=r.getBigDecimal(2); transactions=r.getInt(3);
             }
         }
         int shared=(int)rows.stream().filter(r -> "Waiting".equals(r.status()) || "Skipped".equals(r.status())).count();
-        return new Summary(served,collected,station.boarding()?rows.size():(current==null?0:1),shared,current,live.boardingTrips,stationTrip);
+        return new Summary(served,collected,transactions,shared,current,live.boardingTrips,stationTrip);
     }
 }
 

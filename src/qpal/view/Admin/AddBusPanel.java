@@ -49,22 +49,33 @@ public class AddBusPanel {
         panel.add(Box.createVerticalStrut(7));
 
         JTextField txtBusNumber = new JTextField();
-        AdminFormStyle.limitCharacters(txtBusNumber,6,"Bus Number");
+        txtBusNumber.setDocument(new javax.swing.text.PlainDocument() {
 
-        txtBusNumber.setToolTipText("Enter Bus followed by digits, for example Bus01 or Bus100.");
-        ((javax.swing.text.AbstractDocument)txtBusNumber.getDocument()).setDocumentFilter(new javax.swing.text.DocumentFilter() {
-            @Override public void insertString(FilterBypass fb,int offset,String text,javax.swing.text.AttributeSet attrs)
-                    throws javax.swing.text.BadLocationException { replace(fb,offset,0,text,attrs); }
-            @Override public void remove(FilterBypass fb,int offset,int length)
-                    throws javax.swing.text.BadLocationException { replace(fb,offset,length,"",null); }
-            @Override public void replace(FilterBypass fb,int offset,int length,String text,javax.swing.text.AttributeSet attrs)
+            @Override
+            public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
                     throws javax.swing.text.BadLocationException {
-                String old=fb.getDocument().getText(0,fb.getDocument().getLength());
-                String value=old.substring(0,offset)+(text==null ? "" : text)+old.substring(offset+length);
-                if ("Bus".startsWith(value) || value.matches("Bus[0-9]*")) super.replace(fb,offset,length,text,attrs);
-                else Toolkit.getDefaultToolkit().beep();
+                if (str == null) {
+                    return;
+                }
+
+                if (getLength() + str.length() <= 6) {
+                    String current = getText(0, getLength());
+                    String value = current.substring(0, offs) + str + current.substring(offs);
+                    if ("Bus".startsWith(value) || value.matches("Bus[0-9]*")) {
+                        super.insertString(offs, str, a);
+                    } else {
+                        Toolkit.getDefaultToolkit().beep();
+                    }
+                } else {
+                    txtBusNumber.setText("");
+                    Toolkit.getDefaultToolkit().beep();
+                    qpal.components.AppDialogs.showMessageDialog(null,
+                            "Bus Number must not exceed 6 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                }
             }
         });
+        
+        txtBusNumber.setToolTipText("Enter Bus followed by 1 to 3 digits, for example Bus01 or Bus100.");
         txtBusNumber.setBackground(new Color(220,220,220));
         txtBusNumber.setBorder(BorderFactory.createEmptyBorder(8,10,8,10));
         txtBusNumber.setPreferredSize(new Dimension(300,34));
@@ -152,11 +163,11 @@ public class AddBusPanel {
             Integer seatCapacity = (Integer)cmbSeatCapacity.getSelectedItem();
             String status = (String)cmbStatus.getSelectedItem();
 
-            if(!busNumber.matches("Bus[0-9]+")) {
+            if(!busNumber.matches("Bus[0-9]{1,3}")) {
 
                 qpal.components.AppDialogs.showMessageDialog(
                         dialog,
-                        "Enter Bus followed by digits, for example Bus01 or Bus100.",
+                        "Enter Bus followed by 1 to 3 digits, for example Bus01 or Bus100.",
                         "Warning",
                         JOptionPane.WARNING_MESSAGE);
 

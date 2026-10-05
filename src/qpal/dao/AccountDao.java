@@ -292,11 +292,38 @@ public class AccountDao {
         return null;
     }
 
+    public boolean verifyCurrentPassword(int id, String password) throws java.sql.SQLException {
+
+        String sql = "SELECT id FROM accounts WHERE id = ? AND CAST(password AS BINARY) = CAST(? AS BINARY)";
+        try (Connection connection = DbConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, id);
+            statement.setString(2, password);
+            try (ResultSet result = statement.executeQuery()) {
+                if (result.next()) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+    }
+
     // UPDATE PERSONAL DETAILS WITHOUT CHANGING ROLE OR STATUS
-    public boolean updateProfile(int id, String name, String email, String password, String profileImage) {
+    public boolean updateProfile(int id, String name, String email, String password, String profileImage, String currentPassword) {
 
         String sql = "UPDATE accounts SET name = ?, email = ?, "
                 + "password = CASE WHEN ? = '' THEN password ELSE ? END, profile_image = ? WHERE id = ?";
+
+        if (!password.isEmpty()) {
+            if (currentPassword == null || currentPassword.isEmpty() || password.isBlank()
+                    || password.length() > 100 || password.equals(currentPassword)) {
+                return false;
+            } else {
+                sql += " AND CAST(password AS BINARY) = CAST(? AS BINARY)";
+            }
+        }
 
         try (
             Connection connection = DbConnection.getConnection();
@@ -309,6 +336,9 @@ public class AccountDao {
             statement.setString(4, password);
             statement.setString(5, profileImage == null || profileImage.isEmpty() ? null : profileImage);
             statement.setInt(6, id);
+            if (!password.isEmpty()) {
+                statement.setString(7, currentPassword);
+            }
 
             boolean saved = statement.executeUpdate() > 0;
             if (saved) ActivityLogDao.recordActivity("Profile", "Update", "Updated personal profile for account #" + id + ".");

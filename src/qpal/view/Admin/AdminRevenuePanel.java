@@ -394,36 +394,18 @@ public class AdminRevenuePanel extends JPanel {
         }
     }
     private void printRevenue() {
-        if (loading || editing) return;
+        if (loading || editing || model.getRowCount() == 0) return;
         editing = true;
-        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Print Revenue", Dialog.ModalityType.APPLICATION_MODAL);
-        DefaultTableModel snapshot = new DefaultTableModel(new String[]{"Payment ID","Queue No.","Seat","Bus","Route","Date / Time","Amount","Status"},0) {
-            @Override public boolean isCellEditable(int row,int column) { return false; }
-        };
-        for (int row=0;row<model.getRowCount();row++) {
-            Object[] values=new Object[model.getColumnCount()];
-            for (int col=0;col<values.length;col++) values[col]=table.getValueAt(row,col);
-            snapshot.addRow(values);
-        }
-        JTable preview = new JTable(snapshot); preview.setRowHeight(30);
-        JPanel content = new JPanel(new BorderLayout(12,12));
-        content.setBorder(new EmptyBorder(20,20,20,20));
-        content.add(new JLabel("Print current page of revenue records"),BorderLayout.NORTH);
-        content.add(new JScrollPane(preview),BorderLayout.CENTER);
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton print = new JButton("Print"), close = new JButton("Close");
-        buttons.add(print); buttons.add(close); content.add(buttons,BorderLayout.SOUTH);
-        close.addActionListener(e -> dialog.dispose());
-        print.addActionListener(e -> {
-            try {
-                if (preview.print(JTable.PrintMode.FIT_WIDTH,new MessageFormat("Revenue Management"),new MessageFormat("Page {0}"))) {
-                    qpal.dao.ActivityLogDao.recordActivity("Revenue", "Print", "Printed the revenue report.");
-                }
+        try {
+            if (table.print(JTable.PrintMode.FIT_WIDTH,
+                    new MessageFormat("Revenue Management"), new MessageFormat("Page {0}"))) {
+                qpal.dao.ActivityLogDao.recordActivity("Revenue", "Print", "Printed the current page of revenue records.");
             }
-            catch (PrinterException ex) { qpal.components.AppDialogs.showMessageDialog(dialog,"Unable to print revenue.","Print Error",JOptionPane.ERROR_MESSAGE); }
-        });
-        dialog.setContentPane(content); dialog.setSize(900,450); dialog.setLocationRelativeTo(this);
-        try { dialog.setVisible(true); } finally { editing=false; }
+        } catch (PrinterException ex) {
+            qpal.components.AppDialogs.showMessageDialog(this, "Unable to print revenue.", "Print Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            editing = false;
+        }
     }
     private JButton createButton(String text, Color color) {
 

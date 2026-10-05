@@ -16,6 +16,12 @@ public class QueuePaymentTest {
     }
     public static void main(String[] args) throws Exception {
         BigDecimal total=new BigDecimal("500.00");
+        check(QueuePaymentDao.validateReceived("10,000",total).equals(new BigDecimal("10000.00")),"Accept comma-formatted maximum");
+        check(QueuePaymentDao.validateReceived("10000.00",total).equals(new BigDecimal("10000.00")),"Accept stored maximum");
+        rejects(() -> QueuePaymentDao.validateReceived("10,001",total));
+        rejects(() -> QueuePaymentDao.validateReceived("10000.01",total));
+        rejects(() -> QueuePaymentDao.validateReceived("99999",total));
+        rejects(() -> QueuePaymentDao.validateReceived("1,00",total));
         rejects(() -> QueuePaymentDao.validateReceived("",total));
         rejects(() -> QueuePaymentDao.validateReceived("NaN",total));
         rejects(() -> QueuePaymentDao.validateReceived("499.99",total));

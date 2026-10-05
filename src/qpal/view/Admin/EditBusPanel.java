@@ -66,8 +66,9 @@ public class EditBusPanel {
         panel.add(Box.createVerticalStrut(7));
 
         JTextField txtBusNumber = new JTextField(bus.getBusNumber());
-
         txtBusNumber.setBackground(new Color(220,220,220));
+        txtBusNumber.setEditable(false);
+        txtBusNumber.setForeground(new Color(30,30,30));
         txtBusNumber.setBorder(BorderFactory.createEmptyBorder(8,10,8,10));
         txtBusNumber.setMaximumSize(new Dimension(300,38));
         txtBusNumber.setAlignmentX(Component.LEFT_ALIGNMENT);

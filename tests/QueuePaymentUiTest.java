@@ -27,7 +27,19 @@ public class QueuePaymentUiTest {
                     JDialog dialog=(JDialog)constructor.newInstance(new JPanel(),row,1,r,new Progress(state==0 ? null : new BigDecimal("1000.00"),state==2,false));
                     try {
                         check(((JButton)field(dialog,"pay")).isEnabled()==(state==0),"Payment cannot be repeated");
-                        if (state==0) ((JTextField)field(dialog,"received")).setText("1000");
+                        if (state==0) {
+                            JTextField input=(JTextField)field(dialog,"received");
+                            input.setText("10,000");
+                            check(input.getText().equals("10,000"),"Accept six-character maximum");
+                            check(((JLabel)field(dialog,"change")).getText().equals("Change: PHP 9500.00"),"Comma-formatted change");
+                            for (String invalid : new String[]{"10,001","10001","100000","9999.99"}) {
+                                input.selectAll(); input.replaceSelection(invalid);
+                                check(input.getText().equals("10,000"),"Reject over-limit input: "+invalid);
+                            }
+                            input.setText("999.99");
+                            check(input.getText().equals("999.99"),"Accept cents within six characters");
+                            input.setText("1000");
+                        }
                         check(((JLabel)field(dialog,"change")).getText().equals("Change: PHP 500.00"),"Live change");
                         dialog.validate();
                         var pane=dialog.getContentPane();

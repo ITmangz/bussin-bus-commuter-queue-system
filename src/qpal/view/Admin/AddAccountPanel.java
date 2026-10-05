@@ -184,7 +184,7 @@ public class AddAccountPanel {
         dialog.setContentPane(AdminFormStyle.frame(panel));
         dialog.pack();
         dialog.setResizable(false);
-        dialog.setLocationRelativeTo(parent);
+        dialog.setLocationRelativeTo(null);
 
         btnCancel.addActionListener(e -> {
 

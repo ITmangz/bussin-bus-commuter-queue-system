@@ -14,7 +14,7 @@ import qpal.util.UiTask;
 public final class EmployeeDashboardPanel extends JPanel {
     private final Account account;
     private final EmployeeStationDao.Session session;
-    private final JLabel greeting=new JLabel(), commuters=new JLabel("—"), collected=new JLabel("—"), pending=new JLabel("—");
+    private final JLabel greeting=new JLabel(), commuters=new JLabel("—"), collected=new JLabel("—"), transactions=new JLabel("—");
     private final JPanel active=new JPanel(), queue=new JPanel();
     private final JLabel status=new JLabel("Loading your station…");
     // Add ImageIcons when the dashboard images are ready, as in the admin dashboard.
@@ -37,8 +37,8 @@ public final class EmployeeDashboardPanel extends JPanel {
         JPanel stats=transparent(new GridLayout(1,3,14,0)); stats.setPreferredSize(new Dimension(0,180));
         stats.add(AdminDashboardPanel.stat("TOTAL NUMBER OF COMMUTERS SERVED",commuters,lblCommutersImage,"Your completed services today"));
         stats.add(AdminDashboardPanel.stat("TOTAL AMOUNT COLLECTED",collected,lblCollectedImage,"Fares you collected today"));
-        stats.add(AdminDashboardPanel.stat("PENDING QUEUES",pending,lblQueueImage,"Your assigned station"));
-        pending.setToolTipText(session.station().boarding()?"Unboarded queues for the trip assigned to your gate.":"The unfinished queue currently assigned to your counter.");
+        stats.add(AdminDashboardPanel.stat("TOTAL NUMBER OF TRANSACTIONS MADE",transactions,lblQueueImage,"Your completed tickets today"));
+        transactions.setToolTipText("Each completed booking counts as one transaction, regardless of passenger count.");
         details.add(stats,BorderLayout.NORTH);
         JPanel bottom=transparent(new GridLayout(1,2,16,0));
         bottom.add(AdminDashboardPanel.section("Active Boarding",active,"View schedules",openSchedules));
@@ -57,7 +57,7 @@ public final class EmployeeDashboardPanel extends JPanel {
         }, ex -> { loading=false; status.setText("Unable to refresh. Last values may be out of date. Retrying…"); status.setVisible(true); revalidate(); });
     }
     public void showSummary(EmployeeDashboardDao.Summary data) {
-        commuters.setText(String.valueOf(data.commuters())); collected.setText(String.format(java.util.Locale.ENGLISH,"PHP %,.2f",data.collected())); pending.setText(String.valueOf(data.pending()));
+        commuters.setText(String.valueOf(data.commuters())); collected.setText(String.format(java.util.Locale.ENGLISH,"PHP %,.2f",data.collected())); transactions.setText(String.valueOf(data.transactions()));
         active.removeAll();
         if(data.activeBoarding().isEmpty()) showMessage(active,"No trips are currently boarding.");
         for(var trip:data.activeBoarding()) { active.add(AdminDashboardPanel.boardingCard(trip)); active.add(Box.createVerticalStrut(10)); }

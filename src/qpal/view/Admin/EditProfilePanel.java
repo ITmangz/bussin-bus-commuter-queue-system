@@ -40,6 +40,7 @@ public class EditProfilePanel extends JPanel {
 
     private String photoPath = "";
     private String newPassword = "";
+    private String currentPassword = "";
 
     public EditProfilePanel(AdminDashboard parent) {
         this(() -> parent == null ? null : parent.getCurrentAccount(), () -> { if (parent != null) parent.showPage("dashboard"); });
@@ -319,6 +320,7 @@ public class EditProfilePanel extends JPanel {
             lblPreviewRole.setText(account.getRole());
         }
         newPassword = "";
+        currentPassword = "";
         txtPassword.setText("unchanged");
         photoPath = "";
         txtAssignment.setText(account == null ? "—" : account.getRole());
@@ -441,12 +443,18 @@ public class EditProfilePanel extends JPanel {
 
     private void changePassword() {
 
-        new ChangePasswordPanel(dialog,password -> {
+        Account account = accountSupplier.get();
+        if (account == null) {
+            return;
+        } else {
+            new ChangePasswordPanel(dialog,account.getID(),(current,password) -> {
 
-            newPassword = password;
-            txtPassword.setText(password);
-            txtPassword.setToolTipText("New password will be applied when you save changes.");
-        });
+                currentPassword = current;
+                newPassword = password;
+                txtPassword.setText(password);
+                txtPassword.setToolTipText("New password will be applied when you save changes.");
+            });
+        }
     }
     private void saveProfile() {
 
@@ -459,6 +467,7 @@ public class EditProfilePanel extends JPanel {
         String name = txtName.getText().trim();
         String email = txtEmail.getText().trim();
         String password = newPassword;
+        String verifiedPassword = currentPassword;
         String selectedPhoto = photoPath;
         if(selectedPhoto.length() > 255) {
 
@@ -485,7 +494,7 @@ public class EditProfilePanel extends JPanel {
 
                     throw new IllegalArgumentException("Email already exists.");
                 }
-                return accountDao.updateProfile(account.getID(),name,email,password,selectedPhoto);
+                return accountDao.updateProfile(account.getID(),name,email,password,selectedPhoto,verifiedPassword);
             }
             protected void done() {
 
@@ -508,6 +517,7 @@ public class EditProfilePanel extends JPanel {
                         account.setProfileImage(selectedPhoto);
 
                         newPassword = "";
+                        currentPassword = "";
                         txtPassword.setText("unchanged");
 
                         qpal.components.AppDialogs.showMessageDialog(dialog,"Profile updated successfully.","Success",JOptionPane.INFORMATION_MESSAGE);
@@ -521,7 +531,7 @@ public class EditProfilePanel extends JPanel {
 
                     } else {
 
-                        qpal.components.AppDialogs.showMessageDialog(dialog,"Failed to update profile. Check your database connection.","Error",JOptionPane.ERROR_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(dialog,"Unable to save changes. Your current password may have changed; enter it again and retry.","Error",JOptionPane.ERROR_MESSAGE);
                     }
 
                 } catch(Exception e) {

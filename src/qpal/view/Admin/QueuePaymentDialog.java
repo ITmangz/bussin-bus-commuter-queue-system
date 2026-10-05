@@ -106,7 +106,12 @@ public final class QueuePaymentDialog extends JDialog {
                     throws javax.swing.text.BadLocationException {
                 String current=fb.getDocument().getText(0,fb.getDocument().getLength());
                 String value=current.substring(0,offset)+(text==null ? "" : text)+current.substring(offset+length);
-                if (value.matches("[0-9]{0,5}(\\.[0-9]{0,2})?")) super.replace(fb,offset,length,text,attributes);
+                String number=value.replace(",", "");
+                boolean format=value.matches("[0-9]*(\\.[0-9]{0,2})?")
+                        || value.matches("[0-9]{1,2},[0-9]{0,3}");
+                boolean withinLimit=number.isEmpty() || number.equals(".")
+                        || (format && new BigDecimal(number).compareTo(new BigDecimal("10000"))<=0);
+                if (value.length()<=6 && format && withinLimit) super.replace(fb,offset,length,text,attributes);
                 else Toolkit.getDefaultToolkit().beep();
             }
         });

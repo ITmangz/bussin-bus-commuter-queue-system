@@ -299,6 +299,7 @@ public class AdminQueuePanel extends JPanel {
         footer.add(pageRow,BorderLayout.CENTER);
         waiting.add(footer,BorderLayout.SOUTH);
         loadQueuePage();
+        styleQueueTabs();
         queues.addTab("Payment Queue", waiting);
         JPanel boarding = createBoardingPanel();
         queues.addTab("Boarding Queue", boarding);
@@ -320,6 +321,7 @@ public class AdminQueuePanel extends JPanel {
                 controls.add(sideActions.get(i));
             }
             completeButton.setText(isBoarding() ? "Complete Boarding" : "Complete");
+            updateCurrentQueueStat();
             showSelectedDetails();
             revalidate(); repaint();
         });
@@ -475,16 +477,7 @@ public class AdminQueuePanel extends JPanel {
             }
             stats.get(0).setText(String.valueOf(passengers));
             stats.get(1).setText(String.valueOf(data[1]));
-            String[] currentQueues = {"—", "—"};
-            for (int counter = 1; counter <= 2; counter++) {
-                Integer id = paymentStations.get(counter);
-                for (var row : rows) {
-                    if (java.util.Objects.equals(id, row.id()) && row.status().equals("Serving")) {
-                        currentQueues[counter - 1] = String.format("P%03d",row.number());
-                    }
-                }
-            }
-            stats.get(2).setText(currentQueues[0] + " | " + currentQueues[1]);
+            updateCurrentQueueStat();
             if (employeeStation != null) {
                 var active = stationRow();
                 stats.get(0).setText(String.valueOf((employeeStation.boarding() ? boardingRows : rows).stream().mapToInt(r -> r.passengers()).sum()));
@@ -504,6 +497,60 @@ public class AdminQueuePanel extends JPanel {
             loading = false;
             showSelectedDetails();
         }, ex -> { loading = false; showSelectedDetails(); loadStatus.setText("Unable to refresh queues. Retrying in 5 seconds."); });
+    }
+
+    private void updateCurrentQueueStat() {
+        if (stats.size() < 3) return;
+        var stations = isBoarding() ? boardingStations : paymentStations;
+        var entries = isBoarding() ? boardingRows : rows;
+        String[] current = {"—", "—"};
+        for (int i = 1; i <= 2; i++) {
+            Integer id = stations.get(i);
+            for (var row : entries) {
+                if (java.util.Objects.equals(id, row.id())
+                        && (isBoarding() ? "Boarding" : "Serving").equals(row.status()))
+                    current[i - 1] = String.format(isBoarding() ? "B%03d" : "P%03d", row.number());
+            }
+        }
+        stats.get(2).setText(employeeStation == null ? current[0] + " | " + current[1]
+                : current[employeeStation.number() - 1]);
+        stats.get(2).setToolTipText(isBoarding() ? "Current boarding queues • Gate 1 | Gate 2"
+                : "Current payment queues • Counter 1 | Counter 2");
+    }
+
+    private void styleQueueTabs() {
+        queues.setFont(new Font("SansSerif", Font.BOLD, 14));
+        queues.setOpaque(false);
+        queues.setBorder(BorderFactory.createEmptyBorder());
+        queues.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
+            @Override protected void installDefaults() {
+                super.installDefaults();
+                tabInsets = new Insets(10, 20, 10, 20);
+                tabAreaInsets = new Insets(0, 0, 0, 0);
+                contentBorderInsets = new Insets(0, 0, 0, 0);
+            }
+            @Override protected void paintTabBackground(Graphics g, int placement, int index,
+                    int x, int y, int w, int h, boolean selected) {
+                Graphics2D g2 = (Graphics2D)g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(selected ? Color.WHITE : new Color(238, 241, 246));
+                g2.fillRoundRect(x, y, w, h + 10, 12, 12);
+                if (selected) {
+                    g2.setColor(new Color(228, 0, 70));
+                    g2.fillRoundRect(x + 16, y + h - 3, w - 32, 3, 3, 3);
+                }
+                g2.dispose();
+            }
+            @Override protected void paintText(Graphics g, int placement, Font font, FontMetrics metrics,
+                    int index, String title, Rectangle rect, boolean selected) {
+                g.setFont(font);
+                g.setColor(!queues.isEnabledAt(index) ? Color.GRAY : selected ? new Color(228, 0, 70) : new Color(51, 65, 85));
+                javax.swing.plaf.basic.BasicGraphicsUtils.drawStringUnderlineCharAt(g, title,
+                        queues.getDisplayedMnemonicIndexAt(index), rect.x, rect.y + metrics.getAscent());
+            }
+            @Override protected void paintTabBorder(Graphics g, int p, int i, int x, int y, int w, int h, boolean s) {}
+            @Override protected void paintContentBorder(Graphics g, int p, int i) {}
+        });
     }
 
     public boolean isActionInProgress() { return acting; }

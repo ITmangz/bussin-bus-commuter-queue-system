@@ -30,10 +30,15 @@ public class QueuePaymentDao {
 
     public static BigDecimal validateReceived(String value, BigDecimal total) {
         BigDecimal amount;
-        try { amount = new BigDecimal(value.trim()).setScale(2, java.math.RoundingMode.UNNECESSARY); }
+        try {
+            String input=value.trim();
+            if (!input.matches("(?:[0-9]+|[0-9]{1,2},[0-9]{3})(\\.[0-9]{1,2})?"))
+                throw new IllegalArgumentException();
+            amount = new BigDecimal(input.replace(",", "")).setScale(2, java.math.RoundingMode.UNNECESSARY);
+        }
         catch (RuntimeException ex) { throw new IllegalArgumentException("Enter a valid amount with at most two decimal places."); }
-        if (amount.signum() < 0 || amount.compareTo(new BigDecimal("99999.99")) > 0)
-            throw new IllegalArgumentException("Enter an amount between 0 and 99,999.99 (up to 5 digits and 2 decimal places).");
+        if (amount.signum() < 0 || amount.compareTo(new BigDecimal("10000")) > 0)
+            throw new IllegalArgumentException("Amount received must not exceed PHP 10,000.");
         if (amount.compareTo(total) < 0) throw new IllegalArgumentException("Amount received must cover the total fare.");
         return amount;
     }
@@ -100,8 +105,15 @@ public class QueuePaymentDao {
                     if (update(c,"UPDATE queue_payment_progress SET tickets_printed=TRUE WHERE queue_entry_id=? AND receipt_printed=TRUE",queue)==0)
                         throw new SQLException("Print and collect the payment receipt first.");
                 } else update(c,"UPDATE queue_payment_progress SET receipt_printed=TRUE WHERE queue_entry_id=?",queue);
+                int ticketCount = 0;
+                if (tickets) {
+                    try (PreparedStatement p = statement(c,"SELECT COUNT(*) FROM booking_passengers bp JOIN queue_entries q ON q.booking_id=bp.booking_id WHERE q.queue_entry_id=?",queue);
+                            ResultSet r = p.executeQuery()) {
+                        r.next(); ticketCount = r.getInt(1);
+                    }
+                }
                 c.commit();
-                ActivityLogDao.recordActivity("Queue Management", "Print", "Printed " + (tickets ? "tickets" : "receipt") + " for queue #" + queue + ".");
+                ActivityLogDao.recordActivity("Queue Management", "Print", "Printed " + (tickets ? ticketCount + " boarding ticket(s) for " + ticketCount + " passenger(s)" : "receipt") + " for queue #" + queue + ".");
             } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }
         }
     }

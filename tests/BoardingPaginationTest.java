@@ -17,7 +17,14 @@ public class BoardingPaginationTest {
    set(panel,"loading",true);
    for(int i=1;i<=12;i++){rows.add(new QueueRow(i,i,i,"A - B","BUS","Tomorrow","Passenger","Paid","Boarding",1));model.addRow(new Object[]{String.format("B%03d",i),"A - B","BUS","Tomorrow","Paid","Boarding",1});}
    set(panel,"boardingRows",rows); set(panel,"loading",false);
+   set(panel,"paymentStations",Map.of(1,91)); set(panel,"boardingStations",Map.of(2,3));
+   set(panel,"rows",List.of(new QueueRow(91,91,9,"A - B","BUS","Tomorrow","Group","Paid","Serving",5)));
    JTabbedPane tabs=(JTabbedPane)get(panel,"queues");tabs.setSelectedIndex(1);
+   var stats=(java.util.List<JLabel>)get(panel,"stats");
+   check(stats.get(2).getText().equals("— | B003"),"Boarding tab shows gate queues immediately");
+   tabs.setSelectedIndex(0);
+   check(stats.get(2).getText().equals("P009 | —"),"Payment tab restores counter queues");
+   tabs.setSelectedIndex(1);
    call(panel,"loadBoardingPage");
    JTable table=(JTable)get(panel,"boardingTable");check(table.getRowCount()==10,"First page has ten rows");
    set(panel,"boardingPage",2);call(panel,"loadBoardingPage");check(table.getRowCount()==2,"Second page has two rows");
