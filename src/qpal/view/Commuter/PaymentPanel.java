@@ -10,6 +10,26 @@ public class PaymentPanel extends JPanel {
     private JPanel ewalletCard;
     private JPanel cardCard;
 
+    private final PaymentDetailsPanel ewalletDetails = new PaymentDetailsPanel(true);
+    private final PaymentDetailsPanel cardDetails = new PaymentDetailsPanel(false);
+    public JLabel getEwalletQrLabel() { return ewalletDetails.getPaymentImageLabel(); }
+    public JLabel getCardImageLabel() { return cardDetails.getPaymentImageLabel(); }
+
+    private boolean enteringDetails;
+    private JLabel paymentTitle, paymentSubtitle;
+    private void showPaymentChoices() {
+        enteringDetails=false; ewalletDetails.setVisible(false); cardDetails.setVisible(false);
+        cashCard.setVisible(true); ewalletCard.setVisible(true); cardCard.setVisible(true);
+        paymentTitle.setText("Select Payment"); paymentSubtitle.setText("Select your preferred payment method.");
+    }
+    private void showPaymentDetails() {
+        enteringDetails=true;
+        cashCard.setVisible(false); ewalletCard.setVisible(false); cardCard.setVisible(false);
+        boolean wallet=selectedPayment.equals("E-Wallet");
+        ewalletDetails.setVisible(wallet); cardDetails.setVisible(!wallet);
+        paymentTitle.setText(wallet ? "E-Wallet Payment" : "Card Payment");
+        paymentSubtitle.setText("Enter your payment reference. Staff will confirm payment at the counter.");
+    }
     private String selectedPayment = "";
     private String bookingReference = newReference();
     private static String newReference() { return "BK-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 26); }
@@ -21,7 +41,7 @@ public class PaymentPanel extends JPanel {
 
         JPanel paymentpanel = new JPanel(null);
         paymentpanel.setBounds(0,0,1000,650);
-        paymentpanel.setBackground(Color.WHITE);
+        paymentpanel.setBackground(new Color(248,248,248));
         add(paymentpanel);
 
         //================ TOP =================//
@@ -58,18 +78,18 @@ public class PaymentPanel extends JPanel {
         //================ TITLE =================//
 
         JLabel title = new JLabel("Select Payment");
-        title.setBounds(0,205,1000,50);
+        title.setBounds(70,192,860,44);
         title.setHorizontalAlignment(SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI",Font.BOLD,32));
         title.setForeground(new Color(225,0,45));
-        paymentpanel.add(title);
+        paymentpanel.add(title); paymentTitle=title;
 
         JLabel subtext = new JLabel("Select your preferred payment method.");
-        subtext.setBounds(0,245,1000,32);
+        subtext.setBounds(70,238,860,25);
         subtext.setHorizontalAlignment(SwingConstants.CENTER);
-        subtext.setFont(new Font("Segoe UI",Font.PLAIN,18));
+        subtext.setFont(new Font("Segoe UI",Font.PLAIN,15));
         subtext.setForeground(new Color(100,100,100));
-        paymentpanel.add(subtext);
+        paymentpanel.add(subtext); paymentSubtitle=subtext;
 
         //================ PAYMENT CARDS =================//
 
@@ -94,6 +114,9 @@ public class PaymentPanel extends JPanel {
         paymentpanel.add(cashCard);
         paymentpanel.add(ewalletCard);
         paymentpanel.add(cardCard);
+        ewalletDetails.setBounds(70,282,860,290); cardDetails.setBounds(70,282,860,290);
+        paymentpanel.add(ewalletDetails); paymentpanel.add(cardDetails);
+        ewalletDetails.setVisible(false); cardDetails.setVisible(false);
 
         //================ BOTTOM =================//
 
@@ -119,7 +142,7 @@ public class PaymentPanel extends JPanel {
         backbtn.setFocusPainted(false);
         backbtn.setBorderPainted(false);
         backbtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        backbtn.addActionListener(e -> ((CardLayout)getParent().getLayout()).show(getParent(), "ConfirmTripDetails"));
+        backbtn.addActionListener(e -> { if(enteringDetails) showPaymentChoices(); else ((CardLayout)getParent().getLayout()).show(getParent(), "ConfirmTripDetails"); });
         bottompanel.add(backbtn);
 
         //================ BUTTON ACTIONS =================//
@@ -140,6 +163,10 @@ public class PaymentPanel extends JPanel {
 
             }
 
+            if (!selectedPayment.equals("Cash")) {
+                if (!enteringDetails) { showPaymentDetails(); return; }
+                if (!(selectedPayment.equals("E-Wallet") ? ewalletDetails : cardDetails).validateInputs()) return;
+            }
             TripCardPanel card = TripCardPanel.getSelectedCard();
             SeatSelectionPanel seatPanel = null;
             PrintTicketPanel ticketPanel = null;
@@ -148,7 +175,13 @@ public class PaymentPanel extends JPanel {
                 if (component instanceof PrintTicketPanel) ticketPanel = (PrintTicketPanel) component;
             }
             if (card == null || card.getTrip() == null || seatPanel == null || ticketPanel == null) return;
+            if (!passengerPanel.validatePassengerDetails()) {
+                qpal.components.AppDialogs.showMessageDialog(this, "Please complete the passenger details before payment.");
+                ((CardLayout)getParent().getLayout()).show(getParent(), "PassengerDetails");
+                return;
+            }
             java.util.List<String> names = passengerPanel.getPassengerNames();
+            java.util.List<String> types = passengerPanel.getPassengerTypes();
             java.util.List<String> seats = seatPanel.getSelectedSeatNumbers();
             if (names.size() != passengerPanel.getPassengerCount() || seats.size() != names.size()) {
                 qpal.components.AppDialogs.showMessageDialog(this, "Please go back and select one seat for each passenger.");
@@ -156,13 +189,13 @@ public class PaymentPanel extends JPanel {
             }
             java.util.List<qpal.model.BookingData.Passenger> passengers = new java.util.ArrayList<>();
             for (int i = 0; i < names.size(); i++) passengers.add(new qpal.model.BookingData.Passenger(
-                    names.get(i), passengerPanel.getPassengerType(), qpal.dao.BookingDao.seatNumber(seats.get(i))));
+                    names.get(i), types.get(i), qpal.dao.BookingDao.seatNumber(seats.get(i))));
             String method = selectedPayment.equals("E-Wallet") ? "GCash" : selectedPayment;
             PrintTicketPanel target = ticketPanel;
             continuebtn.setEnabled(false);
             backbtn.setEnabled(false);
             continuebtn.setText("Saving booking...");
-            qpal.util.UiTask.run(() -> new qpal.dao.BookingDao().book(bookingReference, card.getTrip(), passengers, method), receipt -> {
+            qpal.util.UiTask.run(() -> new qpal.dao.BookingDao().book(bookingReference, card.getTrip(), passengers, method, tripDetailsPanel.getDropPoint()), receipt -> {
                 target.showReceipt(receipt);
                 ((CardLayout)getParent().getLayout()).show(getParent(), "PrintTicket");
                 continuebtn.setEnabled(true);
@@ -271,7 +304,7 @@ public class PaymentPanel extends JPanel {
         panel.setCursor(
                 new Cursor(Cursor.HAND_CURSOR));
 
-        panel.addMouseListener(new MouseAdapter() {
+        MouseAdapter selectPayment = new MouseAdapter() {
 
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -287,8 +320,9 @@ public class PaymentPanel extends JPanel {
 
             }
 
-        });
-
+        };
+        panel.addMouseListener(selectPayment);
+        for (Component child : panel.getComponents()) child.addMouseListener(selectPayment);
         return panel;
 
     }
@@ -314,9 +348,11 @@ public class PaymentPanel extends JPanel {
     public void resetInputs() {
         bookingReference = newReference();
         selectedPayment = "";
+        ewalletDetails.resetInputs();
+        cardDetails.resetInputs();
+        showPaymentChoices();
         resetCards();
 
     }
 
 }
-

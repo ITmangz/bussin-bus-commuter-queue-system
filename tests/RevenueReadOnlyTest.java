@@ -13,6 +13,11 @@ public class RevenueReadOnlyTest {
             r.next();
             if(r.getBigDecimal(1).compareTo(data.todayRevenue())!=0) throw new AssertionError("Revenue duplicated");
         }
-        System.out.println("PASS: "+paid+" paid commuter rows match summary; revenue counted once per payment");
+        try(Connection c=DbConnection.getConnection(); Statement s=c.createStatement();
+                ResultSet r=s.executeQuery("SELECT COALESCE(SUM(amount),0) FROM payments WHERE status='Paid'")) {
+            r.next();
+            if(r.getBigDecimal(1).compareTo(data.totalRevenue())!=0) throw new AssertionError("All-time revenue differs from paid payments");
+        }
+        System.out.println("PASS: "+paid+" paid commuter rows match summary; daily and all-time revenue counted once per payment");
     }
 }

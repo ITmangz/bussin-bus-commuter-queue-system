@@ -271,7 +271,10 @@ public class AdminActivityLogPanel extends JPanel {
                 loadPage();
             }
         });
-        panel.add(pagination,BorderLayout.EAST);
+        pagination.add(qpal.components.PagePicker.create(() -> currentPage,
+                () -> (filteredActivities.size() + rowsPerPage - 1) / rowsPerPage,
+                page -> { currentPage = page; loadPage(); }), pagination.getComponentCount() - 1);
+        panel.add(pagination, BorderLayout.EAST);
 
         return panel;
     }
@@ -381,5 +384,6 @@ public class AdminActivityLogPanel extends JPanel {
         return button;
     }
 }
+
 
 

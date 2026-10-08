@@ -69,6 +69,8 @@ public class AdminQueuePanel extends JPanel {
         int first=Math.max(1,Math.min(currentPage-2,pages-4));
         for (int page=first;page<=Math.min(pages,first+4);page++) pageButton(String.valueOf(page),page,true,page==currentPage);
         pageButton(">",currentPage+1,currentPage<pages,false);
+        pagination.add(qpal.components.PagePicker.create(() -> currentPage, () -> pages,
+                page -> { currentPage=page; loadQueuePage(); }), pagination.getComponentCount()-1);
         pagination.revalidate(); pagination.repaint();
         if (!loading) showSelectedDetails();
     }
@@ -109,6 +111,8 @@ public class AdminQueuePanel extends JPanel {
         int first=Math.max(1,Math.min(boardingPage-2,pages-4));
         for (int page=first;page<=Math.min(pages,first+4);page++) boardingPageButton(String.valueOf(page),page,true,page==boardingPage);
         boardingPageButton(">",boardingPage+1,boardingPage<pages,false);
+        boardingPagination.add(qpal.components.PagePicker.create(() -> boardingPage, () -> pages,
+                page -> { boardingPage=page; loadBoardingPage(); }), boardingPagination.getComponentCount()-1);
         boardingPagination.revalidate(); boardingPagination.repaint();
         if (!loading) showSelectedDetails();
     }

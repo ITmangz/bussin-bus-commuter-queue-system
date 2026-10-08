@@ -11,6 +11,19 @@ import qpal.util.DbConnection;
 
 public class RouteDao {
 
+    public java.math.BigDecimal getActiveFare(String destination) throws SQLException {
+        try (Connection con = DbConnection.getConnection();
+                PreparedStatement pst = con.prepareStatement(
+                        "SELECT fare FROM routes WHERE origin='PITX' AND destination=? AND status='Active'")) {
+            pst.setString(1, destination);
+            try (ResultSet rs = pst.executeQuery()) {
+                if (!rs.next() || rs.getBigDecimal("fare").signum() <= 0)
+                    throw new SQLException("Fare is unavailable. Please ask staff for assistance.");
+                return rs.getBigDecimal("fare");
+            }
+        }
+    }
+
     public List<Route> getAllRoutes() {
 
         List<Route> routes = new ArrayList<>();

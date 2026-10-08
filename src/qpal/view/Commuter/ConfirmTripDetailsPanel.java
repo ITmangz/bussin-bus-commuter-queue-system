@@ -88,16 +88,16 @@ public class ConfirmTripDetailsPanel extends JPanel {
         //================ TITLE =================//
 
         JLabel title = new JLabel("Confirm Trip Details");
-        title.setBounds(0,205,1000,50);
+        title.setBounds(70,192,860,44);
         title.setHorizontalAlignment(SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI",Font.BOLD,32));
         title.setForeground(new Color(225,0,45));
         confirmtripdetailspanel.add(title);
 
-        JLabel subtext = new JLabel("Select your preferred route and schedule.");
-        subtext.setBounds(0,245,1000,32);
+        JLabel subtext = new JLabel("Review your route, seats, schedule and fare before continuing.");
+        subtext.setBounds(70,238,860,25);
         subtext.setHorizontalAlignment(SwingConstants.CENTER);
-        subtext.setFont(new Font("Segoe UI",Font.PLAIN,18));
+        subtext.setFont(new Font("Segoe UI",Font.PLAIN,15));
         subtext.setForeground(new Color(100,100,100));
         confirmtripdetailspanel.add(subtext);
 
@@ -255,9 +255,13 @@ public class ConfirmTripDetailsPanel extends JPanel {
             @Override public void componentShown(ComponentEvent e) {
                 TripCardPanel selected = TripCardPanel.getSelectedCard();
                 if (selected == null || selected.getTrip() == null) return;
-                destination.setText(selected.getRoute());
+                destination.setText(selected.getTrip().origin()+" - "+tripDetailsPanel.getDropPoint());
                 datetime.setText(selected.getSchedule());
-                fare.setText("PHP " + selected.getTrip().fare().multiply(
+                if (tripDetailsPanel.getSelectedFare() == null) {
+                    fare.setText("Please select your drop-off point.");
+                    return;
+                }
+                fare.setText("PHP " + tripDetailsPanel.getSelectedFare().multiply(
                         java.math.BigDecimal.valueOf(passengerPanel.getPassengerCount())));
             }
         });
@@ -357,4 +361,3 @@ public class ConfirmTripDetailsPanel extends JPanel {
     }
 
 }
-

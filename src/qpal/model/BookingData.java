@@ -31,5 +31,5 @@ public final class BookingData {
     public record QueueRow(int id, int bookingId, int number, String route, String bus,
             String schedule, String passenger, String payment, String status, int passengers) {}
     public record RevenueData(List<Object[]> rows, int paidPassengers, int pendingPayments,
-            BigDecimal todayRevenue) {}
+            BigDecimal todayRevenue, BigDecimal totalRevenue) {}
 }

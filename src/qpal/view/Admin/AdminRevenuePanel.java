@@ -62,7 +62,8 @@ public class AdminRevenuePanel extends JPanel {
             revenues.addAll(data.rows());
             summaryValues.get(0).setText(String.valueOf(data.paidPassengers()));
             summaryValues.get(1).setText(String.valueOf(data.pendingPayments()));
-            summaryValues.get(2).setText("PHP " + data.todayRevenue());
+            summaryValues.get(2).setText("PHP " + data.todayRevenue().setScale(2));
+            summaryValues.get(3).setText("PHP " + data.totalRevenue().setScale(2));
             int page = currentPage;
             searchRevenue();
             currentPage = Math.max(1, Math.min(page, (filteredRevenues.size() + rowsPerPage - 1) / rowsPerPage));
@@ -96,12 +97,13 @@ public class AdminRevenuePanel extends JPanel {
         heading.add(lblSubtitle);
         panel.add(heading,BorderLayout.NORTH);
 
-        JPanel cards = new JPanel(new GridLayout(1,3,14,0));
+        JPanel cards = new JPanel(new GridLayout(1,4,14,0));
         cards.setOpaque(false);
         cards.setPreferredSize(new Dimension(0,110));
-        cards.add(createSummaryCard("TOTAL NUMBER OF PAID COMMUTERS",lblPaidImage));
+        cards.add(createSummaryCard("PAID COMMUTERS",lblPaidImage));
         cards.add(createSummaryCard("PENDING PAYMENT",lblPendingImage));
         cards.add(createSummaryCard("TODAY'S REVENUE",lblRevenueImage));
+        cards.add(createSummaryCard("TOTAL REVENUE",new JLabel()));
         panel.add(cards,BorderLayout.CENTER);
 
         return panel;
@@ -129,7 +131,7 @@ public class AdminRevenuePanel extends JPanel {
 
         JLabel lblValue = new JLabel("—");
         summaryValues.add(lblValue);
-        lblValue.setFont(new Font("SansSerif",Font.BOLD,30));
+        lblValue.setFont(new Font("SansSerif",Font.BOLD,24));
         lblValue.setForeground(new Color(170,0,45));
         lblValue.setAlignmentX(Component.LEFT_ALIGNMENT);
         content.add(lblValue, BorderLayout.CENTER);
@@ -304,7 +306,10 @@ public class AdminRevenuePanel extends JPanel {
                 loadPage();
             }
         });
-        panel.add(pagination,BorderLayout.EAST);
+        pagination.add(qpal.components.PagePicker.create(() -> currentPage,
+                () -> (filteredRevenues.size() + rowsPerPage - 1) / rowsPerPage,
+                page -> { currentPage = page; loadPage(); }), pagination.getComponentCount() - 1);
+        panel.add(pagination, BorderLayout.EAST);
 
         return panel;
     }
@@ -421,3 +426,4 @@ public class AdminRevenuePanel extends JPanel {
         return button;
     }
 }
+

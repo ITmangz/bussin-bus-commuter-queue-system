@@ -331,6 +331,7 @@ public class AdminBusPanel extends JPanel {
     private void loadPage() {
 
         List<Object[]> visibleRows = getVisibleRows();
+        currentPage = Math.max(1, Math.min(currentPage, Math.max(1, (visibleRows.size() + rowsPerPage - 1) / rowsPerPage)));
 
         model.setRowCount(0);
 
@@ -361,6 +362,9 @@ public class AdminBusPanel extends JPanel {
 
         int totalPages =
                 (int) Math.ceil(getVisibleRows().size() / (double) rowsPerPage);
+        int firstPage = Math.max(1, Math.min(currentPage, totalPages - 1));
+        btnOne.setText(String.valueOf(firstPage));
+        btnTwo.setText(String.valueOf(firstPage + 1));
 
         if (btnPrev != null)
             btnPrev.setEnabled(currentPage > 1);
@@ -371,12 +375,12 @@ public class AdminBusPanel extends JPanel {
         if (btnOne != null) {
 
             btnOne.setBackground(
-                    currentPage == 1
+                    currentPage == firstPage
                             ? new Color(225,29,72)
                             : Color.WHITE);
 
             btnOne.setForeground(
-                    currentPage == 1
+                    currentPage == firstPage
                             ? Color.WHITE
                             : new Color(80,80,80));
         }
@@ -386,12 +390,12 @@ public class AdminBusPanel extends JPanel {
             btnTwo.setVisible(totalPages >= 2);
 
             btnTwo.setBackground(
-                    currentPage == 2
+                    currentPage == firstPage + 1
                             ? new Color(225,29,72)
                             : Color.WHITE);
 
             btnTwo.setForeground(
-                    currentPage == 2
+                    currentPage == firstPage + 1
                             ? Color.WHITE
                             : new Color(80,80,80));
         }
@@ -463,19 +467,22 @@ public class AdminBusPanel extends JPanel {
 
     btnOne.addActionListener(e -> {
 
-        currentPage = 1;
+        currentPage = Integer.parseInt(btnOne.getText());
         loadPage();
 
     });
 
     btnTwo.addActionListener(e -> {
 
-        currentPage = 2;
+        currentPage = Integer.parseInt(btnTwo.getText());
         loadPage();
 
     });
 
-    panel.add(pagination, BorderLayout.EAST);
+    pagination.add(qpal.components.PagePicker.create(() -> currentPage,
+                () -> (getVisibleRows().size() + rowsPerPage - 1) / rowsPerPage,
+                page -> { currentPage = page; loadPage(); }), pagination.getComponentCount() - 1);
+        panel.add(pagination, BorderLayout.EAST);
 
     SwingUtilities.invokeLater(this::loadPage);
 
@@ -645,3 +652,5 @@ private JButton createButton(String text, Color color) {
 }
 
 }
+
+

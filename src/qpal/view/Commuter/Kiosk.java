@@ -59,6 +59,7 @@ public class Kiosk {
 
         mainpanel.add(new HomePanel(),"Home");
         mainpanel.add(tripDetails,"TripDetails");
+        mainpanel.add(new DropPointPanel(tripDetails),"DropPoint");
         mainpanel.add(new AvailableTripPanel(tripDetails,passengerPanel),"AvailableTrip");
         mainpanel.add(passengerPanel,"PassengerDetails");
         mainpanel.add(selectSeatsPanel,"SelectSeats");

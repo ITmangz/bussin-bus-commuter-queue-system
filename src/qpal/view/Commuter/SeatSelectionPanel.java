@@ -170,61 +170,21 @@ public class SeatSelectionPanel extends JPanel {
     }
 
     private void createSteps() {
-
-        JPanel stepspanel = new JPanel(null);
+        JPanel stepspanel=KioskStepsPanel.create(3);
         stepspanel.setBounds(0,100,1000,75);
-        stepspanel.setBackground(new Color(240,243,245));
         add(stepspanel);
-
-        String[] titles = {"Trip Details","Available Trips","Passengers",
-                "Select Seats","Review Trip","Payment"};
-
-        for(int i = 0; i < titles.length; i++) {
-
-            int x = i * 1000 / 6;
-            int width = (i + 1) * 1000 / 6 - x;
-
-            JPanel step = new JPanel(null);
-            step.setBounds(x,0,width,75);
-            step.setBackground(new Color(240,243,245));
-            step.setBorder(BorderFactory.createMatteBorder(0,0,0,1,new Color(220,220,220)));
-
-            JLabel lblNumber = new JLabel("STEP 0" + (i + 1));
-            lblNumber.setBounds(14,12,width-20,20);
-            lblNumber.setFont(new Font("Segoe UI",Font.PLAIN,11));
-            lblNumber.setForeground(Color.GRAY);
-            step.add(lblNumber);
-
-            JLabel lblTitle = new JLabel(titles[i]);
-            lblTitle.setBounds(14,34,width-20,22);
-            lblTitle.setFont(new Font("Segoe UI",Font.BOLD,13));
-            step.add(lblTitle);
-
-            if(i == 3) {
-
-                step.setBackground(new Color(255,235,240));
-                lblTitle.setForeground(new Color(225,0,45));
-
-                JPanel activebar = new JPanel();
-                activebar.setBounds(0,72,width,3);
-                activebar.setBackground(new Color(225,0,45));
-                step.add(activebar);
-            }
-
-            stepspanel.add(step);
-        }
     }
 
     private void createContent() {
 
         JLabel title = new JLabel("Seat Selection",SwingConstants.CENTER);
-        title.setBounds(0,205,1000,50);
+        title.setBounds(70,192,860,44);
         title.setForeground(new Color(225,0,45));
         title.setFont(new Font("Segoe UI",Font.BOLD,32));
         add(title);
 
         lblBus = new JLabel("",SwingConstants.CENTER);
-        lblBus.setBounds(0,248,1000,24);
+        lblBus.setBounds(70,238,860,25);
         lblBus.setFont(new Font("Segoe UI",Font.PLAIN,16));
         lblBus.setForeground(new Color(100,100,100));
         add(lblBus);

@@ -73,6 +73,7 @@ public final class AppDialogs {
         RootPaneContainer root = owner instanceof RootPaneContainer container ? container : null;
         Component previous = root == null ? null : root.getGlassPane();
         boolean visible = previous != null && previous.isVisible();
+
         if (root != null) {
             JPanel shade = new JPanel() {
                 @Override protected void paintComponent(Graphics graphics) {
@@ -84,7 +85,9 @@ public final class AppDialogs {
             root.setGlassPane(shade);
             shade.setVisible(true);
         }
+
         try { dialog.setVisible(true); }
+        
         finally {
             dialog.dispose();
             if (root != null) { root.setGlassPane(previous); previous.setVisible(visible); }

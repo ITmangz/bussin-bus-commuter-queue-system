@@ -8,6 +8,9 @@ import qpal.model.BookingData.*;
 import qpal.util.DbConnection;
 
 public class BookingDao {
+    private static void ensureDropPoints(Connection c) throws SQLException {
+        try(Statement s=c.createStatement()) { s.executeUpdate("CREATE TABLE IF NOT EXISTS booking_dropoffs (booking_id INT NOT NULL PRIMARY KEY, drop_off VARCHAR(150) NOT NULL)"); }
+    }
     private static final String TRIP_SELECT = "SELECT t.*, b.bus_number, b.seat_capacity, r.origin, r.destination, r.fare "
             + "FROM trips t JOIN buses b ON b.bus_id=t.bus_id JOIN routes r ON r.route_id=t.route_id ";
     private static final String BOOKABLE = "t.status IN ('Scheduled','Boarding') AND r.status='Active' "
@@ -47,6 +50,9 @@ public class BookingDao {
     }
 
     public Receipt book(String reference, TripOption selected, List<Passenger> passengers, String method) throws SQLException {
+        return book(reference,selected,passengers,method,selected==null?null:selected.destination());
+    }
+    public Receipt book(String reference, TripOption selected, List<Passenger> passengers, String method, String dropPoint) throws SQLException {
         if (selected == null || passengers.isEmpty() || passengers.size() > 10
                 || !Set.of("Cash", "GCash", "Card").contains(method)) throw new SQLException("Please complete your booking details.");
         Set<Integer> seats = new HashSet<>();
@@ -56,6 +62,7 @@ public class BookingDao {
                 throw new SQLException("Enter a name and a different seat for each passenger.");
         }
         try (Connection c = DbConnection.getConnection()) {
+            ensureDropPoints(c);
             c.setAutoCommit(false);
             try {
                 // Serializes bookings for this trip, including repeat submits of the same reference.
@@ -80,12 +87,15 @@ public class BookingDao {
                 if (live.available() < passengers.size()) throw new SQLException("Not enough seats remain. Please select another trip.");
                 for (Passenger p : passengers) if (p.seat() < 1 || p.seat() > live.capacity())
                     throw new SQLException("The bus seat layout changed. Please select your seats again.");
-                BigDecimal total = live.fare().multiply(BigDecimal.valueOf(passengers.size()));
+                if(!qpal.model.RouteDropPoints.valid(live.origin(),live.destination(),dropPoint)) throw new SQLException("Please select a valid drop-off for this route.");
+                BigDecimal passengerFare = qpal.model.RouteDropPoints.fare(live.destination(), dropPoint, live.fare());
+                BigDecimal total = passengerFare.multiply(BigDecimal.valueOf(passengers.size()));
                 int booking = insert(c, "INSERT INTO bookings (booking_reference,trip_id,total_amount,status) VALUES (?,?,?,'Pending')",
                         reference, live.id(), total);
+                update(c,"INSERT INTO booking_dropoffs (booking_id,drop_off) VALUES (?,?)",booking,dropPoint);
                 for (Passenger passenger : passengers) {
                     int person = insert(c, "INSERT INTO booking_passengers (booking_id,trip_id,passenger_name,passenger_type,fare) VALUES (?,?,?,?,?)",
-                            booking, live.id(), passenger.name().trim(), passenger.type(), live.fare());
+                            booking, live.id(), passenger.name().trim(), passenger.type(), passengerFare);
                     update(c, "INSERT INTO seat_reservations (trip_id,booking_passenger_id,seat_number,status) VALUES (?,?,?,'Active')",
                             live.id(), person, passenger.seat());
                 }
@@ -116,12 +126,12 @@ public class BookingDao {
     }
 
     public Receipt receipt(int booking) throws SQLException {
-        try (Connection c = DbConnection.getConnection()) { return receipt(c, booking); }
+        try (Connection c = DbConnection.getConnection()) { ensureDropPoints(c); return receipt(c, booking); }
     }
     private Receipt receipt(Connection c, int booking) throws SQLException {
         String sql = "SELECT bk.booking_reference,bk.total_amount,q.queue_date,q.queue_number,b.bus_number,"
-                + "r.origin,r.destination,t.departure_date,t.departure_time,p.payment_method,p.status "
-                + "FROM bookings bk JOIN trips t ON t.trip_id=bk.trip_id JOIN buses b ON b.bus_id=t.bus_id "
+                + "r.origin,COALESCE(d.drop_off,r.destination),t.departure_date,t.departure_time,p.payment_method,p.status "
+                + "FROM bookings bk LEFT JOIN booking_dropoffs d ON d.booking_id=bk.booking_id JOIN trips t ON t.trip_id=bk.trip_id JOIN buses b ON b.bus_id=t.bus_id "
                 + "JOIN routes r ON r.route_id=t.route_id JOIN queue_entries q ON q.booking_id=bk.booking_id "
                 + "JOIN payments p ON p.booking_id=bk.booking_id WHERE bk.booking_id=? ORDER BY p.payment_id DESC LIMIT 1";
         List<String> labels = new ArrayList<>();

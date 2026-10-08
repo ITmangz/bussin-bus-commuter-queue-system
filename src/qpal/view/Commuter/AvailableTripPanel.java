@@ -113,16 +113,16 @@ public class AvailableTripPanel extends JPanel {
         availabletrippanel.add(stepspanel);
 
         JLabel title = new JLabel("Select Available Trip");
-        title.setBounds(0,205,1000,50);
+        title.setBounds(70,192,860,44);
         title.setHorizontalAlignment(SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI",Font.BOLD,32));
         title.setForeground(new Color(225,0,45));
         availabletrippanel.add(title);
 
         JLabel subtext = new JLabel("Payment is due before departure; unpaid seats are released at departure.");
-        subtext.setBounds(0,245,1000,30);
+        subtext.setBounds(70,238,860,25);
         subtext.setHorizontalAlignment(SwingConstants.CENTER);
-        subtext.setFont(new Font("Segoe UI",Font.PLAIN,18));
+        subtext.setFont(new Font("Segoe UI",Font.PLAIN,15));
         subtext.setForeground(new Color(100,100,100));
         availabletrippanel.add(subtext);
 
@@ -150,7 +150,8 @@ public class AvailableTripPanel extends JPanel {
                 tripcontainer.removeAll();
                     var results = search.find(trips);
                     for (qpal.model.BookingData.TripOption trip : results) {
-                        tripCards.add(new TripCardPanel(trip));
+                        tripCards.add(new TripCardPanel(trip, qpal.model.RouteDropPoints.fare(
+                                trip.destination(), tripDetailsPanel.getDropPoint(), trip.fare())));
                     }
                     showTripPage();
                     if (results.isEmpty()) {
@@ -222,7 +223,7 @@ public class AvailableTripPanel extends JPanel {
                     if (choice == JOptionPane.YES_OPTION) {
 
                         CardLayout cardlayout = (CardLayout) getParent().getLayout();
-                        cardlayout.show(getParent(), "TripDetails");
+                        cardlayout.show(getParent(), "DropPoint");
 
                     } else {
                         
@@ -261,6 +262,9 @@ public class AvailableTripPanel extends JPanel {
                     return;
                 }
 
+                var selected = TripCardPanel.getSelectedCard().getTrip();
+                tripDetailsPanel.setSelectedFare(qpal.model.RouteDropPoints.fare(
+                        selected.destination(), tripDetailsPanel.getDropPoint(), selected.fare()));
                 CardLayout cardlayout = (CardLayout) getParent().getLayout();
                 cardlayout.show(getParent(), "PassengerDetails");
 
@@ -303,4 +307,3 @@ public class AvailableTripPanel extends JPanel {
 
     }
 }
-

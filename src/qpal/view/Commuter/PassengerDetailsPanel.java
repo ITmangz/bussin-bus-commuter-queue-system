@@ -2,535 +2,224 @@ package qpal.view.Commuter;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 
 public class PassengerDetailsPanel extends JPanel {
+    private static final String[] TYPES = {"Regular", "Student", "Senior", "PWD"};
+    private final int[] counts = {1,0,0,0};
+    private final JLabel[] passengerImageLabels = new JLabel[4];
+    public JLabel getRegularImageLabel() { return passengerImageLabels[0]; }
+    public JLabel getStudentImageLabel() { return passengerImageLabels[1]; }
+    public JLabel getSeniorImageLabel() { return passengerImageLabels[2]; }
+    public JLabel getPwdImageLabel() { return passengerImageLabels[3]; }
+    private final JLabel[] values = new JLabel[4];
+    private final JButton[] plus = new JButton[4], minus = new JButton[4];
+    private final JLabel total = new JLabel("", SwingConstants.CENTER);
+    private final JLabel note = new JLabel("", SwingConstants.CENTER);
+    private final JPanel pages = new JPanel(new CardLayout());
+    private final JPanel forms = new JPanel();
+    private final List<PassengerForm> passengers = new ArrayList<>();
+    private boolean details;
+    private int detailIndex;
+    private final JLabel subtitle=new JLabel("Use + or − to add or remove passengers in each category.",SwingConstants.CENTER);
+    private List<PassengerForm> requiredForms() { return passengers.stream().filter(p -> !p.type.equals("Regular")).toList(); }
+    private void showDetail(int index) {
+        detailIndex=index; details=true;
+        pages.setBounds(70,282,860,205);
+        ((CardLayout)forms.getLayout()).show(forms,Integer.toString(index));
+        ((CardLayout)pages.getLayout()).show(pages,"Details");
+        subtitle.setText("ID details "+(index+1)+" of "+requiredForms().size()+" — Enter the information shown on your ID.");
+    }
+    // Kept as the regular counter for existing capacity checks.
+    private JButton plusbtn;
 
-        private TripDetailsPanel tripDetailsPanel;
+    public PassengerDetailsPanel(TripDetailsPanel tripDetailsPanel) {
+        setLayout(null);
+        setSize(1000,650);
+        setBackground(new Color(248,248,248));
+        JPanel header = new JPanel(null);
+        header.setBounds(0,0,1000,100);
+        header.setBackground(new Color(225,0,45));
+        JLabel logo = new JLabel(new ImageIcon(new ImageIcon("resources/icons/bussinlogokiosk.png")
+                .getImage().getScaledInstance(120,55,Image.SCALE_SMOOTH)));
+        logo.setBounds(35,20,120,55); header.add(logo);
+        JButton reset = button("Start Over",new Color(225,0,45),Color.WHITE);
+        reset.setFont(new Font("Segoe UI",Font.BOLD,16)); reset.setBounds(805,25,115,45); reset.addActionListener(e -> Kiosk.startOver(this)); header.add(reset);
+        JButton refresh = button("",new Color(225,0,45),Color.WHITE);
+        refresh.setIcon(new ImageIcon(new ImageIcon("resources/icons/refresh.png").getImage().getScaledInstance(36,36,Image.SCALE_SMOOTH)));
+        refresh.setBounds(920,25,45,45); refresh.addActionListener(e -> Kiosk.startOver(this)); header.add(refresh);
+        JLabel date=new JLabel("",SwingConstants.CENTER), time=new JLabel("",SwingConstants.CENTER);
+        date.setBounds(370,27,260,20); time.setBounds(370,47,260,20);
+        for(JLabel label:new JLabel[]{date,time}) { label.setFont(new Font("Segoe UI",Font.BOLD,14)); label.setForeground(Color.WHITE); header.add(label); }
+        Runnable clock=() -> { var now=java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Manila")); date.setText(now.format(java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy"))); time.setText(now.format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a"))); };
+        clock.run(); javax.swing.Timer timer=new javax.swing.Timer(1000,e -> clock.run());
+        addHierarchyListener(e -> { if(isShowing()) timer.start(); else timer.stop(); });
+        add(header);
+        JPanel steps = KioskStepsPanel.create(2); steps.setBounds(0,100,1000,75); add(steps);
+        JLabel title = new JLabel("Passenger Details",SwingConstants.CENTER);
+        title.setForeground(new Color(225,0,45)); title.setFont(new Font("Segoe UI",Font.BOLD,32)); title.setBounds(70,192,860,44); add(title);
+        subtitle.setBounds(70,238,860,25); subtitle.setFont(new Font("Segoe UI",Font.PLAIN,15)); subtitle.setForeground(new Color(85,94,108)); add(subtitle);
+        pages.setBounds(70,282,860,290); pages.setOpaque(false); add(pages);
+        JPanel selection = new JPanel(null); selection.setOpaque(false);
+        total.setFont(new Font("Segoe UI",Font.BOLD,13)); total.setForeground(new Color(85,94,108)); total.setHorizontalAlignment(SwingConstants.RIGHT); total.setBounds(580,0,280,28); selection.add(total);
+        note.setHorizontalAlignment(SwingConstants.LEFT); note.setBounds(0,0,570,28); note.setForeground(new Color(85,94,108)); note.setFont(new Font("Segoe UI",Font.PLAIN,13)); selection.add(note);
+        for (int i=0;i<TYPES.length;i++) {
+            final int index=i;
+            JPanel card = new RoundedPanel();
 
-        private int passengerCount = 1;
-        private JLabel lblCount;
-        private JButton minusbtn;
-        private JButton plusbtn;
-        private JLabel maximumNote;
-        private String selectedType = "";
-
-        private JPanel regularCard;
-        private JPanel studentCard;
-        private JPanel seniorCard;
-        private JPanel pwdCard;
-
-                public PassengerDetailsPanel(TripDetailsPanel tripDetailsPanel) {
-
-                this.tripDetailsPanel = tripDetailsPanel;
-
-                setSize(1000,650);
-                setLayout(null);
-
-                JPanel passengerdetailspanel = new JPanel(null);
-                passengerdetailspanel.setBounds(0,0,1000,650);
-                passengerdetailspanel.setBackground(new Color(248,248,248));
-                add(passengerdetailspanel);
-
-                //================ TOP =================//
-
-                JPanel toppanel = new JPanel(null);
-                toppanel.setBounds(0,0,1000,100);
-                toppanel.setBackground(new Color(225,0,45));
-                passengerdetailspanel.add(toppanel);
-
-                JLabel bussinlogo = new JLabel();
-                bussinlogo.setBounds(35,20,120,55);
-
-                ImageIcon bussinpic = new ImageIcon("resources/icons/bussinlogokiosk.png");
-                Image bussinimg = bussinpic.getImage().getScaledInstance(120,55,Image.SCALE_SMOOTH);
-
-                bussinlogo.setIcon(new ImageIcon(bussinimg));
-                toppanel.add(bussinlogo);
-
-                JLabel datelabel = new JLabel();
-                datelabel.setBounds(370,27,260,20);
-                datelabel.setHorizontalAlignment(SwingConstants.CENTER);
-                datelabel.setFont(new Font("Segoe UI",Font.BOLD,14));
-                datelabel.setForeground(Color.WHITE);
-                toppanel.add(datelabel);
-
-                JLabel timelabel = new JLabel();
-                timelabel.setBounds(370,47,260,20);
-                timelabel.setHorizontalAlignment(SwingConstants.CENTER);
-                timelabel.setFont(new Font("Segoe UI",Font.BOLD,14));
-                timelabel.setForeground(Color.WHITE);
-                toppanel.add(timelabel);
-
-                JLabel startover = new JLabel("Start Over");
-                startover.setBounds(822,28,100,35);
-                startover.setFont(new Font("Segoe UI",Font.BOLD,16));
-                startover.setForeground(Color.WHITE);
-                startover.setCursor(new Cursor(Cursor.HAND_CURSOR));
-                toppanel.add(startover);
-
-                startover.addMouseListener(new MouseAdapter() {
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-
-                Kiosk.startOver(PassengerDetailsPanel.this);
+            card.setBounds(i*220,42,200,224);
+            JLabel imageLabel = new JLabel();
+            imageLabel.setName(TYPES[i].toLowerCase(java.util.Locale.ROOT)+"ImageLabel");
+            imageLabel.setBounds(60,18,80,64);
+            imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            imageLabel.getAccessibleContext().setAccessibleName(TYPES[i]+" passenger image");
+            // Add an image using imageLabel.setIcon(new ImageIcon("resources/icons/your-image.png"));
+            passengerImageLabels[i]=imageLabel;
+            card.add(imageLabel);
+JLabel label = new JLabel(TYPES[i]); label.setFont(new Font("Segoe UI",Font.BOLD,18)); label.setHorizontalAlignment(SwingConstants.CENTER); label.setBounds(10,88,180,28); card.add(label);
+            minus[i]=counterButton("−",new Color(240,243,245),Color.BLACK); minus[i].setBounds(16,160,44,44);
+            plus[i]=counterButton("+",new Color(225,0,45),Color.WHITE); plus[i].setBounds(140,160,44,44);
+            values[i]=new JLabel("0",SwingConstants.CENTER); values[i].setFont(new Font("Segoe UI",Font.BOLD,24)); values[i].setBounds(64,160,72,44);
+            minus[i].getAccessibleContext().setAccessibleName("Remove "+TYPES[i]+" passenger");
+            plus[i].getAccessibleContext().setAccessibleName("Add "+TYPES[i]+" passenger");
+            minus[i].addActionListener(e -> { if(counts[index]>0) counts[index]--; updatePassengerCounter(); });
+            plus[i].addActionListener(e -> { if(getPassengerCount()<passengerLimit()) counts[index]++; updatePassengerCounter(); });
+            JLabel hint=new JLabel(i==0 ? "No ID details needed" : "ID details required",SwingConstants.CENTER);
+            hint.setBounds(10,118,180,20); hint.setFont(new Font("Segoe UI",Font.PLAIN,12)); hint.setForeground(new Color(105,114,128)); card.add(hint);
+            card.add(minus[i]); card.add(values[i]); card.add(plus[i]); selection.add(card);
+        }
+        plusbtn=plus[0];
+        pages.add(selection,"Counts");
+        forms.setLayout(new CardLayout()); forms.setBackground(getBackground());
+        pages.add(forms,"Details");
+        JButton back = button("Back",new Color(240,243,245),Color.BLACK); back.setBounds(0,590,500,60); back.setFont(new Font("Segoe UI",Font.PLAIN,16));
+        back.addActionListener(e -> { if(details && detailIndex>0) showDetail(detailIndex-1); else if(details) showCounts(); else showPage("AvailableTrip"); }); add(back);
+        JButton next = button("Continue  >",new Color(225,0,45),Color.WHITE); next.setBounds(500,590,500,60); next.setFont(new Font("Segoe UI",Font.BOLD,16));
+        next.addActionListener(e -> {
+            updatePassengerCounter();
+            if(getPassengerCount()==0) { qpal.components.AppDialogs.showMessageDialog(this,"Add at least one passenger. Seats must be available for the selected trip."); return; }
+            if(!details) { rebuildForms(); if(counts[0]==getPassengerCount()) { showPage("SelectSeats"); return; } showDetail(0); }
+            else if(requiredForms().get(detailIndex).validateFields()) {
+                if(detailIndex+1<requiredForms().size()) showDetail(detailIndex+1);
+                else if(validatePassengerDetails()) showPage("SelectSeats");
             }
-        });
-
-                JLabel refreshicon = new JLabel();
-                refreshicon.setBounds(905,25,40,40);
-
-                ImageIcon refreshpic = new ImageIcon("resources/icons/refresh.png");
-                Image refreshimg = refreshpic.getImage().getScaledInstance(40,40,Image.SCALE_SMOOTH);
-
-                refreshicon.setIcon(new ImageIcon(refreshimg));
-                refreshicon.setCursor(new Cursor(Cursor.HAND_CURSOR));
-                toppanel.add(refreshicon);
-
-                refreshicon.addMouseListener(new MouseAdapter() {
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-
-                Kiosk.startOver(PassengerDetailsPanel.this);
+        }); add(next);
+        addComponentListener(new ComponentAdapter() { @Override public void componentShown(ComponentEvent e) { updatePassengerCounter(); } });
+        updatePassengerCounter();
+    }
+    private static class RoundedPanel extends JPanel {
+        RoundedPanel() { super(null); setOpaque(false); }
+        @Override protected void paintComponent(Graphics graphics) {
+            Graphics2D g=(Graphics2D)graphics.create(); g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setColor(Color.WHITE); g.fillRoundRect(1,1,getWidth()-3,getHeight()-3,16,16);
+            g.setColor(new Color(224,229,236)); g.drawRoundRect(1,1,getWidth()-3,getHeight()-3,16,16); g.dispose();
+        }
+    }
+    private static JButton counterButton(String text,Color background,Color foreground) {
+        JButton b=new JButton(text) {
+            @Override protected void paintComponent(Graphics graphics) {
+                Graphics2D g=(Graphics2D)graphics.create(); g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setColor(isEnabled()?getBackground():new Color(244,246,248)); g.fillRoundRect(0,0,getWidth(),getHeight(),12,12); g.dispose(); super.paintComponent(graphics);
             }
-        });
-
-                JPanel stepspanel = KioskStepsPanel.create(2);
-        stepspanel.setBounds(0,100,1000,75);
-        passengerdetailspanel.add(stepspanel);
-
-                JLabel title = new JLabel("Passenger Details");
-                title.setBounds(0,205,1000,50);
-                title.setHorizontalAlignment(SwingConstants.CENTER);
-                title.setFont(new Font("Segoe UI",Font.BOLD,32));
-                title.setForeground(new Color(225,0,45));
-                passengerdetailspanel.add(title);
-
-                JLabel subtext = new JLabel("Select your preferred passenger information.");
-                subtext.setBounds(0,245,1000,32);
-                subtext.setHorizontalAlignment(SwingConstants.CENTER);
-                subtext.setFont(new Font("Segoe UI",Font.PLAIN,18));
-                subtext.setForeground(new Color(100,100,100));
-                passengerdetailspanel.add(subtext);
-
-                JPanel counterpanel = new JPanel(null) {
-                    @Override protected void paintComponent(Graphics graphics) {
-                        super.paintComponent(graphics);
-                        paintRoundedBox(graphics, getWidth(), getHeight(), Color.WHITE,
-                                new Color(228, 232, 238));
-                    }
-                };
-                counterpanel.setOpaque(false);
-                counterpanel.setBounds(90, 285, 820, 122);
-                passengerdetailspanel.add(counterpanel);
-
-                JLabel numberlabel = new JLabel("Number of Passengers");
-                numberlabel.setBounds(0, 10, 820, 24);
-                numberlabel.setHorizontalAlignment(SwingConstants.CENTER);
-                numberlabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-                numberlabel.setForeground(Color.BLACK);
-                counterpanel.add(numberlabel);
-
-                minusbtn = createCounterButton(false);
-                minusbtn.setBounds(302, 38, 52, 52);
-                counterpanel.add(minusbtn);
-
-                lblCount = new JLabel("1", SwingConstants.CENTER) {
-                    @Override protected void paintComponent(Graphics graphics) {
-                        paintRoundedBox(graphics, getWidth(), getHeight(), Color.WHITE,
-                                new Color(205, 212, 223));
-                        super.paintComponent(graphics);
-                    }
-                };
-                lblCount.setBounds(365, 38, 90, 52);
-                lblCount.setFont(new Font("Segoe UI", Font.BOLD, 32));
-                lblCount.setForeground(Color.BLACK);
-                lblCount.getAccessibleContext().setAccessibleName("Number of passengers");
-                counterpanel.add(lblCount);
-
-                plusbtn = createCounterButton(true);
-                plusbtn.setBounds(466, 38, 52, 52);
-                counterpanel.add(plusbtn);
-
-                maximumNote = new JLabel("Maximum of 10 passengers per transaction.",
-                        SwingConstants.CENTER);
-                maximumNote.setBounds(0, 95, 820, 20);
-                maximumNote.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-                maximumNote.setForeground(new Color(90, 100, 116));
-                counterpanel.add(maximumNote);
-
-                minusbtn.addActionListener(e -> {
-                    if (passengerCount > 1) passengerCount--;
-                    updatePassengerCounter();
-                });
-                plusbtn.addActionListener(e -> {
-                    if (passengerCount < passengerLimit()) passengerCount++;
-                    updatePassengerCounter();
-                });
-                updatePassengerCounter();
-                addComponentListener(new ComponentAdapter() {
-                    @Override public void componentShown(ComponentEvent e) {
-                        updatePassengerCounter();
-                    }
-                });
-                regularCard = createCard(
-                        "Regular",
-                        "PHP",
-                        "resources/icons/regular.png",
-                        90,
-                        425);
-
-                studentCard = createCard(
-                        "Student",
-                        "PHP",
-                        "resources/icons/student.png",
-                        300,
-                        425);
-
-                seniorCard = createCard(
-                        "Senior",
-                        "PHP",
-                        "resources/icons/senior.png",
-                        510,
-                        425);
-
-                pwdCard = createCard(
-                        "PWD",
-                        "PHP",
-                        "resources/icons/pwd.png",
-                        720,
-                        425);
-
-                passengerdetailspanel.add(regularCard);
-                passengerdetailspanel.add(studentCard);
-                passengerdetailspanel.add(seniorCard);
-                passengerdetailspanel.add(pwdCard);
-
-                JPanel bottompanel = new JPanel(null);
-                bottompanel.setBounds(0,590,1000,60);
-                bottompanel.setBackground(new Color(240,243,245));
-                passengerdetailspanel.add(bottompanel);
-
-                JButton backbtn = new JButton("Back");
-                backbtn.setBounds(0,0,500,60);
-                backbtn.setFont(new Font("Segoe UI",Font.PLAIN,16));
-                backbtn.setForeground(Color.BLACK);
-                backbtn.setBackground(new Color(240,243,245));
-                backbtn.setFocusPainted(false);
-                backbtn.setBorderPainted(false);
-                backbtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-                bottompanel.add(backbtn);
-
-                backbtn.addActionListener(e -> {
-
-                int choice = qpal.components.AppDialogs.showConfirmDialog(
-                        null,
-                        "Are you sure you want to go back?",
-                        "Confirmation",
-                        JOptionPane.YES_NO_OPTION);
-
-                if (choice == JOptionPane.YES_OPTION) {
-
-                        CardLayout cardlayout =
-                                (CardLayout)getParent().getLayout();
-
-                        cardlayout.show(getParent(),"AvailableTrip");
-
-                }
-
-                });
-
-                JButton continuebtn = new JButton("Continue  >");
-                continuebtn.setBounds(500,0,500,60);
-                continuebtn.setFont(new Font("Segoe UI",Font.BOLD,16));
-                continuebtn.setForeground(Color.WHITE);
-                continuebtn.setBackground(new Color(235,25,35));
-                continuebtn.setFocusPainted(false);
-                continuebtn.setBorderPainted(false);
-                continuebtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-                bottompanel.add(continuebtn);
-
-                continuebtn.addActionListener(e -> {
-
-                updatePassengerCounter();
-                if (passengerCount == 0) {
-                    qpal.components.AppDialogs.showMessageDialog(this,"No seats remain. Please select another trip.",
-                            "Bus full",JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-
-                if (selectedType.isEmpty()) {
-
-                        qpal.components.AppDialogs.showMessageDialog(
-                                null,
-                                "Please select a passenger type.",
-                                "Incomplete Information",
-                                JOptionPane.WARNING_MESSAGE);
-
-                        return;
-
-                }
-
-                CardLayout cardlayout =
-                        (CardLayout)getParent().getLayout();
-
-
-                cardlayout.show(getParent(),"SelectSeats");
-
-                });
-
-                Timer timeTimer = new Timer(1000,new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-
-                        java.time.LocalDateTime now =
-                                java.time.LocalDateTime.now();
-
-                        datelabel.setText(now.format(
-                                java.time.format.DateTimeFormatter.ofPattern(
-                                        "MMMM d, yyyy")));
-
-                        timelabel.setText(now.format(
-                                java.time.format.DateTimeFormatter.ofPattern(
-                                        "hh:mm a")));
-
-                }
-
-                });
-
-                timeTimer.start();
-
-                java.time.LocalDateTime now =
-                        java.time.LocalDateTime.now();
-
-                datelabel.setText(now.format(
-                        java.time.format.DateTimeFormatter.ofPattern(
-                                "MMMM d, yyyy")));
-
-                timelabel.setText(now.format(
-                        java.time.format.DateTimeFormatter.ofPattern(
-                                "hh:mm a")));
-
+        };
+        b.setMargin(new Insets(0,0,0,0)); b.setBackground(background); b.setForeground(foreground); b.setContentAreaFilled(false); b.setBorderPainted(false);
+        b.setFont(new Font("Segoe UI",Font.BOLD,22)); b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); return b;
+    }
+    private static JButton button(String text,Color background,Color foreground) {
+        JButton b=new JButton(text); b.setBackground(background); b.setForeground(foreground);
+        b.setFont(new Font("Segoe UI",Font.BOLD,18)); b.setBorderPainted(false); b.setFocusPainted(false); return b;
+    }
+    private int passengerLimit() {
+        TripCardPanel card=TripCardPanel.getSelectedCard();
+        return card==null || card.getTrip()==null ? 0 : Math.max(0,Math.min(10,Math.min(card.getTrip().available(),card.getTrip().capacity())));
+    }
+    private void updatePassengerCounter() {
+        int limit=passengerLimit();
+        boolean changed=false;
+        for(int i=3;i>=0 && getPassengerCount()>limit;i--) {
+            int remove=Math.min(counts[i],getPassengerCount()-limit); counts[i]-=remove; changed|=remove>0;
         }
-
-        private static void paintRoundedBox(Graphics graphics, int width, int height,
-                Color fill, Color border) {
-            Graphics2D g = (Graphics2D) graphics.create();
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setColor(fill);
-            g.fillRoundRect(1, 1, width - 3, height - 3, 14, 14);
-            g.setColor(border);
-            g.drawRoundRect(1, 1, width - 3, height - 3, 14, 14);
-            g.dispose();
+        for(int i=0;i<4;i++) { values[i].setText(Integer.toString(counts[i])); minus[i].setEnabled(counts[i]>0); plus[i].setEnabled(getPassengerCount()<limit); }
+        total.setText(getPassengerCount()+" selected  /  "+limit+" maximum");
+        note.setText(limit==0 ? "No seats available. Please select another trip."
+                : getPassengerCount()==limit ? "Limit reached. Remove a passenger to change categories."
+                : "Select passengers below. "+(limit-getPassengerCount())+" more can be added.");
+        if(changed && details) { rebuildForms(); showCounts(); }
+    }
+    private void rebuildForms() {
+        List<PassengerForm> previous=new ArrayList<>(passengers); passengers.clear(); forms.removeAll();
+        for(int t=0;t<4;t++) {
+            final String type=TYPES[t];
+            List<PassengerForm> same=previous.stream().filter(p -> p.type.equals(type)).toList();
+            for(int i=0;i<counts[t];i++) {
+                PassengerForm form=i<same.size()?same.get(i):new PassengerForm(type);
+                passengers.add(form); form.heading.setText(type+" passenger "+(i+1)+" of "+counts[t]);
+                if(!type.equals("Regular")) forms.add(form,Integer.toString(forms.getComponentCount()));
+            }
         }
+        forms.revalidate(); forms.repaint();
+    }
+    public boolean validatePassengerDetails() {
+        if(passengers.size()!=getPassengerCount() || passengers.isEmpty() || getPassengerCount()>passengerLimit()) return false;
+        boolean valid=true;
+        for(PassengerForm p:passengers) valid=p.validateFields() && valid;
+        if(!valid) for(PassengerForm p:passengers) if(!p.error.getText().isEmpty()) { showDetail(requiredForms().indexOf(p)); p.id.requestFocusInWindow(); break; }
+        return valid;
+    }
+    private void showCounts() { details=false; pages.setBounds(70,282,860,290); subtitle.setText("Use + or − to add or remove passengers in each category."); ((CardLayout)pages.getLayout()).show(pages,"Counts"); }
+    private void showPage(String page) { if(getParent()!=null) ((CardLayout)getParent().getLayout()).show(getParent(),page); }
+    public int getPassengerCount() { return java.util.Arrays.stream(counts).sum(); }
+    public List<String> getPassengerNames() { return java.util.stream.IntStream.rangeClosed(1,passengers.size()).mapToObj(i -> "Passenger "+i).toList(); }
+    public List<String> getPassengerTypes() { return passengers.stream().map(p -> p.type).toList(); }
+    public void resetInputs() {
+        java.util.Arrays.fill(counts,0); counts[0]=1; passengers.clear(); forms.removeAll(); showCounts(); updatePassengerCounter();
+        if(getParent()!=null) for(Component c:getParent().getComponents()) if(c instanceof SelectSeatsPanel seats) seats.resetInputs();
+    }
+    private static class PassengerForm extends RoundedPanel {
+        final String type;
+        final JLabel heading=new JLabel(), error=new JLabel("");
+        final JTextField id=new JTextField();
+        final JComboBox<String> disability=new JComboBox<>(new String[]{"Select disability type","Physical disability","Visual disability","Hearing disability","Speech and language disability","Intellectual disability","Learning disability","Psychosocial disability","Other"});
+        PassengerForm(String type) {
+            this.type=type; setLayout(null); setBackground(Color.WHITE);
 
-        private JButton createCounterButton(boolean plus) {
-            JButton button = new JButton() {
-                @Override protected void paintComponent(Graphics graphics) {
-                    Color fill = plus && isEnabled() ? new Color(218, 0, 43) : new Color(242, 244, 247);
-                    if (isEnabled() && getModel().isPressed()) fill = plus
-                            ? new Color(180, 0, 35) : new Color(222, 227, 234);
-                    paintRoundedBox(graphics, getWidth(), getHeight(), fill,
-                            plus && isEnabled() ? fill : new Color(215, 222, 231));
-                    Graphics2D g = (Graphics2D) graphics.create();
-                    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g.setColor(plus && isEnabled() ? Color.WHITE : new Color(133, 143, 156));
-                    g.setStroke(new BasicStroke(2.7f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                    int x = getWidth() / 2, y = getHeight() / 2;
-                    g.drawLine(x - 8, y, x + 8, y);
-                    if (plus) g.drawLine(x, y - 8, x, y + 8);
-                    if (hasFocus()) {
-                        g.setStroke(new BasicStroke(1));
-                        g.drawRoundRect(5, 5, getWidth() - 11, getHeight() - 11, 10, 10);
-                    }
-                    g.dispose();
-                }
-            };
-            button.setOpaque(false);
-            button.setContentAreaFilled(false);
-            button.setBorderPainted(false);
-            button.setFocusPainted(false);
-            button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            button.getAccessibleContext().setAccessibleName(plus ? "Add passenger" : "Remove passenger");
-            return button;
+            int height=205;
+            setPreferredSize(new Dimension(850,height)); setMaximumSize(new Dimension(Integer.MAX_VALUE,height)); setMinimumSize(new Dimension(500,height));
+            heading.setBounds(24,14,800,28); heading.setFont(new Font("Segoe UI",Font.BOLD,17)); heading.setForeground(new Color(225,0,45)); add(heading);
+            JLabel hint=new JLabel(type.equals("PWD") ? "Enter your PWD ID number and choose your disability type." : "Enter the ID number printed on your "+type.toLowerCase(java.util.Locale.ROOT)+" ID.");
+            hint.setBounds(24,48,810,25); hint.setFont(new Font("Segoe UI",Font.PLAIN,14)); hint.setForeground(new Color(85,94,108)); add(hint);
+            if(!type.equals("Regular")) {
+                field(type+" ID Number *",id,24,94,type.equals("PWD")?390:810);
+
+                if(type.equals("PWD")) field("Disability Type *",disability,444,94,390);
+            }
+            error.setForeground(new Color(210,0,35)); error.setBounds(20,height-34,810,25); add(error);
         }
-
-        private int passengerLimit() {
-            TripCardPanel selected = TripCardPanel.getSelectedCard();
-            if (selected == null || selected.getTrip() == null) return 0;
-            return Math.max(0,Math.min(10,Math.min(selected.getTrip().capacity(),selected.getTrip().available())));
+        private void field(String title,JComponent input,int x,int y,int width) {
+            JLabel label=new JLabel(title); label.setBounds(x,y,width,20); label.setLabelFor(input); add(label);
+            input.setFont(new Font("Segoe UI",Font.PLAIN,14));
+            input.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(220,225,232)),BorderFactory.createEmptyBorder(4,9,4,9)));
+            if(input instanceof JComboBox<?> combo) qpal.components.FormInputStyle.styleCombo(combo);
+            input.setBounds(x,y+26,width,44); input.getAccessibleContext().setAccessibleName(title); add(input);
         }
+        boolean validateFields() {
+            List<String> missing=new ArrayList<>();
+            if(type.equals("Regular")) return true;
+            if(!type.equals("Regular")) check(id,type+" ID number",100,missing);
 
-        private void updatePassengerCounter() {
-            int limit = passengerLimit();
-            passengerCount = limit == 0 ? 0 : Math.max(1,Math.min(passengerCount,limit));
-            lblCount.setText(String.valueOf(passengerCount));
-            minusbtn.setEnabled(passengerCount > 1);
-            plusbtn.setEnabled(passengerCount < limit);
-            maximumNote.setText(limit == 0 ? "No seats available. Please select another trip."
-                    : "Maximum of " + limit + " passenger" + (limit == 1 ? "" : "s")
-                    + " for this trip (up to 10 per transaction).");
+            if(type.equals("PWD")) {
+                boolean absent=disability.getSelectedIndex()==0;
+                disability.setBorder(BorderFactory.createLineBorder(absent?new Color(225,0,45):new Color(180,185,195)));
+                if(absent) missing.add("Disability type is required");
+            }
+            error.setText(String.join("; ",missing)); return missing.isEmpty();
         }
-        private JPanel createCard(
-                String text,
-                String price,
-                String iconPath,
-                int x,
-                int y) {
-
-                JPanel panel = new JPanel(null) {
-                    @Override protected void paintComponent(Graphics graphics) {
-                        super.paintComponent(graphics);
-                        paintRoundedBox(graphics, getWidth(), getHeight(), Color.WHITE, Color.WHITE);
-                    }
-                };
-                panel.setOpaque(false);
-
-                panel.setBounds(x,y,190,105);
-                panel.setBackground(Color.WHITE);
-                panel.setBorder(
-                        new OptionBorder(
-                                Color.LIGHT_GRAY));
-
-                JLabel icon = new JLabel();
-
-                ImageIcon iconpic = new ImageIcon(iconPath);
-
-                if (iconpic.getIconWidth() > 0) {
-
-                Image iconimg =
-                        iconpic.getImage().getScaledInstance(
-                                48,
-                                48,
-                                Image.SCALE_SMOOTH);
-
-                icon.setIcon(new ImageIcon(iconimg));
-
-                }
-
-                icon.setBounds(15,28,48,48);
-                icon.setHorizontalAlignment(SwingConstants.CENTER);
-                panel.add(icon);
-
-                JLabel typelabel = new JLabel(text);
-                typelabel.setBounds(70,25,105,25);
-                typelabel.setFont(
-                        new Font("Segoe UI",Font.BOLD,17));
-                typelabel.setForeground(Color.BLACK);
-                panel.add(typelabel);
-
-                JLabel pricelabel = new JLabel(price);
-                pricelabel.setBounds(70,51,105,20);
-                pricelabel.setFont(
-                        new Font("Segoe UI",Font.PLAIN,15));
-                pricelabel.setForeground(
-                        new Color(80,80,80));
-                panel.add(pricelabel);
-
-                panel.setCursor(
-                        new Cursor(Cursor.HAND_CURSOR));
-
-                panel.addMouseListener(new MouseAdapter() {
-
-                @Override
-                public void mouseClicked(MouseEvent e) {
-
-                        // If already selected, unselect it
-                        if (selectedType.equals(text)) {
-                        panel.setBorder(
-                                new OptionBorder(Color.LIGHT_GRAY));
-                        selectedType = "";
-                        return;
-                        }
-
-                        // Otherwise select it
-                        resetCards();
-
-                        panel.setBorder(
-                                new OptionBorder(
-                                        new Color(225,0,45),
-                                        3));
-
-                        selectedType = text;
-                }
-
-                });
-
-                return panel;
-
+        private void check(JTextField field,String label,int max,List<String> errors) {
+            String value=field.getText().trim(); boolean invalid=value.isEmpty() || value.length()>max;
+            field.setBorder(BorderFactory.createLineBorder(invalid?new Color(225,0,45):new Color(180,185,195)));
+            if(invalid) errors.add(label+(value.isEmpty()?" is required":" must be at most "+max+" characters"));
         }
-
-        private static class OptionBorder extends javax.swing.border.AbstractBorder {
-                private final Color color;
-                private final int thickness;
-
-                OptionBorder(Color color) { this(color, 1); }
-
-                OptionBorder(Color color, int thickness) {
-                        this.color = color;
-                        this.thickness = thickness;
-                }
-
-                @Override public void paintBorder(Component component, Graphics graphics,
-                        int x, int y, int width, int height) {
-                        Graphics2D g = (Graphics2D) graphics.create();
-                        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                        g.setColor(color);
-                        g.setStroke(new BasicStroke(thickness));
-                        g.drawRoundRect(x + 2, y + 2, width - 5, height - 5, 14, 14);
-                        g.dispose();
-                }
-        }
-        private void resetCards() {
-
-                regularCard.setBorder(
-                        new OptionBorder(
-                                Color.LIGHT_GRAY));
-
-                studentCard.setBorder(
-                        new OptionBorder(
-                                Color.LIGHT_GRAY));
-
-                seniorCard.setBorder(
-                        new OptionBorder(
-                                Color.LIGHT_GRAY));
-
-                pwdCard.setBorder(
-                        new OptionBorder(
-                                Color.LIGHT_GRAY));
-
-        }
-
-        public String getPassengerType() { return selectedType; }
-        public java.util.List<String> getPassengerNames() {
-            java.util.List<String> labels = new java.util.ArrayList<>();
-            for (int i = 1; i <= passengerCount; i++) labels.add("Passenger " + i);
-            return labels;
-        }
-        public int getPassengerCount() { return passengerCount; }
-
-        public void resetInputs() {
-
-                if(getParent() != null) {
-                    for(Component component : getParent().getComponents()) {
-                        if(component instanceof SelectSeatsPanel) {
-                            ((SelectSeatsPanel)component).resetInputs();
-                        }
-                    }
-                }
-
-                passengerCount = 1;
-                updatePassengerCounter();
-
-                selectedType = "";
-
-                resetCards(); // Remove the red border from all passenger cards
-
-
-
-        }
-
+    }
 }

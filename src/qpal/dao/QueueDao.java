@@ -258,6 +258,7 @@ public class QueueDao {
         List<Object[]> rows = new ArrayList<>();
         int paid = 0, pending = 0;
         BigDecimal total = BigDecimal.ZERO;
+        BigDecimal allTimeTotal = BigDecimal.ZERO;
         java.util.Set<Integer> countedPayments = new java.util.HashSet<>();
         java.util.Set<Integer> pendingPayments = new java.util.HashSet<>();
         String sql = "SELECT p.*,b.bus_number,r.origin,r.destination,bp.passenger_name,bp.fare,q.queue_number,"
@@ -282,11 +283,14 @@ public class QueueDao {
                         passenger == null ? amount : r.getBigDecimal("fare"), status, seat});
                 if (status.equals("Paid")) {
                     paid++;
-                    if (countedPayments.add(r.getInt("payment_id")) && r.getBoolean("paid_today")) total = total.add(amount);
+                    if (countedPayments.add(r.getInt("payment_id"))) {
+                        allTimeTotal = allTimeTotal.add(amount);
+                        if (r.getBoolean("paid_today")) total = total.add(amount);
+                    }
                 }
                 if (status.equals("Pending") && pendingPayments.add(r.getInt("payment_id"))) pending++;
             }
         }
-        return new RevenueData(rows, paid, pending, total);
+        return new RevenueData(rows, paid, pending, total, allTimeTotal);
     }
 }

@@ -9,6 +9,20 @@ public class TripDetailsPanel extends JPanel {
     private static final java.time.format.DateTimeFormatter TIME_FORMAT =
             java.time.format.DateTimeFormatter.ofPattern("h:mm a", java.util.Locale.ENGLISH);
 
+    private String dropPoint;
+    private String dropRoute;
+    private java.math.BigDecimal selectedFare;
+    public void clearDropPoint() { dropPoint = null; dropRoute = null; selectedFare = null; }
+    public java.math.BigDecimal getSelectedFare() { return getDropPoint() == null ? null : selectedFare; }
+    public void setSelectedFare(java.math.BigDecimal fare) { selectedFare = fare; }
+    public String getDropPoint() { return java.util.Objects.equals(dropRoute,getSearch().destination()) ? dropPoint : null; }
+    public void setDropPoint(String stop) {
+        if (!qpal.model.RouteDropPoints.options(getSearch().destination()).contains(stop))
+            throw new IllegalArgumentException("Invalid drop-off");
+        dropPoint = stop;
+        dropRoute = getSearch().destination();
+        selectedFare = null;
+    }
     private JComboBox<String> originbox;
     private JComboBox<String> destinationbox;
     private JDateChooser datebox;
@@ -58,7 +72,7 @@ public class TripDetailsPanel extends JPanel {
         title.setBounds(70, 192, 860, 44);
         title.setHorizontalAlignment(SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 32));
-        title.setForeground(new Color(20, 23, 28));
+        title.setForeground(new Color(225,0,45));
         tripdetailspanel.add(title);
 
         JLabel subtext = new JLabel("Enter your trip details to find available buses.");
@@ -227,7 +241,7 @@ public class TripDetailsPanel extends JPanel {
                         return;
                     }
                     CardLayout cardlayout = (CardLayout)getParent().getLayout();
-                    cardlayout.show(getParent(),"AvailableTrip");
+                    cardlayout.show(getParent(),"DropPoint");
                 }, ex -> {
                     continuebtn.setEnabled(true);
                     continuebtn.setText("Continue  >");
@@ -339,6 +353,7 @@ public class TripDetailsPanel extends JPanel {
     }
 
     public void resetInputs() {
+    dropPoint=null; dropRoute=null; selectedFare=null;
 
     originbox.setSelectedIndex(0);
     destinationbox.setSelectedIndex(0);
