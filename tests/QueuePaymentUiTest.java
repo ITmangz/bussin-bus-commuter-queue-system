@@ -48,7 +48,17 @@ public class QueuePaymentUiTest {
                         ImageIO.write(image,"png",new java.io.File("build/payment-preview-"+state+".png"));
                     } finally { dialog.dispose(); }
                 }
-                System.out.println("PASS: payment dialog states, change, and previews");
+                for (String method : new String[]{"GCash","Card"}) {
+                    var cashless=new Receipt(1,"CASHLESS",receipt.queueDate(),12,receipt.bus(),receipt.route(),receipt.schedule(),receipt.seats(),receipt.total(),method,"Pending");
+                    JDialog dialog=(JDialog)constructor.newInstance(new JPanel(),row,1,cashless,new Progress(null,false,false));
+                    try {
+                        JTextField amount=(JTextField)field(dialog,"received");
+                        check(new BigDecimal(amount.getText()).compareTo(receipt.total())==0 && !amount.isEditable(),"Cashless amount preset and locked");
+                        JButton pay=(JButton)field(dialog,"pay");check(!pay.isEnabled(),"Verification required");
+                        ((JCheckBox)field(dialog,"verified")).doClick();check(pay.isEnabled(),"Verified payment enabled");
+                    } finally {dialog.dispose();}
+                }
+                System.out.println("PASS: payment dialog states, change, previews and cashless verification");
             } catch(Exception ex) { throw new RuntimeException(ex); }
         });
     }

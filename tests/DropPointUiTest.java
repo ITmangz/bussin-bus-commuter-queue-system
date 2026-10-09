@@ -25,11 +25,11 @@ public class DropPointUiTest {
                 origin.doClick();
                 check(trip.getDropPoint() == null, "Origin does not change selection");
                 String[] stops = {"Silang", "Tagaytay", "Amadeo"};
-                String[] fares = {"30.00", "40.00", "50.00"};
+                String[] fares = {"30", "40", "50"};
                 for (int i = 0; i < 3; i++) {
                     JRadioButton choice = (JRadioButton) options.getComponent(i + 1);
                     check(choice.getText().equals(stops[i]), "Stop name");
-                    check(((JLabel) choice.getComponent(0)).getText().equals("₱" + fares[i]), "Two decimal places");
+                    check(((JLabel) choice.getComponent(0)).getText().equals("₱" + fares[i]), "Whole-peso fare");
                     choice.doClick();
                     check(trip.getDropPoint().equals(stops[i]), "Selected drop-off");
                     check(trip.getSelectedFare().equals(new BigDecimal(fares[i])), "Selected fare");
@@ -54,7 +54,7 @@ public class DropPointUiTest {
                 var graphics = image.createGraphics(); panel.printAll(graphics); graphics.dispose();
                 javax.imageio.ImageIO.write(image, "png", new java.io.File("build/drop-point.png"));
                 display.invoke(panel, "Amadeo", new BigDecimal("100"));
-                check(trip.getSelectedFare().equals(new BigDecimal("80.00")), "Admin fare changes update selection");
+                check(trip.getSelectedFare().equals(new BigDecimal("80")), "Admin fare changes update selection");
                 display.invoke(panel, "Amadeo", null);
                 check(trip.getSelectedFare() == null, "Cannot proceed while fare is unavailable");
                 ((JComboBox<?>) field(trip, "destinationbox")).setSelectedItem("Naic");

@@ -84,6 +84,16 @@ public class EditBusPanel {
         panel.add(Box.createVerticalStrut(7));
 
         JComboBox<Integer> cmbSeatCapacity = ManagementComboBoxes.seatCapacity(bus.getSeatCapacity());
+        if (cmbSeatCapacity.getSelectedIndex() < 0) {
+            cmbSeatCapacity.setRenderer(new DefaultListCellRenderer() {
+                @Override public Component getListCellRendererComponent(JList<?> list, Object value,
+                        int index, boolean selected, boolean focused) {
+                    super.getListCellRendererComponent(list, value, index, selected, focused);
+                    if (value == null) setText("Keep current (" + bus.getSeatCapacity() + " seats)");
+                    return this;
+                }
+            });
+        }
         panel.add(cmbSeatCapacity);
         panel.add(Box.createVerticalStrut(14));
 
@@ -167,9 +177,7 @@ public class EditBusPanel {
             }
 
             if (seatCapacity == null) {
-                qpal.components.AppDialogs.showMessageDialog(dialog, "Choose a seat capacity from 20 to 50.",
-                        "Warning", JOptionPane.WARNING_MESSAGE);
-                return;
+                seatCapacity = bus.getSeatCapacity();
             }
             if(!busNumber.equals(bus.getBusNumber())
                     && busDao.checkBusNumber(busNumber)) {
@@ -184,19 +192,21 @@ public class EditBusPanel {
 
             }
 
-            bus.setBusNumber(busNumber);
-            bus.setSeatCapacity(seatCapacity);
+            qpal.model.Bus updated = new qpal.model.Bus();
+            updated.setBusID(bus.getBusID());
+            updated.setBusNumber(busNumber);
+            updated.setSeatCapacity(seatCapacity);
+            updated.setAvailableSeats(seatCapacity == bus.getSeatCapacity() ? bus.getAvailableSeats() : seatCapacity);
+            updated.setBusStatus(status);
 
-            /*
-             * Keep available seats in sync if the capacity changes.
-             * Later, when the kiosk booking system is connected,
-             * we'll replace this with logic that preserves booked seats.
-             */
-            bus.setAvailableSeats(seatCapacity);
-
-            bus.setBusStatus(status);
-
-            boolean success = busDao.updateBus(bus);
+            boolean success;
+            try { success = busDao.updateBusDetails(updated); }
+            catch (java.sql.SQLException ex) {
+                String message = ex.getErrorCode() == 1062 ? "Bus Number already exists."
+                        : "Unable to update bus: " + ex.getMessage();
+                qpal.components.AppDialogs.showMessageDialog(dialog, message, "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             if(success) {
 
@@ -214,7 +224,7 @@ public class EditBusPanel {
 
                 qpal.components.AppDialogs.showMessageDialog(
                         dialog,
-                        "Unable to update bus. A bus with bookings must keep its seat capacity.",
+                        "Unable to update bus. Please reload the bus list and try again.",
                         "Error",
                         JOptionPane.ERROR_MESSAGE);
 

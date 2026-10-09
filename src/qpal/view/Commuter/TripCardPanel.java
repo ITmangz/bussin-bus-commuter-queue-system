@@ -12,7 +12,7 @@ public class TripCardPanel extends JPanel {
     public TripCardPanel(qpal.model.BookingData.TripOption trip, java.math.BigDecimal passengerFare) {
         this(trip.bus(), trip.route(), trip.date() + " | " + trip.time().format(
                 java.time.format.DateTimeFormatter.ofPattern("h:mm a", java.util.Locale.ENGLISH)),
-                "PHP " + passengerFare, trip.available());
+                "PHP " + qpal.model.FarePolicy.format(passengerFare), trip.available());
         this.trip = trip;
     }
     public qpal.model.BookingData.TripOption getTrip() { return trip; }

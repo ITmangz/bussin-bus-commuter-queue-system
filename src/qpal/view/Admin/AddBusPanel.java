@@ -175,7 +175,7 @@ public class AddBusPanel {
             }
 
             if (seatCapacity == null) {
-                qpal.components.AppDialogs.showMessageDialog(dialog, "Choose a seat capacity from 20 to 50.",
+                qpal.components.AppDialogs.showMessageDialog(dialog, "Choose 24, 28, 32, 36, 40 or 44 seats.",
                         "Warning", JOptionPane.WARNING_MESSAGE);
                 return;
             }

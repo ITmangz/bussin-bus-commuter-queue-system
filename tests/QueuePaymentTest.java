@@ -38,7 +38,7 @@ public class QueuePaymentTest {
         try (Connection setup=DbConnection.getConnection(); Statement s=setup.createStatement()) {
             s.executeUpdate("CREATE DATABASE "+schema);
             try {
-                for (String table:List.of("buses","routes","trips","bookings","booking_passengers","seat_reservations","payments","queue_entries","queue_daily_counters"))
+                for (String table:List.of("buses","routes","trips","bookings","booking_passengers","seat_reservations","payments","queue_entries","queue_daily_counters","activity_logs"))
                     s.executeUpdate("CREATE TABLE "+schema+"."+table+" LIKE qpal."+table);
                 System.setProperty("qpal.db.url","jdbc:mysql://localhost:3306/"+schema);
                 try (Connection c=DbConnection.getConnection(); Statement seed=c.createStatement()) {
@@ -66,7 +66,29 @@ public class QueuePaymentTest {
                 check(new QueuePaymentDao().progress(queue).ticketsPrinted(),"Print progress survives reopening");
                 queues.act(queue,"Complete",1);
                 check(queues.today().get(0).status().equals("Completed"),"Completion after all documents");
-                System.out.println("Payment transaction and completion integration checks passed.");
+                                ActivityLogDao.setCurrentAccount(new qpal.model.Account(99,"Admin","admin@test","","Admin","Active"));
+                for(String method:List.of("GCash","Card")) {
+                    int seat=method.equals("GCash")?11:12;
+                    var cashless=bookings.book("CASHLESS-"+method,bookings.availableTrips().get(0),List.of(new Passenger("Cashless","Regular",seat)),method);
+                    int q=queues.today().stream().filter(r->r.bookingId()==cashless.bookingId()).findFirst().get().id();
+                    queues.act(0,"Call Next Queue",1);
+                    rejects(()->payments.pay(q,1,new BigDecimal("50")));
+                    rejects(()->queues.act(q,"Mark as Paid",1));
+                    rejects(()->payments.pay(q,1,new BigDecimal("50"),"REF-1",false));
+                    rejects(()->payments.pay(q,1,new BigDecimal("50"),"",true));
+                    rejects(()->payments.pay(q,1,new BigDecimal("60"),"REF-1",true));
+                    check(bookings.receipt(cashless.bookingId()).paymentStatus().equals("Pending"),"Unverified cashless remains pending");
+                    payments.pay(q,1,new BigDecimal("50"),"REF-1",true);
+                    check(bookings.receipt(cashless.bookingId()).paymentStatus().equals("Paid"),"Verified cashless paid");
+                    payments.printed(q,false);payments.printed(q,true);queues.act(q,"Complete",1);
+                }
+                var duplicate=bookings.book("DUPLICATE-REF",bookings.availableTrips().get(0),List.of(new Passenger("Duplicate","Regular",13)),"GCash");
+                int duplicateQueue=queues.today().stream().filter(r->r.bookingId()==duplicate.bookingId()).findFirst().get().id();
+                queues.act(0,"Call Next Queue",1);
+                rejects(()->payments.pay(duplicateQueue,1,new BigDecimal("50"),"REF-1",true));
+                check(bookings.receipt(duplicate.bookingId()).paymentStatus().equals("Pending"),"Duplicate reference rolls back");
+                ActivityLogDao.setCurrentAccount(null);
+                System.out.println("PASS: cash payment, cashless verification, exact amount, duplicate reference protection, printing and completion");
             } finally { System.clearProperty("qpal.db.url"); s.executeUpdate("DROP DATABASE "+schema); }
         }
     }

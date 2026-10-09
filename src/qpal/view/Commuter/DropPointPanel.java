@@ -207,7 +207,7 @@ public class DropPointPanel extends JPanel {
         strip.repaint();
     }
 
-    private static String money(BigDecimal value) { return "₱" + value.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(); }
+    private static String money(BigDecimal value) { return "₱" + qpal.model.FarePolicy.format(value); }
 
     private static void styleRadioIcon(JRadioButton button) {
         Icon icon = new Icon() {

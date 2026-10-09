@@ -9,11 +9,11 @@ public class RouteDropPointsTest {
   if(!RouteDropPoints.options("Unknown").equals(java.util.List.of("Unknown")))throw new AssertionError();
   System.out.println("PASS: mappings, duplicate stops, aliases, invalid selections and fallback");
   var full = new java.math.BigDecimal("50");
-  if(!RouteDropPoints.fare("Amadeo","Silang",full).equals(new java.math.BigDecimal("30.00")))throw new AssertionError("First stop");
-  if(!RouteDropPoints.fare("Amadeo","Tagaytay",full).equals(new java.math.BigDecimal("40.00")))throw new AssertionError("Second stop");
-  if(!RouteDropPoints.fare("Amadeo","Amadeo",full).equals(new java.math.BigDecimal("50.00")))throw new AssertionError("Final stop");
-  if(!RouteDropPoints.fare("Naic","Naic",full).equals(new java.math.BigDecimal("50.00")))throw new AssertionError("Repeated final stop");
-  if(!RouteDropPoints.fare("Amadeo","Silang",new java.math.BigDecimal("50.01")).equals(new java.math.BigDecimal("30.01")))throw new AssertionError("Rounding");
+  if(!RouteDropPoints.fare("Amadeo","Silang",full).equals(new java.math.BigDecimal("30")))throw new AssertionError("First stop");
+  if(!RouteDropPoints.fare("Amadeo","Tagaytay",full).equals(new java.math.BigDecimal("40")))throw new AssertionError("Second stop");
+  if(!RouteDropPoints.fare("Amadeo","Amadeo",full).equals(new java.math.BigDecimal("50")))throw new AssertionError("Final stop");
+  if(!RouteDropPoints.fare("Naic","Naic",full).equals(new java.math.BigDecimal("50")))throw new AssertionError("Repeated final stop");
+  if(!RouteDropPoints.fare("Amadeo","Silang",new java.math.BigDecimal("50.01")).equals(new java.math.BigDecimal("30")))throw new AssertionError("Rounding");
   try { RouteDropPoints.fare("Amadeo","PITX",full); throw new AssertionError("Origin selectable"); }
   catch(IllegalArgumentException expected) { }
   System.out.println("PASS: fare percentages, final stop, rounding and origin rejection");

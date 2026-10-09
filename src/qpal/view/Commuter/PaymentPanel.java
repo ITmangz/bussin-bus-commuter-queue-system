@@ -163,10 +163,7 @@ public class PaymentPanel extends JPanel {
 
             }
 
-            if (!selectedPayment.equals("Cash")) {
-                if (!enteringDetails) { showPaymentDetails(); return; }
-                if (!(selectedPayment.equals("E-Wallet") ? ewalletDetails : cardDetails).validateInputs()) return;
-            }
+            // All methods receive a pending queue ticket. Payment is verified at the counter.
             TripCardPanel card = TripCardPanel.getSelectedCard();
             SeatSelectionPanel seatPanel = null;
             PrintTicketPanel ticketPanel = null;

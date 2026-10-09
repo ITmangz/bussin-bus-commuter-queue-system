@@ -246,7 +246,7 @@ public class ConfirmTripDetailsPanel extends JPanel {
         faretext.setForeground(Color.BLACK);
         summarypanel.add(faretext);
 
-        JLabel fare = new JLabel("Php 100.00");
+        JLabel fare = new JLabel("PHP 100");
         fare.setBounds(452,188,260,20);
         fare.setFont(new Font("Segoe UI",Font.BOLD,13));
         fare.setForeground(Color.BLACK);
@@ -261,8 +261,8 @@ public class ConfirmTripDetailsPanel extends JPanel {
                     fare.setText("Please select your drop-off point.");
                     return;
                 }
-                fare.setText("PHP " + tripDetailsPanel.getSelectedFare().multiply(
-                        java.math.BigDecimal.valueOf(passengerPanel.getPassengerCount())));
+                fare.setText("PHP " + qpal.model.FarePolicy.total(tripDetailsPanel.getSelectedFare(),
+                        passengerPanel.getPassengerTypes()));
             }
         });
 

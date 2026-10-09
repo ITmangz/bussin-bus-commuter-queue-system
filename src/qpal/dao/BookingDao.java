@@ -10,6 +10,8 @@ import qpal.util.DbConnection;
 public class BookingDao {
     private static void ensureDropPoints(Connection c) throws SQLException {
         try(Statement s=c.createStatement()) { s.executeUpdate("CREATE TABLE IF NOT EXISTS booking_dropoffs (booking_id INT NOT NULL PRIMARY KEY, drop_off VARCHAR(150) NOT NULL)"); }
+        try(Statement s=c.createStatement()) { s.executeUpdate("CREATE TABLE IF NOT EXISTS booking_fare_details (booking_passenger_id INT NOT NULL PRIMARY KEY, base_fare DECIMAL(12,2) NOT NULL, "
+                + "FOREIGN KEY (booking_passenger_id) REFERENCES booking_passengers(booking_passenger_id) ON DELETE CASCADE) ENGINE=InnoDB"); }
     }
     private static final String TRIP_SELECT = "SELECT t.*, b.bus_number, b.seat_capacity, r.origin, r.destination, r.fare "
             + "FROM trips t JOIN buses b ON b.bus_id=t.bus_id JOIN routes r ON r.route_id=t.route_id ";
@@ -89,13 +91,14 @@ public class BookingDao {
                     throw new SQLException("The bus seat layout changed. Please select your seats again.");
                 if(!qpal.model.RouteDropPoints.valid(live.origin(),live.destination(),dropPoint)) throw new SQLException("Please select a valid drop-off for this route.");
                 BigDecimal passengerFare = qpal.model.RouteDropPoints.fare(live.destination(), dropPoint, live.fare());
-                BigDecimal total = passengerFare.multiply(BigDecimal.valueOf(passengers.size()));
+                BigDecimal total = qpal.model.FarePolicy.total(passengerFare, passengers.stream().map(Passenger::type).toList());
                 int booking = insert(c, "INSERT INTO bookings (booking_reference,trip_id,total_amount,status) VALUES (?,?,?,'Pending')",
                         reference, live.id(), total);
                 update(c,"INSERT INTO booking_dropoffs (booking_id,drop_off) VALUES (?,?)",booking,dropPoint);
                 for (Passenger passenger : passengers) {
                     int person = insert(c, "INSERT INTO booking_passengers (booking_id,trip_id,passenger_name,passenger_type,fare) VALUES (?,?,?,?,?)",
-                            booking, live.id(), passenger.name().trim(), passenger.type(), passengerFare);
+                            booking, live.id(), passenger.name().trim(), passenger.type(), qpal.model.FarePolicy.passengerFare(passengerFare, passenger.type()));
+                    update(c, "INSERT INTO booking_fare_details (booking_passenger_id,base_fare) VALUES (?,?)", person, passengerFare);
                     update(c, "INSERT INTO seat_reservations (trip_id,booking_passenger_id,seat_number,status) VALUES (?,?,?,'Active')",
                             live.id(), person, passenger.seat());
                 }
@@ -129,6 +132,12 @@ public class BookingDao {
         try (Connection c = DbConnection.getConnection()) { ensureDropPoints(c); return receipt(c, booking); }
     }
     private Receipt receipt(Connection c, int booking) throws SQLException {
+        List<FareLine> fares = new ArrayList<>();
+        try (PreparedStatement p = statement(c, "SELECT bp.passenger_type,fd.base_fare,bp.fare FROM booking_passengers bp "
+                + "LEFT JOIN booking_fare_details fd ON fd.booking_passenger_id=bp.booking_passenger_id "
+                + "WHERE bp.booking_id=? ORDER BY bp.booking_passenger_id", booking); ResultSet r = p.executeQuery()) {
+            while (r.next()) fares.add(new FareLine(r.getString(1), r.getBigDecimal(2), r.getBigDecimal(3)));
+        }
         String sql = "SELECT bk.booking_reference,bk.total_amount,q.queue_date,q.queue_number,b.bus_number,"
                 + "r.origin,COALESCE(d.drop_off,r.destination),t.departure_date,t.departure_time,p.payment_method,p.status "
                 + "FROM bookings bk LEFT JOIN booking_dropoffs d ON d.booking_id=bk.booking_id JOIN trips t ON t.trip_id=bk.trip_id JOIN buses b ON b.bus_id=t.bus_id "
@@ -142,7 +151,7 @@ public class BookingDao {
             if (!r.next()) throw new SQLException("Booking ticket is unavailable.");
             return new Receipt(booking, r.getString(1), r.getDate(3).toLocalDate(), r.getInt(4), r.getString(5),
                     r.getString(6) + " - " + r.getString(7), r.getString(8) + " | " + r.getString(9),
-                    String.join(", ", labels), r.getBigDecimal(2), r.getString(10), r.getString(11));
+                    String.join(", ", labels), r.getBigDecimal(2), r.getString(10), r.getString(11), fares);
         }
     }
 

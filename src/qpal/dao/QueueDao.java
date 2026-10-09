@@ -229,6 +229,11 @@ public class QueueDao {
                         break;
                     case "Mark as Paid":
                         PaymentDeadlineDao.requireOpen(c, queueId);
+                        try (PreparedStatement p = statement(c,"SELECT payment_method FROM payments WHERE booking_id=? ORDER BY payment_id DESC LIMIT 1",booking);
+                                ResultSet r = p.executeQuery()) {
+                            if (r.next() && !"Cash".equals(r.getString(1)))
+                                throw new SQLException("Open Payment to verify the cashless transaction and record its reference.");
+                        }
                         if (Set.of("Cancelled", "Completed", "Expired", "No-show").contains(status)) throw new SQLException("This queue is closed.");
                         if (update(c, "UPDATE payments SET status='Paid',paid_at=NOW() WHERE booking_id=? AND status='Pending'", booking) == 0)
                             throw new SQLException("There is no pending payment for this booking.");

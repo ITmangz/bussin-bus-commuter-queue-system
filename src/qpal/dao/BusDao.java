@@ -115,9 +115,15 @@ public class BusDao {
     }
 
     public boolean updateBus(Bus bus) {
+        try { return updateBusDetails(bus); }
+        catch (SQLException ex) { ex.printStackTrace(); return false; }
+    }
+
+    public boolean updateBusDetails(Bus bus) throws SQLException {
 
         String sql = "UPDATE buses SET bus_number=?, seat_capacity=?, available_seats=?, bus_status=? WHERE bus_id=? "
-                + "AND (seat_capacity=? OR NOT EXISTS (SELECT 1 FROM trips t JOIN bookings bk ON bk.trip_id=t.trip_id WHERE t.bus_id=buses.bus_id))";
+                + "AND (seat_capacity=? OR NOT EXISTS (SELECT 1 FROM trips t JOIN bookings bk ON bk.trip_id=t.trip_id "
+                + "WHERE t.bus_id=buses.bus_id AND t.status IN ('Scheduled','Boarding')))";
 
         try (Connection con = DbConnection.getConnection();
             PreparedStatement pst = con.prepareStatement(sql)) {
@@ -129,15 +135,22 @@ public class BusDao {
             pst.setInt(5, bus.getBusID());
             pst.setInt(6, bus.getSeatCapacity());
 
-            boolean saved = pst.executeUpdate() > 0;
-            if (saved) ActivityLogDao.recordActivity("Bus Management", "Update", "Updated bus #" + bus.getBusID() + " (" + bus.getBusNumber() + "), status: " + bus.getBusStatus() + ".");
-            return saved;
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            con.setAutoCommit(false);
+            try {
+                boolean saved = pst.executeUpdate() > 0;
+                if (!saved) throw new SQLException("This bus was removed, or a scheduled/boarding trip has bookings. Keep its current seat capacity and try again.");
+                // Unbooked active trips must use the updated bus capacity too.
+                try (PreparedStatement trips = con.prepareStatement("UPDATE trips t SET available_seats=? WHERE bus_id=? "
+                        + "AND status IN ('Scheduled','Boarding') AND NOT EXISTS (SELECT 1 FROM bookings bk WHERE bk.trip_id=t.trip_id)")) {
+                    trips.setInt(1, bus.getSeatCapacity());
+                    trips.setInt(2, bus.getBusID());
+                    trips.executeUpdate();
+                }
+                con.commit();
+                ActivityLogDao.recordActivity("Bus Management", "Update", "Updated bus #" + bus.getBusID() + " (" + bus.getBusNumber() + "), status: " + bus.getBusStatus() + ".");
+                return true;
+            } catch (SQLException | RuntimeException ex) { con.rollback(); throw ex; }
         }
-
-        return false;
     }
 
     public boolean deleteBus(int id) {

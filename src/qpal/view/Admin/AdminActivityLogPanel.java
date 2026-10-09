@@ -91,9 +91,52 @@ public class AdminActivityLogPanel extends JPanel {
                 ? "View your recorded actions and activity." : "View recorded user actions and system activity.");
         subtitle.setFont(new Font("SansSerif",Font.PLAIN,13));
         subtitle.setForeground(new Color(120,120,120));
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+        subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(title);
         panel.add(Box.createVerticalStrut(4));
         panel.add(subtitle);
+        if (account != null && "Admin".equalsIgnoreCase(account.getRole())) {
+            panel.add(Box.createVerticalStrut(16));
+            JButton daily = new JButton() {
+                @Override protected void paintComponent(Graphics graphics) {
+                    Graphics2D g = (Graphics2D) graphics.create();
+                    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+                    g.setColor(getModel().isRollover() ? new Color(250,251,253) : Color.WHITE);
+                    g.fillRoundRect(1,1,getWidth()-3,getHeight()-3,14,14);
+                    g.setColor(isFocusOwner() ? new Color(228,0,70) : new Color(232,236,242));
+                    g.drawRoundRect(1,1,getWidth()-3,getHeight()-3,14,14);
+                    g.dispose();
+                    super.paintComponent(graphics);
+                }
+            };
+            daily.setLayout(new BorderLayout(12,0));
+            daily.setContentAreaFilled(false);
+            daily.setBorderPainted(false);
+            daily.setFocusPainted(false);
+            daily.setBorder(new EmptyBorder(14,18,14,18));
+            daily.setAlignmentX(Component.LEFT_ALIGNMENT);
+            daily.setPreferredSize(new Dimension(420,78));
+            daily.setMaximumSize(new Dimension(Integer.MAX_VALUE,78));
+            daily.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            daily.getAccessibleContext().setAccessibleName("Daily Employee Summary — See message");
+            JPanel copy = new JPanel(new GridLayout(2,1,0,3));
+            copy.setOpaque(false);
+            JLabel heading = new JLabel("Daily Employee Summary");
+            heading.setFont(new Font("SansSerif",Font.BOLD,17));
+            heading.setForeground(Color.BLACK);
+            JLabel hint = new JLabel("See message");
+            hint.setFont(new Font("SansSerif",Font.PLAIN,13));
+            hint.setForeground(new Color(120,120,120));
+            copy.add(heading); copy.add(hint);
+            JLabel arrow = new JLabel(">",SwingConstants.RIGHT);
+            arrow.setFont(new Font("SansSerif",Font.PLAIN,24));
+            arrow.setForeground(new Color(228,0,70));
+            daily.add(copy,BorderLayout.CENTER);
+            daily.add(arrow,BorderLayout.EAST);
+            daily.addActionListener(e -> new DailyEmployeeSummaryDialog(this,account).setVisible(true));
+            panel.add(daily);
+        }
         return panel;
     }
 

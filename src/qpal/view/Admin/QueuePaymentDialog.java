@@ -21,6 +21,9 @@ public final class QueuePaymentDialog extends JDialog {
     private final JLabel change = new JLabel("Change: PHP 0.00");
     private final JLabel status = new JLabel(" ");
     private final JButton pay = new JButton("Mark as Paid");
+    private final JCheckBox verified = new JCheckBox("Verified in merchant records / terminal");
+    private final JTextField transactionReference = new JTextField();
+    private boolean cashless() { return !"Cash".equals(receipt.method()); }
 
 
     private boolean busy;
@@ -87,16 +90,23 @@ public final class QueuePaymentDialog extends JDialog {
         JLabel title = new JLabel("Payment");
         title.setFont(new Font("SansSerif",Font.BOLD,18)); title.setForeground(new Color(225,29,72));
         title.setAlignmentX(Component.LEFT_ALIGNMENT); content.add(title); content.add(Box.createVerticalStrut(7));
-        JLabel subtitle = new JLabel("Review the queue details and enter payment.");
+        JLabel subtitle = new JLabel("Review the amount and confirm payment.");
         subtitle.setFont(new Font("SansSerif",Font.PLAIN,12)); subtitle.setForeground(new Color(100,100,100));
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT); content.add(subtitle); content.add(Box.createVerticalStrut(20));
         addField(content,"Queue Number",String.format("P%03d",row.number()));
-        addField(content,"Route",receipt.route());
-        addField(content,"Total Seats",String.valueOf(row.passengers()));
-        addField(content,"Seat Numbers",receipt.seats());
-        addField(content,"Total Fare (PHP)",receipt.total().toPlainString());
-        addInput(content,"Amount Received (PHP)",received);
+        addField(content,"Total Fare (PHP)",qpal.model.FarePolicy.format(receipt.total()));
+        addField(content,"Payment Method",receipt.method());
+        addInput(content,cashless() ? "Amount to Verify (PHP)" : "Amount Received (PHP)",received);
         if (progress.received()!=null) received.setText(progress.received().toPlainString());
+        else if (cashless()) received.setText(receipt.total().toPlainString());
+        if (cashless()) {
+            addInput(content,"Merchant / Terminal Transaction Reference",transactionReference);
+            verified.setOpaque(false);
+            verified.setFont(new Font("SansSerif",Font.PLAIN,11));
+            verified.setAlignmentX(Component.LEFT_ALIGNMENT);
+            content.add(verified);
+            verified.addActionListener(e -> updateButtons());
+        }
         ((javax.swing.text.AbstractDocument)received.getDocument()).setDocumentFilter(new javax.swing.text.DocumentFilter() {
             @Override public void insertString(FilterBypass fb,int offset,String text,javax.swing.text.AttributeSet attributes)
                     throws javax.swing.text.BadLocationException {
@@ -183,24 +193,36 @@ public final class QueuePaymentDialog extends JDialog {
     }
 
     private void updateChange() {
+        if (cashless()) { change.setText("Exact amount only. No cash change."); return; }
         try { change.setText("Change: PHP " + QueuePaymentDao.validateReceived(received.getText(),receipt.total()).subtract(receipt.total()).toPlainString()); }
         catch (IllegalArgumentException ex) { change.setText("Enter an amount covering the total fare."); }
     }
     private void updateButtons() {
         boolean paid = "Paid".equals(receipt.paymentStatus());
-        received.setEditable(!paid && !busy); pay.setEnabled(!paid && !busy);
+        received.setEditable(!cashless() && !paid && !busy);
+        verified.setEnabled(!paid && !busy);
+        transactionReference.setEditable(!paid && !busy);
+        pay.setEnabled(!paid && !busy && (!cashless() || verified.isSelected()));
 
 
         status.setText(progress.ticketsPrinted() ? "Tickets collected. You can now complete the queue."
                 : progress.receiptPrinted() ? "Receipt collected. Use Print Ticket in the queue." : paid ? "Paid. Print the payment receipt next." : "Enter payment to continue.");
     }
     private void pay() {
+        if (cashless() && !verified.isSelected()) {
+            error(new IllegalArgumentException("Verify payment in merchant records or the card terminal first.")); return;
+        }
         final BigDecimal amount;
         try { amount=QueuePaymentDao.validateReceived(received.getText(),receipt.total()); }
         catch (IllegalArgumentException ex) { error(ex); return; }
+        final String reference = transactionReference.getText().trim();
+        final boolean paymentVerified = verified.isSelected();
+        if (cashless() && !reference.matches("[A-Za-z0-9-]{1,64}")) {
+            error(new IllegalArgumentException("Enter the merchant or terminal reference (1–64 letters, numbers or hyphens).")); return;
+        }
         busy=true; updateButtons();
         UiTask.run(() -> {
-            new QueuePaymentDao().pay(row.id(),station,amount);
+            new QueuePaymentDao().pay(row.id(),station,amount,reference,paymentVerified);
             return new Object[]{new BookingDao().receipt(row.bookingId()),new QueuePaymentDao().progress(row.id())};
         }, data -> {
             receipt=(Receipt)data[0]; progress=(QueuePaymentDao.Progress)data[1]; busy=false; updateButtons(); autoPrintReceipt();
@@ -215,15 +237,15 @@ public final class QueuePaymentDialog extends JDialog {
     }
     private String receiptText() {
         String divider = "===================================";
-        BigDecimal fare = receipt.total().divide(BigDecimal.valueOf(row.passengers()),2,java.math.RoundingMode.HALF_UP);
+
         return divider + "\nBUSSIN PAYMENT RECEIPT\n" + divider
-                + "\nFare: PHP " + money(fare)
+                + "\n" + receipt.fareBreakdown()
                 + "\nTotal Number of Seats: " + row.passengers()
-                + "\nTotal: PHP " + money(receipt.total())
+                + "\nTotal: PHP " + qpal.model.FarePolicy.format(receipt.total())
                 + "\nMode of Payment: " + receipt.method()
                 + "\n" + divider
-                + "\nAmount Received: " + (progress.received()==null ? "Not recorded" : "PHP " + money(progress.received()))
-                + "\nChange: " + (progress.received()==null ? "Not recorded" : "PHP " + money(progress.received().subtract(receipt.total())))
+                + (cashless() ? "\nAmount Paid: " : "\nAmount Received: ") + (progress.received()==null ? "Not recorded" : "PHP " + money(progress.received()))
+                + (cashless() ? "" : "\nChange: " + (progress.received()==null ? "Not recorded" : "PHP " + money(progress.received().subtract(receipt.total()))))
                 + "\n" + divider + "\nThank You!\nEnjoy your trip!";
     }
 
@@ -247,7 +269,7 @@ public final class QueuePaymentDialog extends JDialog {
         for (int i=0;i<lines.length;i++) { g.drawString(lines[i],12,y); y+=22; }
     }
 
-    private static void drawReceiptPaper(Graphics2D g,String text,int width,int height) {
+    private static int drawReceiptPaper(Graphics2D g,String text,int width,int height) {
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         Color ink=new Color(45,45,45), muted=new Color(110,110,110), burgundy=new Color(140,16,47);
         int left=8, right=width-8;
@@ -264,7 +286,7 @@ public final class QueuePaymentDialog extends JDialog {
             int colon=line.indexOf(':');
             if(colon<0) continue;
             String label=line.substring(0,colon), value=line.substring(colon+1).trim();
-            if(label.equals("Amount Received") && !paymentSection) {
+            if((label.equals("Amount Received") || label.equals("Amount Paid")) && !paymentSection) {
                 receiptDivider(g,left,right,y-8);
                 y+=20;
                 paymentSection=true;
@@ -286,6 +308,14 @@ public final class QueuePaymentDialog extends JDialog {
         g.setColor(muted);
         g.setFont(new Font("SansSerif",Font.PLAIN,11));
         centeredReceiptText(g,"Enjoy your trip!",width,y+38);
+        return y+52;
+    }
+
+    private static int receiptPaperHeight(String text,int width) {
+        var image = new java.awt.image.BufferedImage(1,1,java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+        try { return drawReceiptPaper(g,text,width-14,0)+20; }
+        finally { g.dispose(); }
     }
 
     private static void centeredReceiptText(Graphics2D g,String text,int width,int y) {
@@ -311,7 +341,7 @@ public final class QueuePaymentDialog extends JDialog {
         final int[] current={0};
         final String[] seats=receipt.seats().split(",\\s*");
         final int paperX=86, paperY=99, paperWidth=220;
-        final int paperHeight=tickets ? 592 : 390;
+        final int paperHeight=tickets ? 592 : receiptPaperHeight(pages.get(0),paperWidth);
         Image machine=new ImageIcon("resources/icons/printmachine.png").getImage();
         JPanel paper=new JPanel(null) {
             @Override protected void paintComponent(Graphics graphics) {
@@ -341,7 +371,7 @@ public final class QueuePaymentDialog extends JDialog {
                 g.dispose();
             }
         };
-        paper.setOpaque(false); paper.setPreferredSize(new Dimension(420,tickets ? 710 : 508));
+        paper.setOpaque(false); paper.setPreferredSize(new Dimension(420,paperY+paperHeight+19));
         JButton collect=new JButton(); collect.setEnabled(false); collect.setVisible(false);
         collect.setBounds(paperX,paperY,paperWidth,paperHeight);
         collect.setOpaque(false); collect.setContentAreaFilled(false); collect.setBorderPainted(false);

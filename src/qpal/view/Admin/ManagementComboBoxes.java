@@ -33,9 +33,9 @@ final class ManagementComboBoxes {
 
     static JComboBox<Integer> seatCapacity(int selected) {
         JComboBox<Integer> combo = new JComboBox<>();
-        for (int seats = 20; seats <= 50; seats += 10) combo.addItem(seats);
-        combo.setSelectedIndex(selected >= 20 && selected <= 50 && selected % 10 == 0
-                ? (selected - 20) / 10 : -1);
+        for (int seats = 24; seats <= 44; seats += 4) combo.addItem(seats);
+        combo.setSelectedIndex(selected >= 24 && selected <= 44 && selected % 4 == 0
+                ? (selected - 24) / 4 : -1);
         style(combo);
         return combo;
     }

@@ -79,6 +79,8 @@ public class PassengerDetailsPanel extends JPanel {
             passengerImageLabels[i]=imageLabel;
             card.add(imageLabel);
 JLabel label = new JLabel(TYPES[i]); label.setFont(new Font("Segoe UI",Font.BOLD,18)); label.setHorizontalAlignment(SwingConstants.CENTER); label.setBounds(10,88,180,28); card.add(label);
+            JLabel discount = new JLabel(i == 0 ? "Standard fare" : "20% discount", SwingConstants.CENTER);
+            discount.setBounds(10,118,180,24); card.add(discount);
             minus[i]=counterButton("−",new Color(240,243,245),Color.BLACK); minus[i].setBounds(16,160,44,44);
             plus[i]=counterButton("+",new Color(225,0,45),Color.WHITE); plus[i].setBounds(140,160,44,44);
             values[i]=new JLabel("0",SwingConstants.CENTER); values[i].setFont(new Font("Segoe UI",Font.BOLD,24)); values[i].setBounds(64,160,72,44);
@@ -86,8 +88,6 @@ JLabel label = new JLabel(TYPES[i]); label.setFont(new Font("Segoe UI",Font.BOLD
             plus[i].getAccessibleContext().setAccessibleName("Add "+TYPES[i]+" passenger");
             minus[i].addActionListener(e -> { if(counts[index]>0) counts[index]--; updatePassengerCounter(); });
             plus[i].addActionListener(e -> { if(getPassengerCount()<passengerLimit()) counts[index]++; updatePassengerCounter(); });
-            JLabel hint=new JLabel(i==0 ? "No ID details needed" : "ID details required",SwingConstants.CENTER);
-            hint.setBounds(10,118,180,20); hint.setFont(new Font("Segoe UI",Font.PLAIN,12)); hint.setForeground(new Color(105,114,128)); card.add(hint);
             card.add(minus[i]); card.add(values[i]); card.add(plus[i]); selection.add(card);
         }
         plusbtn=plus[0];

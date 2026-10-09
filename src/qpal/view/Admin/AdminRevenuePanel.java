@@ -228,6 +228,7 @@ public class AdminRevenuePanel extends JPanel {
         table.setGridColor(new Color(236,236,236));
         table.setSelectionBackground(new Color(240,247,255));
         table.setDefaultRenderer(Object.class,new ModernTableCellRenderer());
+        table.getColumnModel().getColumn(6).setCellRenderer(new qpal.components.StatusRenderer());
         table.setFillsViewportHeight(true);
 
         JTableHeader header = table.getTableHeader();

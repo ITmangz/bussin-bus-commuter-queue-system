@@ -49,7 +49,8 @@ public class QueueManagementTest {
                 queue.act(one,"Recall");
                 check(queue.today().get(0).status().equals("Serving"),"Recall earlier skipped row");
                 var original=edit.passengers(first.bookingId());
-                edit.edit(first.bookingId(),original,List.of(new QueueBookingDao.Person(original.get(0).id(),"Updated","Student")));
+                rejects(()->edit.edit(first.bookingId(),original,List.of(new QueueBookingDao.Person(original.get(0).id(),"Updated","Student"))));
+                edit.edit(first.bookingId(),original,List.of(new QueueBookingDao.Person(original.get(0).id(),"Updated","Regular")));
                 check(edit.passengers(first.bookingId()).get(0).name().equals("Updated"),"Passenger edit saved");
                 rejects(()->edit.edit(first.bookingId(),original,original));
                 sql("CREATE TRIGGER reject_queue_cancel BEFORE UPDATE ON queue_entries FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Rollback test'");
@@ -67,7 +68,15 @@ public class QueueManagementTest {
                 edit.cancel(second.bookingId());
                 check(count("SELECT COUNT(*) FROM payments WHERE status='Paid'")==1,"Paid financial record preserved");
                 check(count("SELECT available_seats FROM trips WHERE trip_id=1")==20,"All seats returned");
-                System.out.println("Queue management integration checks passed.");
+                Receipt mixed=bookings.book("TEST-DISCOUNTS",trip,List.of(new Passenger("Regular","Regular",1),new Passenger("Student","Student",2),new Passenger("PWD","PWD",3),new Passenger("Senior","Senior",4)),"GCash");
+                check(mixed.total().compareTo(new BigDecimal("170"))==0,"Mixed discount total saved");
+                check(mixed.fareBreakdown().contains("Fare subtotal: PHP 200") && mixed.fareBreakdown().contains("Total discount: PHP 30"),"Receipt breakdown saved");
+                sql("UPDATE routes SET fare=100 WHERE route_id=1");
+                check(bookings.receipt(mixed.bookingId()).fareBreakdown().equals(mixed.fareBreakdown()),"Reprint preserves original fare after route change");
+                check(count("SELECT COUNT(*) FROM booking_passengers WHERE booking_id="+mixed.bookingId()+" AND fare=40")==3,"Individual discounts saved");
+                check(count("SELECT COUNT(*) FROM payments WHERE booking_id="+mixed.bookingId()+" AND amount=170 AND status='Pending'")==1,"Cashless total pending verification");
+                check(bookings.book("TEST-DISCOUNTS",trip,List.of(new Passenger("Regular","Regular",1)),"GCash").queueNumber()==mixed.queueNumber(),"Retry retains queue identity");
+                System.out.println("Queue management and mixed discount integration checks passed.");
             } finally {
                 System.clearProperty("qpal.db.url");
                 s.executeUpdate("DROP DATABASE "+schema);

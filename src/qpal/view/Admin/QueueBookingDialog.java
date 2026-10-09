@@ -40,11 +40,11 @@ final class QueueBookingDialog {
             top.add(new JLabel("Payment Method — collect at the counter")); top.add(method);
         } else {
             top.add(new JLabel(existing.route()+" | "+existing.bus()));
-            top.add(new JLabel("Edit passenger details. Queue position, seats and fare stay the same."));
+            top.add(new JLabel("Edit passenger names. Category, queue position, seats and fare stay the same."));
         }
         form.add(top,BorderLayout.NORTH);
         DefaultTableModel model = new DefaultTableModel(new String[]{"Passenger Name","Type","Seat"},0) {
-            @Override public boolean isCellEditable(int row,int col) { return existing==null || col<2; }
+            @Override public boolean isCellEditable(int row,int col) { return existing==null || col==0; }
         };
         if (existing==null) model.addRow(new Object[]{"","Regular",null});
         else for (var person:people) model.addRow(new Object[]{person.name(),person.type(),"Unchanged"});

@@ -230,6 +230,7 @@ public class TripDao {
         catch (SQLException ex) { ex.printStackTrace(); return false; }
     }
     public boolean saveTripWithFare(Trip trip, java.math.BigDecimal fare, boolean editing) {
+        if (!qpal.model.FarePolicy.validRouteFare(fare)) throw new IllegalArgumentException("Enter a positive whole-peso fare (no decimals).");
 
         try (Connection conn = DbConnection.getConnection()) {
 

@@ -334,10 +334,10 @@ public class AddTripPanel {
         fare = new java.math.BigDecimal(txtFare.getText().trim());
 
         if(fare.compareTo(java.math.BigDecimal.ZERO) <= 0
-                || fare.compareTo(new java.math.BigDecimal("99999999.99")) > 0
-                || fare.stripTrailingZeros().scale() > 2) {
+                || fare.compareTo(new java.math.BigDecimal("99999999")) > 0
+                || fare.stripTrailingZeros().scale() > 0) {
 
-            qpal.components.AppDialogs.showMessageDialog(dialog,"Enter a fare greater than zero with up to two decimal places.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(dialog,"Enter a positive whole-peso fare (no decimals).","Warning",JOptionPane.WARNING_MESSAGE);
             return;
         }
 

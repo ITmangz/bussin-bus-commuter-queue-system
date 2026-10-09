@@ -318,7 +318,7 @@ public class AdminRouteSchedPanel extends JPanel {
                     trip.getOrigin() + " → " + trip.getDestination(),
                     trip.getDepartureDate(),
                     trip.getDepartureTime(),
-                    String.format("₱%.2f", trip.getFare()),
+                    "₱" + qpal.model.FarePolicy.format(java.math.BigDecimal.valueOf(trip.getFare())),
                     (trip.getSeatCapacity() - trip.getAvailableSeats()) + "/" + trip.getSeatCapacity(),
                     trip.getStatus()
 
@@ -332,8 +332,8 @@ public class AdminRouteSchedPanel extends JPanel {
 
         trips.sort(java.util.Comparator.<Object[]>comparingInt(row -> {
             switch (String.valueOf(row[7])) {
-                case "Departed": return 0;
-                case "Scheduled": return 1;
+                case "Scheduled": return 0;
+                case "Departed": return 1;
                 case "Boarding": return 2;
                 case "Cancelled": return 3;
                 default: return 4;

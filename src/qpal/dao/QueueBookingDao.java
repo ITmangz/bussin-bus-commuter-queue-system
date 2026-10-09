@@ -33,6 +33,7 @@ public class QueueBookingDao {
                 }
                 for (int i=0;i<people.size();i++) {
                     Person old = original.get(i), person = people.get(i);
+                    if (!old.type().equals(person.type())) throw new SQLException("Passenger category affects fare. Cancel and rebook to change it.");
                     if (old.id()!=person.id()) throw new SQLException("Passenger list changed. Reopen the dialog.");
                     try (PreparedStatement p = statement(c,"SELECT passenger_name,passenger_type FROM booking_passengers "
                             + "WHERE booking_passenger_id=? AND booking_id=? FOR UPDATE",old.id(),booking); ResultSet r=p.executeQuery()) {

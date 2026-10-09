@@ -39,6 +39,6 @@ public final class RouteDropPoints {
             throw new IllegalArgumentException("A valid drop-off and route fare are required.");
         int percent = key(stop).equals(key(destination)) ? 100 : stops.indexOf(stop) == 0 ? 60 : 80;
         return fullFare.multiply(java.math.BigDecimal.valueOf(percent))
-                .divide(java.math.BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+                .divide(java.math.BigDecimal.valueOf(100), 0, java.math.RoundingMode.HALF_UP);
     }
 }
