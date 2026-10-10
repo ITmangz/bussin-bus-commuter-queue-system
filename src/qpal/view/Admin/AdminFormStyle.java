@@ -32,6 +32,7 @@ public final class AdminFormStyle {
     }
 
     static void searchOnEnter(JTextField field, JButton button) {
+        limitCharacters(field,100,"Search text");
         java.awt.event.KeyListener listener = new java.awt.event.KeyListener() {
             @Override
             public void keyPressed(java.awt.event.KeyEvent e) {

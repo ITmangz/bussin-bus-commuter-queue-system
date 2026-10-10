@@ -156,6 +156,7 @@ public class DropPointPanel extends JPanel {
         styleChoice(origin);
         options.add(origin);
         options.setPreferredSize(new Dimension(820, (RouteDropPoints.options(destination).size() + 1) * 60 - 6));
+
         for (String stop : RouteDropPoints.options(destination)) {
             BigDecimal fare = fullFare == null ? null : RouteDropPoints.fare(destination, stop, fullFare);
             JRadioButton choice = new JRadioButton(stop);
@@ -169,6 +170,7 @@ public class DropPointPanel extends JPanel {
             choice.setRolloverEnabled(true);
             choice.setEnabled(fare != null);
             choice.setSelected(stop.equals(details.getDropPoint()));
+
             choice.setToolTipText(stop + (stop.equals(destination) ? " · Final destination" : " · Drop-off"));
             JLabel amount = new JLabel(fare == null ? "—" : money(fare), SwingConstants.RIGHT);
             amount.setPreferredSize(new Dimension(156, 50));
@@ -263,7 +265,7 @@ public class DropPointPanel extends JPanel {
             busLabel.setBounds(54, 4, 52, 32);
             busLabel.setHorizontalAlignment(SwingConstants.CENTER);
             busLabel.getAccessibleContext().setAccessibleName("Bus at PITX origin");
-            // Supply your own scaled image: busLabel.setIcon(new ImageIcon("resources/icons/bus.png"));
+            busLabel.setIcon(new ImageIcon("resources/icons/sidebusic.png"));
             add(busLabel);
         }
 
