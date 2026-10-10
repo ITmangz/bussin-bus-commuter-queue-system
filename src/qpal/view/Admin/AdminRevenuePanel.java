@@ -101,7 +101,7 @@ public class AdminRevenuePanel extends JPanel {
         cards.setOpaque(false);
         cards.setPreferredSize(new Dimension(0,110));
         cards.add(createSummaryCard("PAID COMMUTERS",lblPaidImage));
-        cards.add(createSummaryCard("PENDING PAYMENT",lblPendingImage));
+        cards.add(createSummaryCard("TODAY'S PENDING PAYMENTS",lblPendingImage));
         cards.add(createSummaryCard("TODAY'S REVENUE",lblRevenueImage));
         cards.add(createSummaryCard("TOTAL REVENUE",new JLabel()));
         panel.add(cards,BorderLayout.CENTER);

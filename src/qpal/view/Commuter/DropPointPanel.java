@@ -75,12 +75,12 @@ public class DropPointPanel extends JPanel {
         subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         subtitle.setForeground(MUTED);
         add(subtitle);
-        strip.setBounds(70, 260, 860, 100);
+        strip.setBounds(70, 260, 860, 120);
         add(strip);
         options.setOpaque(false);
         JScrollPane scroll = new JScrollPane(options, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scroll.setBounds(70, 372, 860, 204);
+        scroll.setBounds(70, 392, 860, 184);
         scroll.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(BORDER),
                 BorderFactory.createEmptyBorder(6, 6, 6, 6)));
         scroll.setBackground(getBackground());
@@ -142,7 +142,7 @@ public class DropPointPanel extends JPanel {
     private void displayRoute(String destination, BigDecimal fullFare) {
         strip.points = new java.util.ArrayList<>(List.of("PITX"));
         strip.points.addAll(RouteDropPoints.options(destination));
-        strip.selected = details.getDropPoint();
+        strip.selectStop(details.getDropPoint(), false);
         strip.setToolTipText(String.join(" → ", strip.points));
         subtitle.setText("PITX to " + destination + " · Choose your stop. Fares shown are per passenger.");
         details.setSelectedFare(null);
@@ -196,7 +196,7 @@ public class DropPointPanel extends JPanel {
                     details.setDropPoint(stop);
                     details.setSelectedFare(fare);
                 }
-                strip.selected = details.getDropPoint();
+                strip.selectStop(details.getDropPoint(), true);
                 for (Component component : options.getComponents()) styleChoice((JRadioButton) component);
                 strip.repaint();
             });
@@ -257,6 +257,43 @@ public class DropPointPanel extends JPanel {
         List<String> points = List.of();
         String selected;
         final JLabel busLabel = new JLabel();
+        private final javax.swing.Timer animation = new javax.swing.Timer(16, e -> advanceBus());
+        private double position, startPosition, targetPosition;
+        private long animationStarted;
+
+        void selectStop(String stop, boolean animate) {
+            selected = stop;
+            animation.stop();
+            targetPosition = points.size() < 2 ? 0
+                    : Math.max(0, points.indexOf(stop)) / (double) (points.size() - 1);
+            busLabel.getAccessibleContext().setAccessibleName("Bus at " + (stop == null ? "PITX origin" : stop));
+            if (animate && isShowing() && position != targetPosition) {
+                startPosition = position;
+                animationStarted = System.nanoTime();
+                animation.start();
+            } else {
+                position = targetPosition;
+                positionBus();
+            }
+            repaint();
+        }
+
+        private void advanceBus() {
+            double progress = Math.min(1, (System.nanoTime() - animationStarted) / 550_000_000.0);
+            double eased = progress * progress * (3 - 2 * progress);
+            position = startPosition + (targetPosition - startPosition) * eased;
+            positionBus();
+            if (progress >= 1) animation.stop();
+        }
+
+        private void positionBus() {
+            busLabel.setLocation(80 + (int) Math.round(position * (getWidth() - 160)) - busLabel.getWidth() / 2, 4);
+        }
+
+        @Override public void doLayout() {
+            super.doLayout();
+            positionBus();
+        }
 
         RouteStrip() {
             setLayout(null);
@@ -267,6 +304,13 @@ public class DropPointPanel extends JPanel {
             busLabel.getAccessibleContext().setAccessibleName("Bus at PITX origin");
             busLabel.setIcon(new ImageIcon("resources/icons/sidebusic.png"));
             add(busLabel);
+            addHierarchyListener(e -> {
+                if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0 && !isShowing()) {
+                    animation.stop();
+                    position = targetPosition;
+                    positionBus();
+                }
+            });
         }
 
         @Override protected void paintComponent(Graphics graphics) {
@@ -292,15 +336,27 @@ public class DropPointPanel extends JPanel {
                     g.fillOval(x - 6, 37, 12, 12);
                     g.setFont(new Font("Segoe UI", i == selectedIndex ? Font.BOLD : Font.PLAIN, 14));
                     g.setColor(i == 0 ? RED : TEXT);
-                    String label = points.get(i);
-                    while (g.getFontMetrics().stringWidth(label) > Math.min(step - 20, 150) && label.length() > 8)
-                        label = label.substring(0, label.length() - 2) + "…";
-                    g.drawString(label, x - g.getFontMetrics().stringWidth(label) / 2, 71);
+                    // Wrap complete stop names rather than cutting them off with an ellipsis.
+                    int labelWidth = (int) Math.min(step - 16, i == 0 || i == points.size()-1 ? 150 : step - 16);
+                    java.util.List<String> lines = new java.util.ArrayList<>();
+                    String line = "";
+                    for (String word : points.get(i).split(" ")) {
+                        String candidate = line.isEmpty() ? word : line + " " + word;
+                        if (!line.isEmpty() && g.getFontMetrics().stringWidth(candidate) > labelWidth) {
+                            lines.add(line);
+                            line = word;
+                        } else line = candidate;
+                    }
+                    if (!line.isEmpty()) lines.add(line);
+                    for (int j=0;j<lines.size();j++) {
+                        String text = lines.get(j);
+                        g.drawString(text,x-g.getFontMetrics().stringWidth(text)/2,65+j*16);
+                    }
                     if (i == 0 || i == points.size() - 1) {
                         g.setFont(new Font("Segoe UI", Font.PLAIN, 11));
                         g.setColor(MUTED);
                         String caption = i == 0 ? "Origin" : "Final destination";
-                        g.drawString(caption, x - g.getFontMetrics().stringWidth(caption) / 2, 89);
+                        g.drawString(caption, x - g.getFontMetrics().stringWidth(caption) / 2, 112);
                     }
                 }
             }

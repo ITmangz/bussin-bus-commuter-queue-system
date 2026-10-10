@@ -277,6 +277,7 @@ public class QueueDao {
                 + "JOIN buses b ON b.bus_id=t.bus_id JOIN routes r ON r.route_id=t.route_id "
                 + "LEFT JOIN booking_passengers bp ON bp.booking_id=p.booking_id "
                 + "LEFT JOIN queue_entries q ON q.booking_id=p.booking_id "
+                + "WHERE (p.status<>'Pending' OR (p.created_at>=CURRENT_DATE AND p.created_at<CURRENT_DATE+INTERVAL 1 DAY)) "
                 + "ORDER BY CASE p.status WHEN 'Pending' THEN 0 WHEN 'Paid' THEN 2 ELSE 1 END,"
                 + "p.created_at DESC,p.payment_id DESC,bp.booking_passenger_id";
         try (Connection c = DbConnection.getConnection(); PreparedStatement p = c.prepareStatement(sql); ResultSet r = p.executeQuery()) {

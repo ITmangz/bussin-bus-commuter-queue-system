@@ -27,7 +27,7 @@ public class PassengerDetailsPanel extends JPanel {
     private List<PassengerForm> requiredForms() { return passengers.stream().filter(p -> !p.type.equals("Regular")).toList(); }
     private void showDetail(int index) {
         detailIndex=index; details=true;
-        pages.setBounds(70,282,860,205);
+        pages.setBounds(70,282,860,184);
         ((CardLayout)forms.getLayout()).show(forms,Integer.toString(index));
         ((CardLayout)pages.getLayout()).show(pages,"Details");
         subtitle.setText("ID details "+(index+1)+" of "+requiredForms().size()+" — Enter the information shown on your ID.");
@@ -163,10 +163,11 @@ JLabel label = new JLabel(TYPES[i]); label.setFont(new Font("Segoe UI",Font.BOLD
     }
     public boolean validatePassengerDetails() {
         if(passengers.size()!=getPassengerCount() || passengers.isEmpty() || getPassengerCount()>passengerLimit()) return false;
-        boolean valid=true;
-        for(PassengerForm p:passengers) valid=p.validateFields() && valid;
-        if(!valid) for(PassengerForm p:passengers) if(!p.error.getText().isEmpty()) { showDetail(requiredForms().indexOf(p)); p.id.requestFocusInWindow(); break; }
-        return valid;
+        for(PassengerForm p:passengers) {
+            if(!p.type.equals("Regular")) showDetail(requiredForms().indexOf(p));
+            if(!p.validateFields()) return false;
+        }
+        return true;
     }
     private void showCounts() { details=false; pages.setBounds(70,282,860,290); subtitle.setText("Use + or − to add or remove passengers in each category."); ((CardLayout)pages.getLayout()).show(pages,"Counts"); }
     private void showPage(String page) { if(getParent()!=null) ((CardLayout)getParent().getLayout()).show(getParent(),page); }
@@ -179,23 +180,47 @@ JLabel label = new JLabel(TYPES[i]); label.setFont(new Font("Segoe UI",Font.BOLD
     }
     private static class PassengerForm extends RoundedPanel {
         final String type;
-        final JLabel heading=new JLabel(), error=new JLabel("");
+        final JLabel heading=new JLabel();
         final JTextField id=new JTextField();
+        String manuallyCheckedPwdId="";
         final JComboBox<String> disability=new JComboBox<>(new String[]{"Select disability type","Physical disability","Visual disability","Hearing disability","Speech and language disability","Intellectual disability","Learning disability","Psychosocial disability","Other"});
         PassengerForm(String type) {
             this.type=type; setLayout(null); setBackground(Color.WHITE);
 
-            int height=205;
+            int height=184;
             setPreferredSize(new Dimension(850,height)); setMaximumSize(new Dimension(Integer.MAX_VALUE,height)); setMinimumSize(new Dimension(500,height));
             heading.setBounds(24,14,800,28); heading.setFont(new Font("Segoe UI",Font.BOLD,17)); heading.setForeground(new Color(225,0,45)); add(heading);
             JLabel hint=new JLabel(type.equals("PWD") ? "Enter your PWD ID number and choose your disability type." : "Enter the ID number printed on your "+type.toLowerCase(java.util.Locale.ROOT)+" ID.");
             hint.setBounds(24,48,810,25); hint.setFont(new Font("Segoe UI",Font.PLAIN,14)); hint.setForeground(new Color(85,94,108)); add(hint);
             if(!type.equals("Regular")) {
                 field(type+" ID Number *",id,24,94,type.equals("PWD")?390:810);
+                // PWD allows extra space for alternative formats checked by staff.
+                final int limit=type.equals("Student") ? 15 : type.equals("Senior") ? 20 : 100;
+                id.setDocument(new javax.swing.text.PlainDocument() {
+                    @Override
+                    public void insertString(int offs,String str,javax.swing.text.AttributeSet a)
+                            throws javax.swing.text.BadLocationException {
+                        if(str==null) return;
+                        manuallyCheckedPwdId="";
+                        if(getLength()+str.length()<=limit) {
+                            super.insertString(offs,str,a);
+                        } else {
+                            id.setText("");
+                            Toolkit.getDefaultToolkit().beep();
+                            qpal.components.AppDialogs.showMessageDialog(id,
+                                    type+" ID Number must not exceed "+limit+" characters.",
+                                    "Warning!",JOptionPane.WARNING_MESSAGE);
+                        }
+                    }
+                    @Override
+                    public void remove(int offs,int length) throws javax.swing.text.BadLocationException {
+                        manuallyCheckedPwdId="";
+                        super.remove(offs,length);
+                    }
+                });
 
                 if(type.equals("PWD")) field("Disability Type *",disability,444,94,390);
             }
-            error.setForeground(new Color(210,0,35)); error.setBounds(20,height-34,810,25); add(error);
         }
         private void field(String title,JComponent input,int x,int y,int width) {
             JLabel label=new JLabel(title); label.setBounds(x,y,width,20); label.setLabelFor(input); add(label);
@@ -205,21 +230,68 @@ JLabel label = new JLabel(TYPES[i]); label.setFont(new Font("Segoe UI",Font.BOLD
             input.setBounds(x,y+26,width,44); input.getAccessibleContext().setAccessibleName(title); add(input);
         }
         boolean validateFields() {
-            List<String> missing=new ArrayList<>();
             if(type.equals("Regular")) return true;
-            if(!type.equals("Regular")) check(id,type+" ID number",100,missing);
 
-            if(type.equals("PWD")) {
-                boolean absent=disability.getSelectedIndex()==0;
-                disability.setBorder(BorderFactory.createLineBorder(absent?new Color(225,0,45):new Color(180,185,195)));
-                if(absent) missing.add("Disability type is required");
+            String number=id.getText().trim();
+            String message="";
+            if(!number.equals(manuallyCheckedPwdId)) manuallyCheckedPwdId="";
+
+            if(type.equals("Student")) {
+                if(number.isEmpty()) {
+                    message="Student ID Number is required.";
+                } else if(!number.matches("[0-9]{4}-[0-9]{5}-[A-Z]{2}-[0-9]")
+                        && !number.matches("[0-9]{4}-[0-9]{7}")
+                        && !number.matches("[0-9]{4}-[0-9]{6}")) {
+                    message="Invalid Student ID format";
+                }
+            } else if(type.equals("Senior") || type.equals("Senior Citizen")) {
+                if(number.isEmpty()) {
+                    message="Senior Citizen ID Number is required.";
+                } else if(!number.matches("[A-Za-z0-9-]{6,20}")
+                        || !number.matches(".*[A-Za-z0-9].*")) {
+                    message="Please enter a valid Senior Citizen ID Number.";
+                }
+            } else if(type.equals("PWD")) {
+                if(number.isEmpty()) {
+                    message="PWD ID Number is required.";
+                } else if(!number.matches("[0-9]{2}-[0-9]{4}-[0-9]{3}-[0-9]{7}")
+                        && !number.equals(manuallyCheckedPwdId)) {
+                    qpal.components.AppDialogs.showMessageDialog(this,"Please check your PWD ID Number.",
+                            "Passenger Details",JOptionPane.ERROR_MESSAGE);
+                    // Alternative formats need a staff check, not a guessed regular expression.
+                    int answer=qpal.components.AppDialogs.showConfirmDialog(this,
+                            "Please ask staff to inspect your officially issued PWD ID.\n"
+                            + "Staff: have you checked this alternative ID and confirmed eligibility?",
+                            "Manual PWD ID Verification",JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE);
+                    if(answer==JOptionPane.YES_OPTION) {
+                        manuallyCheckedPwdId=number;
+                    } else {
+                        id.requestFocusInWindow();
+                        return false;
+                    }
+                }
             }
-            error.setText(String.join("; ",missing)); return missing.isEmpty();
-        }
-        private void check(JTextField field,String label,int max,List<String> errors) {
-            String value=field.getText().trim(); boolean invalid=value.isEmpty() || value.length()>max;
-            field.setBorder(BorderFactory.createLineBorder(invalid?new Color(225,0,45):new Color(180,185,195)));
-            if(invalid) errors.add(label+(value.isEmpty()?" is required":" must be at most "+max+" characters"));
+
+            if(!message.isEmpty()) {
+                id.setBorder(BorderFactory.createLineBorder(new Color(225,0,45)));
+                qpal.components.AppDialogs.showMessageDialog(this,message,"Passenger Details",JOptionPane.ERROR_MESSAGE);
+                id.requestFocusInWindow();
+                return false;
+            }
+            id.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(220,225,232)),
+                    BorderFactory.createEmptyBorder(4,9,4,9)));
+
+            // Keep the existing PWD disability field and its required validation.
+            if(type.equals("PWD") && disability.getSelectedIndex()==0) {
+                qpal.components.AppDialogs.showMessageDialog(this,"Disability type is required.",
+                        "Passenger Details",JOptionPane.ERROR_MESSAGE);
+                disability.requestFocusInWindow();
+                return false;
+            }
+            // Matching the format does not establish authenticity or discount eligibility.
+            return true;
         }
     }
 }
