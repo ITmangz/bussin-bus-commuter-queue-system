@@ -14,7 +14,7 @@ The app uses Gmail SMTP on port 587 with required STARTTLS and certificate hostn
 
 Codes expire in five minutes, allow five incorrect attempts, and have a 60-second resend cooldown. Successful resend replaces the previous code. Verification creates a five-minute, single-use reset authorization. Challenges persist in the `password_reset_codes` table, created automatically using the existing database connection. Database credentials need permission to create that table on first use.
 
-Sending runs in the background. A successful SMTP handoff does not prove delivery; later bounce notices may arrive in the sender inbox. Unknown/inactive accounts get the same general confirmation, without sending mail.
+Sending runs in the background. A successful SMTP handoff does not prove delivery; later bounce notices may arrive in the sender inbox. Emails not associated with an active account show "Email address not found." and remain on Forgot Password without sending mail.
 
 The existing account password storage format is preserved for login compatibility. This change does not migrate the app's existing plaintext passwords to password hashes. A deployed multi-user application should move reset processing and mail credentials into a trusted server, rather than distributing Gmail/database credentials with desktop clients.
 

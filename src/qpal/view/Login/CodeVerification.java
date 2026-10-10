@@ -348,7 +348,7 @@ public class CodeVerification {
                                     code1txt.requestFocusInWindow();
                                     qpal.components.AppDialogs.showMessageDialog(
                                             cpage,
-                                            "If the account is active, a new code has been sent."
+                                            "A new code has been sent."
                                                 + " Use the latest code within five minutes.",
                                             "Verify Code",
                                             JOptionPane.INFORMATION_MESSAGE);

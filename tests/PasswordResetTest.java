@@ -62,8 +62,13 @@ public class PasswordResetTest {
                             + " VARCHAR(100),status VARCHAR(20))");
                 sql.executeUpdate(
                         "INSERT INTO accounts VALUES(1,'test@example.com','old','Active')");
-                // Unknown account initializes the table without sending any mail.
-                PasswordResetService.send("missing@example.com");
+                // An unknown account must fail before any email is sent.
+                try {
+                    PasswordResetService.send("missing@example.com");
+                    throw new AssertionError("Unknown email accepted");
+                } catch (IllegalArgumentException ex) {
+                    if (!"Email address not found.".equals(ex.getMessage())) throw ex;
+                }
                 rejects(() -> PasswordResetService.reset("test@example.com", "fake", "new"));
                 seed(c);
                 rejects(() -> PasswordResetService.send("test@example.com"));

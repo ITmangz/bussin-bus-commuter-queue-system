@@ -183,8 +183,8 @@ public class ForgotPassword {
                                     if (!fpage.isDisplayable()) return;
                                     qpal.components.AppDialogs.showMessageDialog(
                                             fpage,
-                                            "If this email belongs to an active account, a reset"
-                                                + " code has been sent. Check your inbox and spam"
+                                            "A reset code has been sent."
+                                                + " Check your inbox and spam"
                                                 + " folder.",
                                             "Forgot Password",
                                             JOptionPane.INFORMATION_MESSAGE);

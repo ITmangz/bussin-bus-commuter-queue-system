@@ -42,10 +42,8 @@ public final class PasswordResetService {
                                     + " UPDATE")) {
                     p.setString(1, email);
                     try (ResultSet r = p.executeQuery()) {
-                        // Same UI response for unknown or inactive addresses.
                         if (!r.next()) {
-                            c.commit();
-                            return;
+                            throw new IllegalArgumentException("Email address not found.");
                         }
                         account = r.getInt(1);
                         if (r.next())
