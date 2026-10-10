@@ -208,10 +208,16 @@ public class EditProfilePanel extends JPanel {
         password.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
         password.setPreferredSize(new Dimension(0, 36));
         password.setMinimumSize(new Dimension(0, 36));
-        txtPassword = new JPasswordField("unchanged");
+        txtPassword = new JPasswordField("unchanged") {
+            @Override
+            protected void paintComponent(Graphics graphics) {
+                paintProfileField(this, graphics);
+                super.paintComponent(graphics);
+            }
+        };
         txtPassword.setEditable(false);
-        txtPassword.setBackground(new Color(220, 220, 220));
-        txtPassword.setBorder(new EmptyBorder(8, 10, 8, 10));
+        styleProfileField(txtPassword);
+
         btnPassword = createButton("Change Password", new Color(240, 0, 55));
         btnPassword.addActionListener(e -> changePassword());
         password.add(txtPassword);
@@ -637,15 +643,42 @@ public class EditProfilePanel extends JPanel {
     }
 
     private JTextField createTextField() {
-        JTextField field = new JTextField();
-        field.setBackground(new Color(220, 220, 220));
-        field.setBorder(new EmptyBorder(8, 10, 8, 10));
+        JTextField field = new JTextField() {
+            @Override
+            protected void paintComponent(Graphics graphics) {
+                paintProfileField(this, graphics);
+                super.paintComponent(graphics);
+            }
+        };
+        styleProfileField(field);
+
         field.setPreferredSize(new Dimension(150, 36));
         field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
         field.setAlignmentX(Component.LEFT_ALIGNMENT);
         return field;
     }
 
+    private static void styleProfileField(JTextField field) {
+        field.setOpaque(false);
+        field.setBackground(new Color(248, 249, 251));
+        field.setForeground(new Color(70, 70, 70));
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(new EmptyBorder(8, 12, 8, 12));
+        field.setCaretColor(new Color(70, 70, 70));
+        field.setSelectionColor(new Color(225, 232, 240));
+        field.setSelectedTextColor(new Color(35, 35, 35));
+    }
+
+    private static void paintProfileField(JTextField field, Graphics graphics) {
+        Graphics2D g = (Graphics2D) graphics.create();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(field.getBackground());
+        g.fillRect(0, 0, field.getWidth() - 1, field.getHeight() - 1);
+        // Keep the outline neutral, including while the field has focus.
+        g.setColor(new Color(220, 224, 230));
+        g.drawRect(0, 0, field.getWidth() - 1, field.getHeight() - 1);
+        g.dispose();
+    }
     private JLabel createLabel(String text) {
         JLabel label = new JLabel(text);
         label.setFont(new Font("SansSerif", Font.BOLD, 14));

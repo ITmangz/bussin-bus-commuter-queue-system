@@ -59,52 +59,64 @@ public class CodeVerification {
         codelbl.setForeground(Color.BLACK);
         leftpanel.add(codelbl);
 
-        JTextField code1txt = new JTextField();
+        JTextField code1txt = LoginFieldStyle.textField("");
         code1txt.setBounds(50, 230, 50, 65);
         code1txt.setHorizontalAlignment(SwingConstants.CENTER);
         code1txt.setFont(new Font("Segoe UI", Font.BOLD, 24));
         code1txt.setBackground(new Color(235, 235, 235));
         code1txt.setBorder(BorderFactory.createEmptyBorder());
+        LoginFieldStyle.styleLoginField(code1txt);
+        code1txt.getAccessibleContext().setAccessibleName("Verification digit 1");
         leftpanel.add(code1txt);
 
-        JTextField code2txt = new JTextField();
+        JTextField code2txt = LoginFieldStyle.textField("");
         code2txt.setBounds(109, 230, 50, 65);
         code2txt.setHorizontalAlignment(SwingConstants.CENTER);
         code2txt.setFont(new Font("Segoe UI", Font.BOLD, 24));
         code2txt.setBackground(new Color(235, 235, 235));
         code2txt.setBorder(BorderFactory.createEmptyBorder());
+        LoginFieldStyle.styleLoginField(code2txt);
+        code2txt.getAccessibleContext().setAccessibleName("Verification digit 2");
         leftpanel.add(code2txt);
 
-        JTextField code3txt = new JTextField();
+        JTextField code3txt = LoginFieldStyle.textField("");
         code3txt.setBounds(168, 230, 50, 65);
         code3txt.setHorizontalAlignment(SwingConstants.CENTER);
         code3txt.setFont(new Font("Segoe UI", Font.BOLD, 24));
         code3txt.setBackground(new Color(235, 235, 235));
         code3txt.setBorder(BorderFactory.createEmptyBorder());
+        LoginFieldStyle.styleLoginField(code3txt);
+        code3txt.getAccessibleContext().setAccessibleName("Verification digit 3");
         leftpanel.add(code3txt);
 
-        JTextField code4txt = new JTextField();
+        JTextField code4txt = LoginFieldStyle.textField("");
         code4txt.setBounds(227, 230, 50, 65);
         code4txt.setHorizontalAlignment(SwingConstants.CENTER);
         code4txt.setFont(new Font("Segoe UI", Font.BOLD, 24));
         code4txt.setBackground(new Color(235, 235, 235));
         code4txt.setBorder(BorderFactory.createEmptyBorder());
+        LoginFieldStyle.styleLoginField(code4txt);
+        code4txt.getAccessibleContext().setAccessibleName("Verification digit 4");
         leftpanel.add(code4txt);
 
-        JTextField code5txt = new JTextField();
+        JTextField code5txt = LoginFieldStyle.textField("");
         code5txt.setBounds(286, 230, 50, 65);
         code5txt.setHorizontalAlignment(SwingConstants.CENTER);
         code5txt.setFont(new Font("Segoe UI", Font.BOLD, 24));
         code5txt.setBackground(new Color(235, 235, 235));
         code5txt.setBorder(BorderFactory.createEmptyBorder());
+        LoginFieldStyle.styleLoginField(code5txt);
+        code5txt.getAccessibleContext().setAccessibleName("Verification digit 5");
         leftpanel.add(code5txt);
 
-        JTextField code6txt = new JTextField();
+        JTextField code6txt = LoginFieldStyle.textField("");
         code6txt.setBounds(345, 230, 50, 65);
         code6txt.setHorizontalAlignment(SwingConstants.CENTER);
         code6txt.setFont(new Font("Segoe UI", Font.BOLD, 24));
         code6txt.setBackground(new Color(235, 235, 235));
         code6txt.setBorder(BorderFactory.createEmptyBorder());
+        LoginFieldStyle.styleLoginField(code6txt);
+        code6txt.getAccessibleContext().setAccessibleName("Verification digit 6");
         leftpanel.add(code6txt);
 
         code1txt.addKeyListener(

@@ -118,7 +118,7 @@ public class EmailSender {
                                                 font-size: 24px;
                                                 line-height: 32px;
                                             ">
-                                                Please verify your identity
+                                                Account Verification
                                             </td>
                                         </tr>
 

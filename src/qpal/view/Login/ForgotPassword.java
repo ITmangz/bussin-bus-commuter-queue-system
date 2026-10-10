@@ -95,12 +95,13 @@ public class ForgotPassword {
         emaillbl.setForeground(Color.BLACK);
         leftpanel.add(emaillbl);
 
-        JTextField emailtxt = new JTextField();
-        emailtxt.setBounds(45, 215, 345, 38);
+        JTextField emailtxt = LoginFieldStyle.textField("Enter your Email");
+        emailtxt.setBounds(45, 215, 345, 40);
         emailtxt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         emailtxt.setForeground(new Color(80, 80, 80));
         emailtxt.setBackground(new Color(235, 235, 235));
         emailtxt.setBorder(BorderFactory.createEmptyBorder(5, 42, 5, 10));
+        LoginFieldStyle.styleLoginField(emailtxt);
         leftpanel.add(emailtxt);
 
         emailtxt.setDocument(

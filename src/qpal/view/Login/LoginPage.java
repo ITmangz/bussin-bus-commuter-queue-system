@@ -93,12 +93,21 @@ public class LoginPage {
         emailtitle.setForeground(Color.BLACK);
         rightpanel.add(emailtitle);
 
-        JTextField emailtxt = new JTextField();
-        emailtxt.setBounds(25, 200, 345, 38);
+        JTextField emailtxt = new JTextField() {
+            @Override
+            protected void paintComponent(Graphics graphics) {
+                LoginFieldStyle.paintFieldBackground(this, graphics);
+                super.paintComponent(graphics);
+                LoginFieldStyle.paintPlaceholder(this, graphics, "Enter your Email");
+            }
+        };
+        emailtxt.setBounds(25, 200, 345, 40);
         emailtxt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         emailtxt.setForeground(new Color(80, 80, 80));
         emailtxt.setBackground(new Color(235, 235, 235));
         emailtxt.setBorder(BorderFactory.createEmptyBorder(5, 42, 5, 20));
+        LoginFieldStyle.styleLoginField(emailtxt);
+        emailtxt.getAccessibleContext().setAccessibleName("Email");
         rightpanel.add(emailtxt);
 
         emailtxt.setDocument(
@@ -141,13 +150,22 @@ public class LoginPage {
         passtitle.setForeground(Color.BLACK);
         rightpanel.add(passtitle);
 
-        JPasswordField passtxt = new JPasswordField();
+        JPasswordField passtxt = new JPasswordField() {
+            @Override
+            protected void paintComponent(Graphics graphics) {
+                LoginFieldStyle.paintFieldBackground(this, graphics);
+                super.paintComponent(graphics);
+                LoginFieldStyle.paintPlaceholder(this, graphics, "Enter your Password");
+            }
+        };
         passtxt.setBounds(25, 280, 345, 40);
         passtxt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         passtxt.setForeground(new Color(80, 80, 80));
         passtxt.setBackground(new Color(235, 235, 235));
         passtxt.setBorder(BorderFactory.createEmptyBorder(5, 42, 5, 45));
         passtxt.setEchoChar('•');
+        LoginFieldStyle.styleLoginField(passtxt);
+        passtxt.getAccessibleContext().setAccessibleName("Password");
         rightpanel.add(passtxt);
 
         passtxt.setDocument(

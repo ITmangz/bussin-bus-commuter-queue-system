@@ -121,8 +121,21 @@ public final class AdminFormStyle {
             FormInputStyle.styleCombo(combo);
             return;
         }
-        if (component instanceof javax.swing.text.JTextComponent field
-                && field.getMaximumSize().width == 300) sizeInput(field);
+        if (component instanceof javax.swing.text.JTextComponent field) {
+            if (field.getMaximumSize().width == 300) sizeInput(field);
+            Insets padding = field.getInsets();
+            field.setOpaque(true);
+            field.setBackground(new Color(248, 249, 251));
+            field.setForeground(new Color(70, 70, 70));
+            field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            field.setCaretColor(new Color(70, 70, 70));
+            field.setSelectionColor(new Color(225, 232, 240));
+            field.setSelectedTextColor(new Color(35, 35, 35));
+            field.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(220, 224, 230)),
+                    BorderFactory.createEmptyBorder(5, Math.max(12, padding.left),
+                            5, Math.max(12, padding.right))));
+        }
         if (component instanceof Container container)
             for (Component child : container.getComponents()) styleInputs(child);
     }

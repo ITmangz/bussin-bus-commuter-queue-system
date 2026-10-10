@@ -50,13 +50,14 @@ public class ResetPassword {
         newpasstitle.setForeground(Color.BLACK);
         leftpanel.add(newpasstitle);
 
-        JPasswordField newpasstxt = new JPasswordField();
+        JPasswordField newpasstxt = LoginFieldStyle.passwordField("Enter your New Password");
         newpasstxt.setBounds(50, 200, 345, 40);
         newpasstxt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         newpasstxt.setForeground(new Color(80, 80, 80));
         newpasstxt.setBackground(new Color(235, 235, 235));
         newpasstxt.setBorder(BorderFactory.createEmptyBorder(5, 42, 5, 45));
         newpasstxt.setEchoChar('•');
+        LoginFieldStyle.styleLoginField(newpasstxt);
         leftpanel.add(newpasstxt);
 
         newpasstxt.setDocument(
@@ -141,13 +142,14 @@ public class ResetPassword {
         confirmpasstitle.setForeground(Color.BLACK);
         leftpanel.add(confirmpasstitle);
 
-        JPasswordField confirmpasstxt = new JPasswordField();
+        JPasswordField confirmpasstxt = LoginFieldStyle.passwordField("Confirm your Password");
         confirmpasstxt.setBounds(50, 280, 345, 40);
         confirmpasstxt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         confirmpasstxt.setForeground(new Color(80, 80, 80));
         confirmpasstxt.setBackground(new Color(235, 235, 235));
         confirmpasstxt.setBorder(BorderFactory.createEmptyBorder(5, 42, 5, 45));
         confirmpasstxt.setEchoChar('•');
+        LoginFieldStyle.styleLoginField(confirmpasstxt);
         leftpanel.add(confirmpasstxt);
 
         confirmpasstxt.setDocument(
