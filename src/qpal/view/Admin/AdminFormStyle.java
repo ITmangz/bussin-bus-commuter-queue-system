@@ -8,47 +8,55 @@ import qpal.components.FormInputStyle;
 /** Single dashboard-style outline around forms. */
 public final class AdminFormStyle {
     private AdminFormStyle() {}
-    static void limitCharacters(JTextField field,int limit,String name) {
-        field.setDocument(new javax.swing.text.PlainDocument() {
-            @Override public void insertString(int offset,String text,javax.swing.text.AttributeSet attributes)
-                    throws javax.swing.text.BadLocationException {
-                if (text==null) return;
-                if (getLength()+text.length()<=limit) super.insertString(offset,text,attributes);
-                else {
-                    field.setText("");
-                    Toolkit.getDefaultToolkit().beep();
-                    qpal.components.AppDialogs.showMessageDialog(field,
-                            name+" must not exceed "+limit+" characters.","Warning!",JOptionPane.WARNING_MESSAGE);
-                }
-            }
-        });
+
+    static void limitCharacters(JTextField field, int limit, String name) {
+        field.setDocument(
+                new javax.swing.text.PlainDocument() {
+                    @Override
+                    public void insertString(
+                            int offset, String text, javax.swing.text.AttributeSet attributes)
+                            throws javax.swing.text.BadLocationException {
+                        if (text == null) return;
+                        if (getLength() + text.length() <= limit)
+                            super.insertString(offset, text, attributes);
+                        else {
+                            field.setText("");
+                            Toolkit.getDefaultToolkit().beep();
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    field,
+                                    name + " must not exceed " + limit + " characters.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                        }
+                    }
+                });
     }
+
     static boolean validateSearch(JTextField field) {
         if (!field.getText().trim().isEmpty()) return true;
-        qpal.components.AppDialogs.showMessageDialog(field, "Please enter a search term.",
-                "Empty Search", JOptionPane.WARNING_MESSAGE);
+        qpal.components.AppDialogs.showMessageDialog(
+                field, "Please enter a search term.", "Empty Search", JOptionPane.WARNING_MESSAGE);
         field.requestFocusInWindow();
         return false;
     }
 
     static void searchOnEnter(JTextField field, JButton button) {
-        limitCharacters(field,100,"Search text");
-        java.awt.event.KeyListener listener = new java.awt.event.KeyListener() {
-            @Override
-            public void keyPressed(java.awt.event.KeyEvent e) {
-                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
-                    button.doClick();
-                }
-            }
+        limitCharacters(field, 100, "Search text");
+        java.awt.event.KeyListener listener =
+                new java.awt.event.KeyListener() {
+                    @Override
+                    public void keyPressed(java.awt.event.KeyEvent e) {
+                        if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                            button.doClick();
+                        }
+                    }
 
-            @Override
-            public void keyTyped(java.awt.event.KeyEvent e) {
-            }
+                    @Override
+                    public void keyTyped(java.awt.event.KeyEvent e) {}
 
-            @Override
-            public void keyReleased(java.awt.event.KeyEvent e) {
-            }
-        };
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {}
+                };
         field.addKeyListener(listener);
         button.addKeyListener(listener);
     }
@@ -69,23 +77,38 @@ public final class AdminFormStyle {
         AdminCard card = new AdminCard(2);
         card.setLayout(new BorderLayout());
         card.add(form);
-        card.addHierarchyListener(e -> {
-            Window window = SwingUtilities.getWindowAncestor(card);
-            if (window instanceof JDialog dialog && dialog.isUndecorated()
-                    && !Boolean.TRUE.equals(card.getClientProperty("shaped"))
-                    && window.getGraphicsConfiguration().getDevice().isWindowTranslucencySupported(
-                            GraphicsDevice.WindowTranslucency.PERPIXEL_TRANSPARENT)) {
-                card.putClientProperty("shaped", true);
-                window.addComponentListener(new java.awt.event.ComponentAdapter() {
-                    @Override public void componentResized(java.awt.event.ComponentEvent event) {
-                        window.setShape(new java.awt.geom.RoundRectangle2D.Double(
-                                0, 0, window.getWidth(), window.getHeight(), 14, 14));
+        card.addHierarchyListener(
+                e -> {
+                    Window window = SwingUtilities.getWindowAncestor(card);
+                    if (window instanceof JDialog dialog
+                            && dialog.isUndecorated()
+                            && !Boolean.TRUE.equals(card.getClientProperty("shaped"))
+                            && window.getGraphicsConfiguration()
+                                    .getDevice()
+                                    .isWindowTranslucencySupported(
+                                            GraphicsDevice.WindowTranslucency
+                                                    .PERPIXEL_TRANSPARENT)) {
+                        card.putClientProperty("shaped", true);
+                        window.addComponentListener(
+                                new java.awt.event.ComponentAdapter() {
+                                    @Override
+                                    public void componentResized(
+                                            java.awt.event.ComponentEvent event) {
+                                        window.setShape(
+                                                new java.awt.geom.RoundRectangle2D.Double(
+                                                        0,
+                                                        0,
+                                                        window.getWidth(),
+                                                        window.getHeight(),
+                                                        14,
+                                                        14));
+                                    }
+                                });
                     }
                 });
-            }
-        });
         return card;
     }
+
     public static void styleInputs(Component component) {
         if (component instanceof JDateChooser chooser) {
             sizeInput(chooser);
@@ -103,6 +126,7 @@ public final class AdminFormStyle {
         if (component instanceof Container container)
             for (Component child : container.getComponents()) styleInputs(child);
     }
+
     private static void sizeInput(JComponent input) {
         input.setAlignmentX(Component.LEFT_ALIGNMENT);
         boolean flexible = input.getMaximumSize().width == Integer.MAX_VALUE;
@@ -114,10 +138,12 @@ public final class AdminFormStyle {
 
     private static void styleActions(Container container) {
         // Fixed button sizes also hold in the wider queue, revenue and profile forms.
-        if (container instanceof JPanel row && row.getLayout() instanceof GridLayout
+        if (container instanceof JPanel row
+                && row.getLayout() instanceof GridLayout
                 && !Boolean.TRUE.equals(row.getClientProperty("fullWidthActions"))
                 && row.getComponentCount() == 2
-                && row.getComponent(0) instanceof JButton && row.getComponent(1) instanceof JButton) {
+                && row.getComponent(0) instanceof JButton
+                && row.getComponent(1) instanceof JButton) {
             row.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
             Component second = row.getComponent(1);
             row.remove(second);
@@ -145,7 +171,8 @@ public final class AdminFormStyle {
                 button.setBorderPainted(false);
                 button.setFocusPainted(false);
             } else if (child instanceof Container nested
-                    && !(child instanceof JComboBox<?>) && !(child instanceof JDateChooser)) {
+                    && !(child instanceof JComboBox<?>)
+                    && !(child instanceof JDateChooser)) {
                 styleActions(nested);
             }
         }

@@ -31,8 +31,12 @@ public class DropPointPanel extends JPanel {
         header.setBackground(RED);
         header.setBounds(0, 0, 1000, 100);
         add(header);
-        JLabel logo = new JLabel(new ImageIcon(new ImageIcon("resources/icons/bussinlogokiosk.png")
-                .getImage().getScaledInstance(120, 55, Image.SCALE_SMOOTH)));
+        JLabel logo =
+                new JLabel(
+                        new ImageIcon(
+                                new ImageIcon("resources/icons/bussinlogokiosk.png")
+                                        .getImage()
+                                        .getScaledInstance(120, 55, Image.SCALE_SMOOTH)));
         logo.setBounds(35, 20, 120, 55);
         header.add(logo);
         JLabel date = new JLabel("", SwingConstants.CENTER);
@@ -40,11 +44,19 @@ public class DropPointPanel extends JPanel {
         date.setForeground(Color.WHITE);
         date.setFont(new Font("Segoe UI", Font.BOLD, 14));
         header.add(date);
-        Runnable clock = () -> {
-            var now = java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Manila"));
-            date.setText("<html><center>" + now.format(java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy"))
-                    + "<br>" + now.format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a")) + "</center></html>");
-        };
+        Runnable clock =
+                () -> {
+                    var now = java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Manila"));
+                    date.setText(
+                            "<html><center>"
+                                    + now.format(
+                                            java.time.format.DateTimeFormatter.ofPattern(
+                                                    "MMMM d, yyyy"))
+                                    + "<br>"
+                                    + now.format(
+                                            java.time.format.DateTimeFormatter.ofPattern("hh:mm a"))
+                                    + "</center></html>");
+                };
         clock.run();
         Timer time = new Timer(1000, e -> clock.run());
         JLabel reset = new JLabel("Start Over");
@@ -53,14 +65,22 @@ public class DropPointPanel extends JPanel {
         reset.setForeground(Color.WHITE);
         reset.setFont(new Font("Segoe UI", Font.BOLD, 16));
         header.add(reset);
-        JLabel refreshIcon = new JLabel(new ImageIcon(new ImageIcon("resources/icons/refresh.png")
-                .getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH)));
+        JLabel refreshIcon =
+                new JLabel(
+                        new ImageIcon(
+                                new ImageIcon("resources/icons/refresh.png")
+                                        .getImage()
+                                        .getScaledInstance(40, 40, Image.SCALE_SMOOTH)));
         refreshIcon.setBounds(905, 25, 40, 40);
         refreshIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         header.add(refreshIcon);
-        MouseAdapter resetAction = new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) { Kiosk.startOver(DropPointPanel.this); }
-        };
+        MouseAdapter resetAction =
+                new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        Kiosk.startOver(DropPointPanel.this);
+                    }
+                };
         reset.addMouseListener(resetAction);
         refreshIcon.addMouseListener(resetAction);
         JPanel steps = KioskStepsPanel.create(0);
@@ -78,11 +98,16 @@ public class DropPointPanel extends JPanel {
         strip.setBounds(70, 260, 860, 120);
         add(strip);
         options.setOpaque(false);
-        JScrollPane scroll = new JScrollPane(options, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane scroll =
+                new JScrollPane(
+                        options,
+                        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                        JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.setBounds(70, 392, 860, 184);
-        scroll.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(BORDER),
-                BorderFactory.createEmptyBorder(6, 6, 6, 6)));
+        scroll.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(BORDER),
+                        BorderFactory.createEmptyBorder(6, 6, 6, 6)));
         scroll.setBackground(getBackground());
         scroll.getViewport().setBackground(getBackground());
         qpal.components.ScrollBarStyle.apply(scroll, getBackground());
@@ -101,24 +126,41 @@ public class DropPointPanel extends JPanel {
         next.setForeground(Color.WHITE);
         next.setBorderPainted(false);
         next.setFocusPainted(false);
-        next.addActionListener(e -> {
-            if (details.getDropPoint() == null) {
-                AppDialogs.showMessageDialog(this, "Please select your drop-off point.",
-                        "Select Drop-off", JOptionPane.WARNING_MESSAGE);
-            } else if (details.getSelectedFare() == null) {
-                AppDialogs.showMessageDialog(this, "Fare is unavailable. Please ask staff for assistance.",
-                        "Fare Unavailable", JOptionPane.WARNING_MESSAGE);
-            } else showPage("AvailableTrip");
-        });
+        next.addActionListener(
+                e -> {
+                    if (details.getDropPoint() == null) {
+                        AppDialogs.showMessageDialog(
+                                this,
+                                "Please select your drop-off point.",
+                                "Select Drop-off",
+                                JOptionPane.WARNING_MESSAGE);
+                    } else if (details.getSelectedFare() == null) {
+                        AppDialogs.showMessageDialog(
+                                this,
+                                "Fare is unavailable. Please ask staff for assistance.",
+                                "Fare Unavailable",
+                                JOptionPane.WARNING_MESSAGE);
+                    } else showPage("AvailableTrip");
+                });
         add(next);
-        addComponentListener(new ComponentAdapter() {
-            @Override public void componentShown(ComponentEvent e) { refresh(); }
-        });
-        addHierarchyListener(e -> { if (isShowing()) time.start(); else time.stop(); });
+        addComponentListener(
+                new ComponentAdapter() {
+                    @Override
+                    public void componentShown(ComponentEvent e) {
+                        refresh();
+                    }
+                });
+        addHierarchyListener(
+                e -> {
+                    if (isShowing()) time.start();
+                    else time.stop();
+                });
     }
 
     /** Set your own image here, e.g. getBusLabel().setIcon(new ImageIcon(...)). */
-    public JLabel getBusLabel() { return strip.busLabel; }
+    public JLabel getBusLabel() {
+        return strip.busLabel;
+    }
 
     private void showPage(String page) {
         ((CardLayout) getParent().getLayout()).show(getParent(), page);
@@ -130,13 +172,20 @@ public class DropPointPanel extends JPanel {
         int version = ++loadVersion;
         displayRoute(destination, null);
         subtitle.setText("Loading route fares...");
-        qpal.util.UiTask.run(() -> new qpal.dao.RouteDao().getActiveFare(destination), fare -> {
-            if (version != loadVersion || !destination.equals(details.getSearch().destination())) return;
-            displayRoute(destination, fare);
-        }, error -> {
-            if (version != loadVersion || !destination.equals(details.getSearch().destination())) return;
-            subtitle.setText("Fare is unavailable. Please go back and try again, or ask staff for assistance.");
-        });
+        qpal.util.UiTask.run(
+                () -> new qpal.dao.RouteDao().getActiveFare(destination),
+                fare -> {
+                    if (version != loadVersion
+                            || !destination.equals(details.getSearch().destination())) return;
+                    displayRoute(destination, fare);
+                },
+                error -> {
+                    if (version != loadVersion
+                            || !destination.equals(details.getSearch().destination())) return;
+                    subtitle.setText(
+                            "Fare is unavailable. Please go back and try again, or ask staff for"
+                                + " assistance.");
+                });
     }
 
     private void displayRoute(String destination, BigDecimal fullFare) {
@@ -144,7 +193,8 @@ public class DropPointPanel extends JPanel {
         strip.points.addAll(RouteDropPoints.options(destination));
         strip.selectStop(details.getDropPoint(), false);
         strip.setToolTipText(String.join(" → ", strip.points));
-        subtitle.setText("PITX to " + destination + " · Choose your stop. Fares shown are per passenger.");
+        subtitle.setText(
+                "PITX to " + destination + " · Choose your stop. Fares shown are per passenger.");
         details.setSelectedFare(null);
         options.removeAll();
         ButtonGroup group = new ButtonGroup();
@@ -155,10 +205,12 @@ public class DropPointPanel extends JPanel {
         origin.setBorderPainted(true);
         styleChoice(origin);
         options.add(origin);
-        options.setPreferredSize(new Dimension(820, (RouteDropPoints.options(destination).size() + 1) * 60 - 6));
+        options.setPreferredSize(
+                new Dimension(820, (RouteDropPoints.options(destination).size() + 1) * 60 - 6));
 
         for (String stop : RouteDropPoints.options(destination)) {
-            BigDecimal fare = fullFare == null ? null : RouteDropPoints.fare(destination, stop, fullFare);
+            BigDecimal fare =
+                    fullFare == null ? null : RouteDropPoints.fare(destination, stop, fullFare);
             JRadioButton choice = new JRadioButton(stop);
             styleRadioIcon(choice);
             choice.setLayout(new BorderLayout());
@@ -171,35 +223,50 @@ public class DropPointPanel extends JPanel {
             choice.setEnabled(fare != null);
             choice.setSelected(stop.equals(details.getDropPoint()));
 
-            choice.setToolTipText(stop + (stop.equals(destination) ? " · Final destination" : " · Drop-off"));
+            choice.setToolTipText(
+                    stop + (stop.equals(destination) ? " · Final destination" : " · Drop-off"));
             JLabel amount = new JLabel(fare == null ? "—" : money(fare), SwingConstants.RIGHT);
             amount.setPreferredSize(new Dimension(156, 50));
             amount.setFont(new Font("Segoe UI", Font.BOLD, 20));
             amount.setForeground(RED);
             choice.add(amount, BorderLayout.EAST);
             // The fare label is part of the same large clickable row.
-            amount.addMouseListener(new MouseAdapter() {
-                @Override public void mouseClicked(MouseEvent e) { if (choice.isEnabled()) choice.doClick(); }
-                @Override public void mouseEntered(MouseEvent e) { choice.getModel().setRollover(true); }
-                @Override public void mouseExited(MouseEvent e) { choice.getModel().setRollover(false); }
-            });
+            amount.addMouseListener(
+                    new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            if (choice.isEnabled()) choice.doClick();
+                        }
+
+                        @Override
+                        public void mouseEntered(MouseEvent e) {
+                            choice.getModel().setRollover(true);
+                        }
+
+                        @Override
+                        public void mouseExited(MouseEvent e) {
+                            choice.getModel().setRollover(false);
+                        }
+                    });
             choice.getAccessibleContext().setAccessibleName(stop + ", " + amount.getText());
             group.add(choice);
             options.add(choice);
             styleChoice(choice);
             choice.addChangeListener(e -> styleChoice(choice));
-            choice.addActionListener(e -> {
-                if (stop.equals(details.getDropPoint())) {
-                    group.clearSelection();
-                    details.clearDropPoint();
-                } else {
-                    details.setDropPoint(stop);
-                    details.setSelectedFare(fare);
-                }
-                strip.selectStop(details.getDropPoint(), true);
-                for (Component component : options.getComponents()) styleChoice((JRadioButton) component);
-                strip.repaint();
-            });
+            choice.addActionListener(
+                    e -> {
+                        if (stop.equals(details.getDropPoint())) {
+                            group.clearSelection();
+                            details.clearDropPoint();
+                        } else {
+                            details.setDropPoint(stop);
+                            details.setSelectedFare(fare);
+                        }
+                        strip.selectStop(details.getDropPoint(), true);
+                        for (Component component : options.getComponents())
+                            styleChoice((JRadioButton) component);
+                        strip.repaint();
+                    });
             if (choice.isSelected() && fare != null) {
                 details.setSelectedFare(fare);
             }
@@ -209,31 +276,47 @@ public class DropPointPanel extends JPanel {
         strip.repaint();
     }
 
-    private static String money(BigDecimal value) { return "₱" + qpal.model.FarePolicy.format(value); }
+    private static String money(BigDecimal value) {
+        return "₱" + qpal.model.FarePolicy.format(value);
+    }
 
     private static void styleRadioIcon(JRadioButton button) {
-        Icon icon = new Icon() {
-            @Override public int getIconWidth() { return 24; }
-            @Override public int getIconHeight() { return 24; }
+        Icon icon =
+                new Icon() {
+                    @Override
+                    public int getIconWidth() {
+                        return 24;
+                    }
 
-            @Override public void paintIcon(Component component, Graphics graphics, int x, int y) {
-                JRadioButton radio = (JRadioButton) component;
-                Graphics2D g = (Graphics2D) graphics.create();
-                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                boolean active = radio.isEnabled();
-                Color ring = !active ? BORDER : radio.isSelected() || radio.getModel().isRollover()
-                        ? RED : new Color(160, 170, 185);
-                g.setColor(active ? Color.WHITE : new Color(235, 239, 243));
-                g.fillOval(x + 2, y + 2, 20, 20);
-                g.setStroke(new BasicStroke(2));
-                g.setColor(ring);
-                g.drawOval(x + 2, y + 2, 20, 20);
-                if (radio.isSelected()) {
-                    g.fillOval(x + 7, y + 7, 10, 10);
-                }
-                g.dispose();
-            }
-        };
+                    @Override
+                    public int getIconHeight() {
+                        return 24;
+                    }
+
+                    @Override
+                    public void paintIcon(Component component, Graphics graphics, int x, int y) {
+                        JRadioButton radio = (JRadioButton) component;
+                        Graphics2D g = (Graphics2D) graphics.create();
+                        g.setRenderingHint(
+                                RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        boolean active = radio.isEnabled();
+                        Color ring =
+                                !active
+                                        ? BORDER
+                                        : radio.isSelected() || radio.getModel().isRollover()
+                                                ? RED
+                                                : new Color(160, 170, 185);
+                        g.setColor(active ? Color.WHITE : new Color(235, 239, 243));
+                        g.fillOval(x + 2, y + 2, 20, 20);
+                        g.setStroke(new BasicStroke(2));
+                        g.setColor(ring);
+                        g.drawOval(x + 2, y + 2, 20, 20);
+                        if (radio.isSelected()) {
+                            g.fillOval(x + 7, y + 7, 10, 10);
+                        }
+                        g.dispose();
+                    }
+                };
         button.setIcon(icon);
         button.setSelectedIcon(icon);
         button.setRolloverIcon(icon);
@@ -245,12 +328,18 @@ public class DropPointPanel extends JPanel {
     }
 
     private static void styleChoice(JRadioButton choice) {
-        choice.setBackground(!choice.isEnabled() ? new Color(240, 243, 245)
-                : choice.isSelected() ? new Color(255, 243, 246)
-                : choice.getModel().isRollover() ? new Color(255, 248, 250) : Color.WHITE);
-        choice.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(choice.isSelected() ? RED : BORDER, 2, true),
-                BorderFactory.createEmptyBorder(0, 16, 0, 16)));
+        choice.setBackground(
+                !choice.isEnabled()
+                        ? new Color(240, 243, 245)
+                        : choice.isSelected()
+                                ? new Color(255, 243, 246)
+                                : choice.getModel().isRollover()
+                                        ? new Color(255, 248, 250)
+                                        : Color.WHITE);
+        choice.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(choice.isSelected() ? RED : BORDER, 2, true),
+                        BorderFactory.createEmptyBorder(0, 16, 0, 16)));
     }
 
     private static class RouteStrip extends JPanel {
@@ -264,9 +353,12 @@ public class DropPointPanel extends JPanel {
         void selectStop(String stop, boolean animate) {
             selected = stop;
             animation.stop();
-            targetPosition = points.size() < 2 ? 0
-                    : Math.max(0, points.indexOf(stop)) / (double) (points.size() - 1);
-            busLabel.getAccessibleContext().setAccessibleName("Bus at " + (stop == null ? "PITX origin" : stop));
+            targetPosition =
+                    points.size() < 2
+                            ? 0
+                            : Math.max(0, points.indexOf(stop)) / (double) (points.size() - 1);
+            busLabel.getAccessibleContext()
+                    .setAccessibleName("Bus at " + (stop == null ? "PITX origin" : stop));
             if (animate && isShowing() && position != targetPosition) {
                 startPosition = position;
                 animationStarted = System.nanoTime();
@@ -287,10 +379,13 @@ public class DropPointPanel extends JPanel {
         }
 
         private void positionBus() {
-            busLabel.setLocation(80 + (int) Math.round(position * (getWidth() - 160)) - busLabel.getWidth() / 2, 4);
+            busLabel.setLocation(
+                    80 + (int) Math.round(position * (getWidth() - 160)) - busLabel.getWidth() / 2,
+                    4);
         }
 
-        @Override public void doLayout() {
+        @Override
+        public void doLayout() {
             super.doLayout();
             positionBus();
         }
@@ -304,16 +399,20 @@ public class DropPointPanel extends JPanel {
             busLabel.getAccessibleContext().setAccessibleName("Bus at PITX origin");
             busLabel.setIcon(new ImageIcon("resources/icons/sidebusic.png"));
             add(busLabel);
-            addHierarchyListener(e -> {
-                if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0 && !isShowing()) {
-                    animation.stop();
-                    position = targetPosition;
-                    positionBus();
-                }
-            });
+            addHierarchyListener(
+                    e -> {
+                        if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED)
+                                        != 0
+                                && !isShowing()) {
+                            animation.stop();
+                            position = targetPosition;
+                            positionBus();
+                        }
+                    });
         }
 
-        @Override protected void paintComponent(Graphics graphics) {
+        @Override
+        protected void paintComponent(Graphics graphics) {
             super.paintComponent(graphics);
             Graphics2D g = (Graphics2D) graphics.create();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -334,23 +433,30 @@ public class DropPointPanel extends JPanel {
                     int x = 80 + (int) (i * step);
                     g.setColor(i == 0 || i <= selectedIndex ? RED : new Color(170, 179, 191));
                     g.fillOval(x - 6, 37, 12, 12);
-                    g.setFont(new Font("Segoe UI", i == selectedIndex ? Font.BOLD : Font.PLAIN, 14));
+                    g.setFont(
+                            new Font("Segoe UI", i == selectedIndex ? Font.BOLD : Font.PLAIN, 14));
                     g.setColor(i == 0 ? RED : TEXT);
                     // Wrap complete stop names rather than cutting them off with an ellipsis.
-                    int labelWidth = (int) Math.min(step - 16, i == 0 || i == points.size()-1 ? 150 : step - 16);
+                    int labelWidth =
+                            (int)
+                                    Math.min(
+                                            step - 16,
+                                            i == 0 || i == points.size() - 1 ? 150 : step - 16);
                     java.util.List<String> lines = new java.util.ArrayList<>();
                     String line = "";
                     for (String word : points.get(i).split(" ")) {
                         String candidate = line.isEmpty() ? word : line + " " + word;
-                        if (!line.isEmpty() && g.getFontMetrics().stringWidth(candidate) > labelWidth) {
+                        if (!line.isEmpty()
+                                && g.getFontMetrics().stringWidth(candidate) > labelWidth) {
                             lines.add(line);
                             line = word;
                         } else line = candidate;
                     }
                     if (!line.isEmpty()) lines.add(line);
-                    for (int j=0;j<lines.size();j++) {
+                    for (int j = 0; j < lines.size(); j++) {
                         String text = lines.get(j);
-                        g.drawString(text,x-g.getFontMetrics().stringWidth(text)/2,65+j*16);
+                        g.drawString(
+                                text, x - g.getFontMetrics().stringWidth(text) / 2, 65 + j * 16);
                     }
                     if (i == 0 || i == points.size() - 1) {
                         g.setFont(new Font("Segoe UI", Font.PLAIN, 11));

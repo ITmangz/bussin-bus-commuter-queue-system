@@ -39,72 +39,90 @@ public class AdminRevenuePanel extends JPanel {
 
     public AdminRevenuePanel() {
 
-        setLayout(new BorderLayout(0,16));
-        setBackground(new Color(245,245,245));
-        setBorder(new EmptyBorder(20,25,20,25));
+        setLayout(new BorderLayout(0, 16));
+        setBackground(new Color(245, 245, 245));
+        setBorder(new EmptyBorder(20, 25, 20, 25));
 
-        add(createHeader(),BorderLayout.NORTH);
-        add(createContent(),BorderLayout.CENTER);
+        add(createHeader(), BorderLayout.NORTH);
+        add(createContent(), BorderLayout.CENTER);
         searchRevenue();
         Timer timer = new Timer(5000, e -> refreshData());
-        addHierarchyListener(e -> {
-            if (isShowing()) { timer.start(); refreshData(); }
-            else timer.stop();
-        });
+        addHierarchyListener(
+                e -> {
+                    if (isShowing()) {
+                        timer.start();
+                        refreshData();
+                    } else timer.stop();
+                });
     }
 
     public void refreshData() {
         if (loading || editing) return;
         loading = true;
-        qpal.util.UiTask.run(() -> new qpal.dao.QueueDao().revenue(), data -> {
-            Integer selectedId = selectedPaymentId();
-            revenues.clear();
-            revenues.addAll(data.rows());
-            summaryValues.get(0).setText(String.valueOf(data.paidPassengers()));
-            summaryValues.get(1).setText(String.valueOf(data.pendingPayments()));
-            summaryValues.get(2).setText("PHP " + data.todayRevenue().setScale(2));
-            summaryValues.get(3).setText("PHP " + data.totalRevenue().setScale(2));
-            int page = currentPage;
-            searchRevenue();
-            currentPage = Math.max(1, Math.min(page, (filteredRevenues.size() + rowsPerPage - 1) / rowsPerPage));
-            loadPage();
-            if (selectedId != null) for (int row=0; row<model.getRowCount(); row++) {
-                if (selectedId.equals(model.getValueAt(row,0))) table.setRowSelectionInterval(row,row);
-            }
-            connectionStatus.setText(revenues.isEmpty() ? "No payment records yet." : "");
-            connectionStatus.setVisible(revenues.isEmpty());
-            loading = false;
-        }, ex -> { loading = false; connectionStatus.setText("Unable to refresh payments. Retrying in 5 seconds."); connectionStatus.setVisible(true); });
+        qpal.util.UiTask.run(
+                () -> new qpal.dao.QueueDao().revenue(),
+                data -> {
+                    Integer selectedId = selectedPaymentId();
+                    revenues.clear();
+                    revenues.addAll(data.rows());
+                    summaryValues.get(0).setText(String.valueOf(data.paidPassengers()));
+                    summaryValues.get(1).setText(String.valueOf(data.pendingPayments()));
+                    summaryValues.get(2).setText("PHP " + data.todayRevenue().setScale(2));
+                    summaryValues.get(3).setText("PHP " + data.totalRevenue().setScale(2));
+                    int page = currentPage;
+                    searchRevenue();
+                    currentPage =
+                            Math.max(
+                                    1,
+                                    Math.min(
+                                            page,
+                                            (filteredRevenues.size() + rowsPerPage - 1)
+                                                    / rowsPerPage));
+                    loadPage();
+                    if (selectedId != null)
+                        for (int row = 0; row < model.getRowCount(); row++) {
+                            if (selectedId.equals(model.getValueAt(row, 0)))
+                                table.setRowSelectionInterval(row, row);
+                        }
+                    connectionStatus.setText(revenues.isEmpty() ? "No payment records yet." : "");
+                    connectionStatus.setVisible(revenues.isEmpty());
+                    loading = false;
+                },
+                ex -> {
+                    loading = false;
+                    connectionStatus.setText("Unable to refresh payments. Retrying in 5 seconds.");
+                    connectionStatus.setVisible(true);
+                });
     }
 
     private JPanel createHeader() {
 
-        JPanel panel = new JPanel(new BorderLayout(0,16));
+        JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setOpaque(false);
 
         JPanel heading = new JPanel();
         heading.setOpaque(false);
-        heading.setLayout(new BoxLayout(heading,BoxLayout.Y_AXIS));
+        heading.setLayout(new BoxLayout(heading, BoxLayout.Y_AXIS));
         JLabel lblTitle = new JLabel("Revenue Management");
-        lblTitle.setFont(new Font("SansSerif",Font.BOLD,30));
-        lblTitle.setForeground(new Color(228,0,70));
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 30));
+        lblTitle.setForeground(new Color(228, 0, 70));
         heading.add(lblTitle);
         heading.add(Box.createVerticalStrut(4));
 
         JLabel lblSubtitle = new JLabel("Manage fare collections and total revenue.");
-        lblSubtitle.setFont(new Font("SansSerif",Font.PLAIN,13));
-        lblSubtitle.setForeground(new Color(120,120,120));
+        lblSubtitle.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        lblSubtitle.setForeground(new Color(120, 120, 120));
         heading.add(lblSubtitle);
-        panel.add(heading,BorderLayout.NORTH);
+        panel.add(heading, BorderLayout.NORTH);
 
-        JPanel cards = new JPanel(new GridLayout(1,4,14,0));
+        JPanel cards = new JPanel(new GridLayout(1, 4, 14, 0));
         cards.setOpaque(false);
-        cards.setPreferredSize(new Dimension(0,110));
-        cards.add(createSummaryCard("PAID COMMUTERS",lblPaidImage));
-        cards.add(createSummaryCard("TODAY'S PENDING PAYMENTS",lblPendingImage));
-        cards.add(createSummaryCard("TODAY'S REVENUE",lblRevenueImage));
-        cards.add(createSummaryCard("TOTAL REVENUE",new JLabel()));
-        panel.add(cards,BorderLayout.CENTER);
+        cards.setPreferredSize(new Dimension(0, 110));
+        cards.add(createSummaryCard("PAID COMMUTERS", lblPaidImage));
+        cards.add(createSummaryCard("TODAY'S PENDING PAYMENTS", lblPendingImage));
+        cards.add(createSummaryCard("TODAY'S REVENUE", lblRevenueImage));
+        cards.add(createSummaryCard("TOTAL REVENUE", new JLabel()));
+        panel.add(cards, BorderLayout.CENTER);
 
         return panel;
     }
@@ -117,22 +135,22 @@ public class AdminRevenuePanel extends JPanel {
         content.setOpaque(false);
 
         // Assign an ImageIcon here when the card images are ready.
-        Dimension imageSize = new Dimension(40,40);
+        Dimension imageSize = new Dimension(40, 40);
         lblImage.setMinimumSize(imageSize);
         lblImage.setPreferredSize(imageSize);
         lblImage.setMaximumSize(imageSize);
         lblImage.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblTitle = new JLabel(text);
-        lblTitle.setFont(new Font("SansSerif",Font.PLAIN,9));
-        lblTitle.setForeground(new Color(100,100,100));
+        lblTitle.setFont(new Font("SansSerif", Font.PLAIN, 9));
+        lblTitle.setForeground(new Color(100, 100, 100));
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         content.add(lblTitle, BorderLayout.NORTH);
 
         JLabel lblValue = new JLabel("—");
         summaryValues.add(lblValue);
-        lblValue.setFont(new Font("SansSerif",Font.BOLD,24));
-        lblValue.setForeground(new Color(170,0,45));
+        lblValue.setFont(new Font("SansSerif", Font.BOLD, 24));
+        lblValue.setForeground(new Color(170, 0, 45));
         lblValue.setAlignmentX(Component.LEFT_ALIGNMENT);
         content.add(lblValue, BorderLayout.CENTER);
         GridBagConstraints constraints = new GridBagConstraints();
@@ -146,21 +164,21 @@ public class AdminRevenuePanel extends JPanel {
     private JPanel createContent() {
 
         JPanel panel = AdminDashboardPanel.card();
-        panel.setLayout(new BorderLayout(0,12));
-        panel.add(createTopPanel(),BorderLayout.NORTH);
+        panel.setLayout(new BorderLayout(0, 12));
+        panel.add(createTopPanel(), BorderLayout.NORTH);
 
         JPanel center = new JPanel(new BorderLayout());
         center.setOpaque(false);
-        center.add(createTable(),BorderLayout.CENTER);
+        center.add(createTable(), BorderLayout.CENTER);
 
         JLabel lblEmpty = new JLabel("Loading payments...");
         connectionStatus = lblEmpty;
-        lblEmpty.setFont(new Font("SansSerif",Font.PLAIN,12));
-        lblEmpty.setForeground(new Color(120,120,120));
-        lblEmpty.setBorder(new EmptyBorder(12,0,8,0));
-        center.add(lblEmpty,BorderLayout.SOUTH);
-        panel.add(center,BorderLayout.CENTER);
-        panel.add(createBottomPanel(),BorderLayout.SOUTH);
+        lblEmpty.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        lblEmpty.setForeground(new Color(120, 120, 120));
+        lblEmpty.setBorder(new EmptyBorder(12, 0, 8, 0));
+        center.add(lblEmpty, BorderLayout.SOUTH);
+        panel.add(center, BorderLayout.CENTER);
+        panel.add(createBottomPanel(), BorderLayout.SOUTH);
 
         return panel;
     }
@@ -171,145 +189,156 @@ public class AdminRevenuePanel extends JPanel {
         panel.setOpaque(false);
 
         JLabel lblTitle = new JLabel("Revenue List");
-        lblTitle.setFont(new Font("SansSerif",Font.BOLD,22));
-        panel.add(lblTitle,BorderLayout.WEST);
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
+        panel.add(lblTitle, BorderLayout.WEST);
 
-        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT,8,0));
+        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         controls.setOpaque(false);
 
         searchField = new JTextField();
-        searchField.setPreferredSize(new Dimension(190,34));
-        searchField.setFont(new Font("SansSerif",Font.PLAIN,13));
-        searchField.setMargin(new Insets(0,10,0,10));
+        searchField.setPreferredSize(new Dimension(190, 34));
+        searchField.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        searchField.setMargin(new Insets(0, 10, 0, 10));
         searchField.setToolTipText("Search payment ID, queue number, seat, bus or route");
 
-        cmbStatus = new JComboBox<>(new String[]{"All Statuses","Paid","Pending","Cancelled"});
+        cmbStatus = new JComboBox<>(new String[] {"All Statuses", "Paid", "Pending", "Cancelled"});
         AdminFormStyle.tableFilter(cmbStatus);
-        cmbStatus.setFont(new Font("SansSerif",Font.PLAIN,13));
+        cmbStatus.setFont(new Font("SansSerif", Font.PLAIN, 13));
         cmbStatus.setBackground(Color.WHITE);
         cmbStatus.setFocusable(false);
-        cmbStatus.addActionListener(e -> {
-            searchRevenue();
-        });
+        cmbStatus.addActionListener(
+                e -> {
+                    searchRevenue();
+                });
 
-        JButton btnSearch = createButton("Search",new Color(225,29,72));
-        btnSearch.addActionListener(e -> {
-            if (AdminFormStyle.validateSearch(searchField)) searchRevenue();
-        });
+        JButton btnSearch = createButton("Search", new Color(225, 29, 72));
+        btnSearch.addActionListener(
+                e -> {
+                    if (AdminFormStyle.validateSearch(searchField)) searchRevenue();
+                });
         AdminFormStyle.searchOnEnter(searchField, btnSearch);
 
         controls.add(searchField);
         controls.add(cmbStatus);
         controls.add(btnSearch);
-        btnPrint = createButton("Print",new Color(59,130,246));
+        btnPrint = createButton("Print", new Color(59, 130, 246));
         btnPrint.setToolTipText("Print the current page of revenue records");
         btnPrint.addActionListener(e -> printRevenue());
         controls.add(btnPrint);
-        panel.add(controls,BorderLayout.EAST);
+        panel.add(controls, BorderLayout.EAST);
 
         return panel;
     }
 
     private JScrollPane createTable() {
 
-        String[] columns = {"Payment ID","Queue No.","Bus","Route","Date / Time","Amount","Status","Seat"};
-        model = new DefaultTableModel(columns,0) {
-
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+        String[] columns = {
+            "Payment ID", "Queue No.", "Bus", "Route", "Date / Time", "Amount", "Status", "Seat"
         };
+        model =
+                new DefaultTableModel(columns, 0) {
+
+                    @Override
+                    public boolean isCellEditable(int row, int column) {
+                        return false;
+                    }
+                };
 
         table = new JTable(model);
-        table.setFont(new Font("SansSerif",Font.PLAIN,12));
+        table.setFont(new Font("SansSerif", Font.PLAIN, 12));
         table.setRowHeight(34);
         table.setShowVerticalLines(false);
-        table.setGridColor(new Color(236,236,236));
-        table.setSelectionBackground(new Color(240,247,255));
-        table.setDefaultRenderer(Object.class,new ModernTableCellRenderer());
+        table.setGridColor(new Color(236, 236, 236));
+        table.setSelectionBackground(new Color(240, 247, 255));
+        table.setDefaultRenderer(Object.class, new ModernTableCellRenderer());
         table.getColumnModel().getColumn(6).setCellRenderer(new qpal.components.StatusRenderer());
         table.setFillsViewportHeight(true);
 
         JTableHeader header = table.getTableHeader();
-        header.setFont(new Font("SansSerif",Font.BOLD,12));
+        header.setFont(new Font("SansSerif", Font.BOLD, 12));
         header.setBackground(Color.WHITE);
-        header.setPreferredSize(new Dimension(0,34));
+        header.setPreferredSize(new Dimension(0, 34));
         header.setReorderingAllowed(false);
         table.getColumnModel().getColumn(3).setPreferredWidth(160);
         table.getColumnModel().getColumn(4).setPreferredWidth(150);
         table.getColumnModel().getColumn(7).setPreferredWidth(50);
-        table.moveColumn(7,2);
+        table.moveColumn(7, 2);
 
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(Color.WHITE);
-        AdminCard.styleScrollBar(scroll,Color.WHITE);
+        AdminCard.styleScrollBar(scroll, Color.WHITE);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         return scroll;
     }
 
     private JPanel createBottomPanel() {
 
-        JPanel panel = new JPanel(new BorderLayout(12,0));
+        JPanel panel = new JPanel(new BorderLayout(12, 0));
         panel.setOpaque(false);
 
         lblInfo = new JLabel();
-        lblInfo.setFont(new Font("SansSerif",Font.PLAIN,12));
+        lblInfo.setFont(new Font("SansSerif", Font.PLAIN, 12));
         lblInfo.setForeground(Color.GRAY);
-        panel.add(lblInfo,BorderLayout.CENTER);
+        panel.add(lblInfo, BorderLayout.CENTER);
 
-        JPanel pagination = new JPanel(new FlowLayout(FlowLayout.RIGHT,6,0));
+        JPanel pagination = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         pagination.setOpaque(false);
         btnPrev = new JButton("<");
         btnNext = new JButton(">");
         btnOne = new JButton("1");
         btnTwo = new JButton("2");
 
-        JButton[] buttons = {btnPrev,btnOne,btnTwo,btnNext};
+        JButton[] buttons = {btnPrev, btnOne, btnTwo, btnNext};
 
-        for(JButton b : buttons) {
+        for (JButton b : buttons) {
 
-            b.setPreferredSize(new Dimension(34,30));
-            b.setFont(new Font("SansSerif",Font.BOLD,14));
+            b.setPreferredSize(new Dimension(34, 30));
+            b.setFont(new Font("SansSerif", Font.BOLD, 14));
             b.setFocusPainted(false);
             b.setCursor(new Cursor(Cursor.HAND_CURSOR));
             b.setBackground(Color.WHITE);
-            b.setForeground(new Color(80,80,80));
-            b.setBorder(BorderFactory.createLineBorder(new Color(220,220,220)));
+            b.setForeground(new Color(80, 80, 80));
+            b.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
             pagination.add(b);
         }
 
-        btnOne.addActionListener(e -> {
+        btnOne.addActionListener(
+                e -> {
+                    currentPage = Integer.parseInt(btnOne.getText());
+                    loadPage();
+                });
 
-            currentPage = Integer.parseInt(btnOne.getText());
-            loadPage();
-        });
+        btnTwo.addActionListener(
+                e -> {
+                    currentPage = Integer.parseInt(btnTwo.getText());
+                    loadPage();
+                });
+        btnPrev.addActionListener(
+                e -> {
+                    if (currentPage > 1) {
 
-        btnTwo.addActionListener(e -> {
+                        currentPage--;
+                        loadPage();
+                    }
+                });
+        btnNext.addActionListener(
+                e -> {
+                    if (currentPage * rowsPerPage < filteredRevenues.size()) {
 
-            currentPage = Integer.parseInt(btnTwo.getText());
-            loadPage();
-        });
-        btnPrev.addActionListener(e -> {
-
-            if(currentPage > 1) {
-
-                currentPage--;
-                loadPage();
-            }
-        });
-        btnNext.addActionListener(e -> {
-
-            if(currentPage * rowsPerPage < filteredRevenues.size()) {
-
-                currentPage++;
-                loadPage();
-            }
-        });
-        pagination.add(qpal.components.PagePicker.create(() -> currentPage,
-                () -> (filteredRevenues.size() + rowsPerPage - 1) / rowsPerPage,
-                page -> { currentPage = page; loadPage(); }), pagination.getComponentCount() - 1);
+                        currentPage++;
+                        loadPage();
+                    }
+                });
+        pagination.add(
+                qpal.components.PagePicker.create(
+                        () -> currentPage,
+                        () -> (filteredRevenues.size() + rowsPerPage - 1) / rowsPerPage,
+                        page -> {
+                            currentPage = page;
+                            loadPage();
+                        }),
+                pagination.getComponentCount() - 1);
         panel.add(pagination, BorderLayout.EAST);
 
         return panel;
@@ -321,19 +350,32 @@ public class AdminRevenuePanel extends JPanel {
         String search = searchField.getText().trim().toLowerCase();
         String status = cmbStatus.getSelectedItem().toString();
 
-        for(Object[] revenue : revenues) {
+        for (Object[] revenue : revenues) {
 
-            String details = (revenue[0] + " " + revenue[1] + " " + revenue[7] + " " + revenue[2] + " " + revenue[3]).toLowerCase();
+            String details =
+                    (revenue[0]
+                                    + " "
+                                    + revenue[1]
+                                    + " "
+                                    + revenue[7]
+                                    + " "
+                                    + revenue[2]
+                                    + " "
+                                    + revenue[3])
+                            .toLowerCase();
 
-            if(details.contains(search) && (status.equals("All Statuses") || status.equalsIgnoreCase(revenue[6].toString()))) {
+            if (details.contains(search)
+                    && (status.equals("All Statuses")
+                            || status.equalsIgnoreCase(revenue[6].toString()))) {
 
                 filteredRevenues.add(revenue);
             }
         }
 
         if (status.equals("All Statuses")) {
-            filteredRevenues.sort(java.util.Comparator.comparingInt(row ->
-                    "Pending".equals(row[6]) ? 0 : "Paid".equals(row[6]) ? 2 : 1));
+            filteredRevenues.sort(
+                    java.util.Comparator.comparingInt(
+                            row -> "Pending".equals(row[6]) ? 0 : "Paid".equals(row[6]) ? 2 : 1));
         }
         currentPage = 1;
         loadPage();
@@ -341,7 +383,9 @@ public class AdminRevenuePanel extends JPanel {
 
     private Integer selectedPaymentId() {
         int row = table.getSelectedRow();
-        return row < 0 ? null : ((Number)model.getValueAt(table.convertRowIndexToModel(row),0)).intValue();
+        return row < 0
+                ? null
+                : ((Number) model.getValueAt(table.convertRowIndexToModel(row), 0)).intValue();
     }
 
     private void loadPage() {
@@ -350,21 +394,28 @@ public class AdminRevenuePanel extends JPanel {
         int totalPages = Math.max(1, (filteredRevenues.size() + rowsPerPage - 1) / rowsPerPage);
         currentPage = Math.max(1, Math.min(currentPage, totalPages));
         int start = (currentPage - 1) * rowsPerPage;
-        int end = Math.min(start + rowsPerPage,filteredRevenues.size());
+        int end = Math.min(start + rowsPerPage, filteredRevenues.size());
 
-        for(int i = start; i < end; i++) {
+        for (int i = start; i < end; i++) {
 
             model.addRow(filteredRevenues.get(i));
         }
 
         int first = 0;
 
-        if(!filteredRevenues.isEmpty()) {
+        if (!filteredRevenues.isEmpty()) {
 
             first = start + 1;
         }
 
-        lblInfo.setText("Showing " + first + " to " + end + " of " + filteredRevenues.size() + " commuters");
+        lblInfo.setText(
+                "Showing "
+                        + first
+                        + " to "
+                        + end
+                        + " of "
+                        + filteredRevenues.size()
+                        + " commuters");
         table.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
         updatePaginationButtons();
         btnPrev.setEnabled(currentPage > 1);
@@ -374,7 +425,7 @@ public class AdminRevenuePanel extends JPanel {
 
     private void updatePaginationButtons() {
 
-        int totalPages = (int)Math.ceil(filteredRevenues.size() / (double)rowsPerPage);
+        int totalPages = (int) Math.ceil(filteredRevenues.size() / (double) rowsPerPage);
 
         btnPrev.setEnabled(currentPage > 1);
         btnNext.setEnabled(currentPage < totalPages);
@@ -384,40 +435,46 @@ public class AdminRevenuePanel extends JPanel {
         btnTwo.setVisible(pairStart + 1 <= totalPages);
 
         btnOne.setBackground(Color.WHITE);
-        btnOne.setForeground(new Color(80,80,80));
+        btnOne.setForeground(new Color(80, 80, 80));
         btnTwo.setBackground(Color.WHITE);
-        btnTwo.setForeground(new Color(80,80,80));
+        btnTwo.setForeground(new Color(80, 80, 80));
 
-        if(currentPage == pairStart) {
+        if (currentPage == pairStart) {
 
-            btnOne.setBackground(new Color(225,29,72));
+            btnOne.setBackground(new Color(225, 29, 72));
             btnOne.setForeground(Color.WHITE);
 
-        } else if(currentPage == pairStart + 1) {
+        } else if (currentPage == pairStart + 1) {
 
-            btnTwo.setBackground(new Color(225,29,72));
+            btnTwo.setBackground(new Color(225, 29, 72));
             btnTwo.setForeground(Color.WHITE);
         }
     }
+
     private void printRevenue() {
         if (loading || editing || model.getRowCount() == 0) return;
         editing = true;
         try {
-            if (table.print(JTable.PrintMode.FIT_WIDTH,
-                    new MessageFormat("Revenue Management"), new MessageFormat("Page {0}"))) {
-                qpal.dao.ActivityLogDao.recordActivity("Revenue", "Print", "Printed the current page of revenue records.");
+            if (table.print(
+                    JTable.PrintMode.FIT_WIDTH,
+                    new MessageFormat("Revenue Management"),
+                    new MessageFormat("Page {0}"))) {
+                qpal.dao.ActivityLogDao.recordActivity(
+                        "Revenue", "Print", "Printed the current page of revenue records.");
             }
         } catch (PrinterException ex) {
-            qpal.components.AppDialogs.showMessageDialog(this, "Unable to print revenue.", "Print Error", JOptionPane.ERROR_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(
+                    this, "Unable to print revenue.", "Print Error", JOptionPane.ERROR_MESSAGE);
         } finally {
             editing = false;
         }
     }
+
     private JButton createButton(String text, Color color) {
 
         JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(95,34));
-        button.setFont(new Font("SansSerif",Font.BOLD,13));
+        button.setPreferredSize(new Dimension(95, 34));
+        button.setFont(new Font("SansSerif", Font.BOLD, 13));
         button.setBackground(color);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
@@ -427,4 +484,3 @@ public class AdminRevenuePanel extends JPanel {
         return button;
     }
 }
-

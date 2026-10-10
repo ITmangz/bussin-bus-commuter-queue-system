@@ -8,14 +8,14 @@ import qpal.model.Account;
 import qpal.view.Admin.AdminDashboard;
 import qpal.view.Employee.EmployeeDashboard;
 
-public class LoginPage{
+public class LoginPage {
 
     public LoginPage() {
 
         AccountDao accountDao = new AccountDao();
-        
+
         JFrame lpage = new JFrame();
-        lpage.setSize(850,550);
+        lpage.setSize(850, 550);
         lpage.setResizable(false);
         lpage.setLocationRelativeTo(null);
         lpage.setLayout(null);
@@ -50,18 +50,21 @@ public class LoginPage{
 
         int[] currentImage = {0};
 
-        Timer imageTimer = new Timer(5000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                currentImage[0]++;
+        Timer imageTimer =
+                new Timer(
+                        5000,
+                        new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                currentImage[0]++;
 
-                if (currentImage[0] >= backgrounds.length) {
-                    currentImage[0] = 0;
-                }
+                                if (currentImage[0] >= backgrounds.length) {
+                                    currentImage[0] = 0;
+                                }
 
-                leftbg.setIcon(backgrounds[currentImage[0]]);
-            }
-        });
+                                leftbg.setIcon(backgrounds[currentImage[0]]);
+                            }
+                        });
 
         imageTimer.start();
 
@@ -98,26 +101,31 @@ public class LoginPage{
         emailtxt.setBorder(BorderFactory.createEmptyBorder(5, 42, 5, 20));
         rightpanel.add(emailtxt);
 
-            emailtxt.setDocument(new javax.swing.text.PlainDocument() {
+        emailtxt.setDocument(
+                new javax.swing.text.PlainDocument() {
 
-                @Override
-                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
-                        throws javax.swing.text.BadLocationException {
+                    @Override
+                    public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                            throws javax.swing.text.BadLocationException {
 
-                    if (str == null) {
-                        return;
+                        if (str == null) {
+                            return;
+                        }
+
+                        if (getLength() + str.length() <= 100) {
+                            super.insertString(offs, str, a);
+
+                        } else {
+                            emailtxt.setText("");
+                            Toolkit.getDefaultToolkit().beep();
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Email must not exceed 100 characters.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                        }
                     }
-
-                    if (getLength() + str.length() <= 100) {
-                        super.insertString(offs, str, a);
-
-                    } else {
-                        emailtxt.setText("");
-                        Toolkit.getDefaultToolkit().beep();
-                        qpal.components.AppDialogs.showMessageDialog(null, "Email must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    }
-                }
-            });
+                });
 
         JLabel adicon = new JLabel();
         adicon.setBounds(10, 0, 40, 40);
@@ -142,24 +150,29 @@ public class LoginPage{
         passtxt.setEchoChar('•');
         rightpanel.add(passtxt);
 
-            passtxt.setDocument(new javax.swing.text.PlainDocument() {
-                @Override
-                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
-                        throws javax.swing.text.BadLocationException {
+        passtxt.setDocument(
+                new javax.swing.text.PlainDocument() {
+                    @Override
+                    public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                            throws javax.swing.text.BadLocationException {
 
-                    if (str == null) {
-                        return;
-                    }
+                        if (str == null) {
+                            return;
+                        }
 
-                    if (getLength() + str.length() <= 100) {
-                        super.insertString(offs, str, a);
-                    } else {
-                        passtxt.setText("");
-                        Toolkit.getDefaultToolkit().beep();
-                        qpal.components.AppDialogs.showMessageDialog(null, "Password must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
+                        if (getLength() + str.length() <= 100) {
+                            super.insertString(offs, str, a);
+                        } else {
+                            passtxt.setText("");
+                            Toolkit.getDefaultToolkit().beep();
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Password must not exceed 100 characters.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                        }
                     }
-                }
-            });
+                });
 
         JLabel passicon = new JLabel();
         passicon.setBounds(10, 0, 40, 40);
@@ -185,29 +198,31 @@ public class LoginPage{
         eyeclose.setVisible(false);
         passtxt.add(eyeclose);
 
-            eyeopen.addMouseListener(new MouseAdapter() {
+        eyeopen.addMouseListener(
+                new MouseAdapter() {
 
-                @Override
-                public void mouseClicked(MouseEvent e) {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
 
-                    passtxt.setEchoChar((char) 0);
+                        passtxt.setEchoChar((char) 0);
 
-                    eyeopen.setVisible(false);
-                    eyeclose.setVisible(true);
-                }
-            });
+                        eyeopen.setVisible(false);
+                        eyeclose.setVisible(true);
+                    }
+                });
 
-            eyeclose.addMouseListener(new MouseAdapter() {
+        eyeclose.addMouseListener(
+                new MouseAdapter() {
 
-                @Override
-                public void mouseClicked(MouseEvent e) {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
 
-                    passtxt.setEchoChar('•');
+                        passtxt.setEchoChar('•');
 
-                    eyeopen.setVisible(true);
-                    eyeclose.setVisible(false);
-                }
-            });
+                        eyeopen.setVisible(true);
+                        eyeclose.setVisible(false);
+                    }
+                });
 
         JLabel forgot = new JLabel("Forgot Password?");
         forgot.setBounds(25, 325, 200, 25);
@@ -216,23 +231,24 @@ public class LoginPage{
         forgot.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         rightpanel.add(forgot);
 
-        forgot.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                forgot.setForeground(new Color(180, 0, 40));
-            }
+        forgot.addMouseListener(
+                new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        forgot.setForeground(new Color(180, 0, 40));
+                    }
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                forgot.setForeground(new Color(220, 0, 50));
-            }
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        forgot.setForeground(new Color(220, 0, 50));
+                    }
 
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                lpage.dispose();
-                new ForgotPassword();
-            }
-        });
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        lpage.dispose();
+                        new ForgotPassword();
+                    }
+                });
 
         JButton loginbtn = new JButton("Login");
         loginbtn.setBounds(25, 360, 345, 40);
@@ -243,127 +259,159 @@ public class LoginPage{
         loginbtn.setBorderPainted(false);
         rightpanel.add(loginbtn);
 
-        ActionListener btnaction1 = new ActionListener() {
+        ActionListener btnaction1 =
+                new ActionListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
 
-                String email = emailtxt.getText().trim();
-                String password = new String(passtxt.getPassword()).trim();
+                        String email = emailtxt.getText().trim();
+                        String password = new String(passtxt.getPassword()).trim();
 
-                if (email.isEmpty() && password.isEmpty()) {
+                        if (email.isEmpty() && password.isEmpty()) {
 
-                    qpal.components.AppDialogs.showMessageDialog(null, "Email and Password are required.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    emailtxt.setText("");
-                    passtxt.setText("");
-                    return;
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Email and Password are required.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                            emailtxt.setText("");
+                            passtxt.setText("");
+                            return;
 
-                } else if (email.isEmpty()) {
+                        } else if (email.isEmpty()) {
 
-                    qpal.components.AppDialogs.showMessageDialog(null,"Email is required.","Warning!",JOptionPane.WARNING_MESSAGE);
-                    emailtxt.setText("");
-                    passtxt.setText("");
-                    return;
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Email is required.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                            emailtxt.setText("");
+                            passtxt.setText("");
+                            return;
 
-                } else if (password.isEmpty()) {
+                        } else if (password.isEmpty()) {
 
-                    qpal.components.AppDialogs.showMessageDialog(null,"Password is required.","Warning!", JOptionPane.WARNING_MESSAGE);
-                    emailtxt.setText("");
-                    passtxt.setText("");
-                    return;
-                }
-          
-                Account account = accountDao.Login(email, password);
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Password is required.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                            emailtxt.setText("");
+                            passtxt.setText("");
+                            return;
+                        }
 
-                if (account != null) {
+                        Account account = accountDao.Login(email, password);
 
-                    qpal.components.AppDialogs.showMessageDialog(null,"Login successful!","Success!", JOptionPane.INFORMATION_MESSAGE);
+                        if (account != null) {
 
-                    if (account.getRole().equalsIgnoreCase("admin")) {
-                        qpal.dao.ActivityLogDao.setCurrentAccount(account);
-                        qpal.dao.ActivityLogDao.recordActivity("Authentication", "Login", "User logged in to the system.");
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Login successful!",
+                                    "Success!",
+                                    JOptionPane.INFORMATION_MESSAGE);
 
-                        lpage.dispose();
-                        new AdminDashboard(account);
+                            if (account.getRole().equalsIgnoreCase("admin")) {
+                                qpal.dao.ActivityLogDao.setCurrentAccount(account);
+                                qpal.dao.ActivityLogDao.recordActivity(
+                                        "Authentication", "Login", "User logged in to the system.");
 
-                    } else if (account.getRole().equalsIgnoreCase("employee")) {
-                        qpal.dao.ActivityLogDao.setCurrentAccount(account);
-                        qpal.dao.ActivityLogDao.recordActivity("Authentication", "Login", "User logged in to the system.");
-                        
-                        lpage.dispose();
-                        new EmployeeDashboard(account);
+                                lpage.dispose();
+                                new AdminDashboard(account);
 
-                    } else {
+                            } else if (account.getRole().equalsIgnoreCase("employee")) {
+                                qpal.dao.ActivityLogDao.setCurrentAccount(account);
+                                qpal.dao.ActivityLogDao.recordActivity(
+                                        "Authentication", "Login", "User logged in to the system.");
 
-                        qpal.components.AppDialogs.showMessageDialog(null,"Unknown account role.","Error", JOptionPane.ERROR_MESSAGE);
-                        emailtxt.setText("");
-                        passtxt.setText("");
-                        return;
+                                lpage.dispose();
+                                new EmployeeDashboard(account);
+
+                            } else {
+
+                                qpal.components.AppDialogs.showMessageDialog(
+                                        null,
+                                        "Unknown account role.",
+                                        "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                                emailtxt.setText("");
+                                passtxt.setText("");
+                                return;
+                            }
+
+                            lpage.dispose();
+
+                        } else if (accountDao.CheckInactive(email)) {
+
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "This account has been inactive. Please contact the admin.",
+                                    "Account Inactive",
+                                    JOptionPane.WARNING_MESSAGE);
+                            emailtxt.setText("");
+                            passtxt.setText("");
+
+                        } else if (accountDao.CheckEmail(email)) {
+
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Invalid Credentials.",
+                                    "Login Failed!",
+                                    JOptionPane.ERROR_MESSAGE);
+                            emailtxt.setText("");
+                            passtxt.setText("");
+
+                        } else {
+
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Invalid Credentials.",
+                                    "Login Failed!",
+                                    JOptionPane.ERROR_MESSAGE);
+                            emailtxt.setText("");
+                            passtxt.setText("");
+                        }
                     }
-
-                    lpage.dispose();
-
-                } else if (accountDao.CheckInactive(email)) {
-
-                    qpal.components.AppDialogs.showMessageDialog(null, "This account has been inactive. Please contact the admin.","Account Inactive",JOptionPane.WARNING_MESSAGE);
-                    emailtxt.setText("");
-                    passtxt.setText("");
-
-                } else if (accountDao.CheckEmail(email)) {
-
-                    qpal.components.AppDialogs.showMessageDialog(null,"Invalid Credentials.","Login Failed!",JOptionPane.ERROR_MESSAGE);
-                    emailtxt.setText("");
-                    passtxt.setText("");
-
-                } else {
-
-                    qpal.components.AppDialogs.showMessageDialog(null,"Invalid Credentials.","Login Failed!", JOptionPane.ERROR_MESSAGE);
-                    emailtxt.setText("");
-                    passtxt.setText("");
-
-                }
-            }
-        };
+                };
 
         loginbtn.addActionListener(btnaction1);
 
-        emailtxt.addKeyListener(new KeyListener() {
+        emailtxt.addKeyListener(
+                new KeyListener() {
 
-            @Override
-            public void keyPressed(KeyEvent e) {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
 
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    loginbtn.doClick();
-                }
-            }
+                        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                            loginbtn.doClick();
+                        }
+                    }
 
-            @Override
-            public void keyTyped(KeyEvent e) {
-            }
+                    @Override
+                    public void keyTyped(KeyEvent e) {}
 
-            @Override
-            public void keyReleased(KeyEvent e) {
-            }
-        });
+                    @Override
+                    public void keyReleased(KeyEvent e) {}
+                });
 
-        passtxt.addKeyListener(new KeyListener() {
+        passtxt.addKeyListener(
+                new KeyListener() {
 
-            @Override
-            public void keyPressed(KeyEvent e) {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
 
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    loginbtn.doClick();
-                }
-            }
+                        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                            loginbtn.doClick();
+                        }
+                    }
 
-            @Override
-            public void keyTyped(KeyEvent e) {
-            }
+                    @Override
+                    public void keyTyped(KeyEvent e) {}
 
-            @Override
-            public void keyReleased(KeyEvent e) {
-            }
-        });
+                    @Override
+                    public void keyReleased(KeyEvent e) {}
+                });
 
         JLabel subtext2 = new JLabel("Terms of use | Privacy Policy");
         subtext2.setBounds(10, 455, 375, 25);
@@ -373,6 +421,5 @@ public class LoginPage{
         rightpanel.add(subtext2);
 
         lpage.setVisible(true);
-
     }
 }

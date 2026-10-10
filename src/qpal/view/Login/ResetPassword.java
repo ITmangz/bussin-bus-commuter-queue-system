@@ -9,7 +9,7 @@ public class ResetPassword {
     public ResetPassword() {
 
         JFrame rpage = new JFrame();
-        rpage.setSize(850,550);
+        rpage.setSize(850, 550);
         rpage.setResizable(false);
         rpage.setLocationRelativeTo(null);
         rpage.setLayout(null);
@@ -59,26 +59,31 @@ public class ResetPassword {
         newpasstxt.setEchoChar('•');
         leftpanel.add(newpasstxt);
 
-            newpasstxt.setDocument(new javax.swing.text.PlainDocument() {
+        newpasstxt.setDocument(
+                new javax.swing.text.PlainDocument() {
 
-                @Override
-                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
-                        throws javax.swing.text.BadLocationException {
+                    @Override
+                    public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                            throws javax.swing.text.BadLocationException {
 
-                    if (str == null) {
-                        return;
+                        if (str == null) {
+                            return;
+                        }
+
+                        if (getLength() + str.length() <= 100) {
+                            super.insertString(offs, str, a);
+
+                        } else {
+                            newpasstxt.setText("");
+                            Toolkit.getDefaultToolkit().beep();
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Password must not exceed 100 characters.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                        }
                     }
-
-                    if (getLength() + str.length() <= 100) {
-                        super.insertString(offs, str, a);
-
-                    } else {
-                        newpasstxt.setText("");
-                        Toolkit.getDefaultToolkit().beep();
-                        qpal.components.AppDialogs.showMessageDialog(null, "Password must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    }
-                }
-            });
+                });
 
         JLabel passicon1 = new JLabel();
         passicon1.setBounds(10, 0, 40, 40);
@@ -104,29 +109,31 @@ public class ResetPassword {
         eyeclose1.setVisible(false);
         newpasstxt.add(eyeclose1);
 
-            eyeopen1.addMouseListener(new MouseAdapter() {
+        eyeopen1.addMouseListener(
+                new MouseAdapter() {
 
-                @Override
-                public void mouseClicked(MouseEvent e) {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
 
-                    newpasstxt.setEchoChar((char) 0);
+                        newpasstxt.setEchoChar((char) 0);
 
-                    eyeopen1.setVisible(false);
-                    eyeclose1.setVisible(true);
-                }
-            });
+                        eyeopen1.setVisible(false);
+                        eyeclose1.setVisible(true);
+                    }
+                });
 
-            eyeclose1.addMouseListener(new MouseAdapter() {
+        eyeclose1.addMouseListener(
+                new MouseAdapter() {
 
-                @Override
-                public void mouseClicked(MouseEvent e) {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
 
-                    newpasstxt.setEchoChar('•');
+                        newpasstxt.setEchoChar('•');
 
-                    eyeopen1.setVisible(true);
-                    eyeclose1.setVisible(false);
-                }
-            });
+                        eyeopen1.setVisible(true);
+                        eyeclose1.setVisible(false);
+                    }
+                });
 
         JLabel confirmpasstitle = new JLabel("Confirm Password");
         confirmpasstitle.setBounds(50, 250, 345, 25);
@@ -143,26 +150,31 @@ public class ResetPassword {
         confirmpasstxt.setEchoChar('•');
         leftpanel.add(confirmpasstxt);
 
-            confirmpasstxt.setDocument(new javax.swing.text.PlainDocument() {
+        confirmpasstxt.setDocument(
+                new javax.swing.text.PlainDocument() {
 
-                @Override
-                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
-                        throws javax.swing.text.BadLocationException {
+                    @Override
+                    public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                            throws javax.swing.text.BadLocationException {
 
-                    if (str == null) {
-                        return;
+                        if (str == null) {
+                            return;
+                        }
+
+                        if (getLength() + str.length() <= 100) {
+                            super.insertString(offs, str, a);
+
+                        } else {
+                            confirmpasstxt.setText("");
+                            Toolkit.getDefaultToolkit().beep();
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Password must not exceed 100 characters.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                        }
                     }
-
-                    if (getLength() + str.length() <= 100) {
-                        super.insertString(offs, str, a);
-
-                    } else {
-                        confirmpasstxt.setText("");
-                        Toolkit.getDefaultToolkit().beep();
-                        qpal.components.AppDialogs.showMessageDialog(null, "Password must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    }
-                }
-            });
+                });
 
         JLabel passicon2 = new JLabel();
         passicon2.setBounds(10, 0, 40, 40);
@@ -188,29 +200,31 @@ public class ResetPassword {
         eyeclose2.setVisible(false);
         confirmpasstxt.add(eyeclose2);
 
-            eyeopen2.addMouseListener(new MouseAdapter() {
+        eyeopen2.addMouseListener(
+                new MouseAdapter() {
 
-                @Override
-                public void mouseClicked(MouseEvent e) {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
 
-                    confirmpasstxt.setEchoChar((char) 0);
+                        confirmpasstxt.setEchoChar((char) 0);
 
-                    eyeopen2.setVisible(false);
-                    eyeclose2.setVisible(true);
-                }
-            });
+                        eyeopen2.setVisible(false);
+                        eyeclose2.setVisible(true);
+                    }
+                });
 
-            eyeclose2.addMouseListener(new MouseAdapter() {
+        eyeclose2.addMouseListener(
+                new MouseAdapter() {
 
-                @Override
-                public void mouseClicked(MouseEvent e) {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
 
-                    confirmpasstxt.setEchoChar('•');
+                        confirmpasstxt.setEchoChar('•');
 
-                    eyeopen2.setVisible(true);
-                    eyeclose2.setVisible(false);
-                }
-            });
+                        eyeopen2.setVisible(true);
+                        eyeclose2.setVisible(false);
+                    }
+                });
 
         JButton changebtn = new JButton("Change Password");
         changebtn.setBounds(50, 345, 345, 40);
@@ -221,78 +235,92 @@ public class ResetPassword {
         changebtn.setBorderPainted(false);
         leftpanel.add(changebtn);
 
-        ActionListener btnaction1 = new ActionListener() {
+        ActionListener btnaction1 =
+                new ActionListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
 
-                String newpassword = new String(newpasstxt.getPassword()).trim();
-                String confirmpassword = new String(confirmpasstxt.getPassword()).trim();
+                        String newpassword = new String(newpasstxt.getPassword()).trim();
+                        String confirmpassword = new String(confirmpasstxt.getPassword()).trim();
 
-                if (newpassword.isEmpty() && confirmpassword.isEmpty()) {
+                        if (newpassword.isEmpty() && confirmpassword.isEmpty()) {
 
-                    qpal.components.AppDialogs.showMessageDialog(null, "New Password and Confirm Password are required.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    return;
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "New Password and Confirm Password are required.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
 
-                } else if (newpassword.isEmpty()) {
+                        } else if (newpassword.isEmpty()) {
 
-                    qpal.components.AppDialogs.showMessageDialog(null, "New Password is required.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    return;
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "New Password is required.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
 
-                } else if (confirmpassword.isEmpty()) {
+                        } else if (confirmpassword.isEmpty()) {
 
-                    qpal.components.AppDialogs.showMessageDialog(null, "Confirm Password is required.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    return;
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Confirm Password is required.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
 
-                } else if (!newpassword.equals(confirmpassword)) {
+                        } else if (!newpassword.equals(confirmpassword)) {
 
-                    qpal.components.AppDialogs.showMessageDialog(null, "Passwords do not match.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    confirmpasstxt.setText("");
-                    return;
-                }
-
-            }
-        };
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Passwords do not match.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                            confirmpasstxt.setText("");
+                            return;
+                        }
+                    }
+                };
 
         changebtn.addActionListener(btnaction1);
 
-        newpasstxt.addKeyListener(new KeyListener() {
+        newpasstxt.addKeyListener(
+                new KeyListener() {
 
-            @Override
-            public void keyPressed(KeyEvent e) {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
 
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    changebtn.doClick();
-                }
-            }
+                        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                            changebtn.doClick();
+                        }
+                    }
 
-            @Override
-            public void keyTyped(KeyEvent e) {
-            }
+                    @Override
+                    public void keyTyped(KeyEvent e) {}
 
-            @Override
-            public void keyReleased(KeyEvent e) {
-            }
-        });
+                    @Override
+                    public void keyReleased(KeyEvent e) {}
+                });
 
-        confirmpasstxt.addKeyListener(new KeyListener() {
+        confirmpasstxt.addKeyListener(
+                new KeyListener() {
 
-            @Override
-            public void keyPressed(KeyEvent e) {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
 
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    changebtn.doClick();
-                }
-            }
+                        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                            changebtn.doClick();
+                        }
+                    }
 
-            @Override
-            public void keyTyped(KeyEvent e) {
-            }
+                    @Override
+                    public void keyTyped(KeyEvent e) {}
 
-            @Override
-            public void keyReleased(KeyEvent e) {
-            }
-        });
+                    @Override
+                    public void keyReleased(KeyEvent e) {}
+                });
 
         JSeparator line1 = new JSeparator();
         line1.setBounds(50, 415, 155, 2);
@@ -324,29 +352,29 @@ public class ResetPassword {
         logintxt.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         leftpanel.add(logintxt);
 
-        logintxt.addMouseListener(new MouseAdapter() {
+        logintxt.addMouseListener(
+                new MouseAdapter() {
 
-            @Override
-            public void mouseEntered(MouseEvent e) {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
 
-                logintxt.setForeground(new Color(180, 0, 40));
-            }
+                        logintxt.setForeground(new Color(180, 0, 40));
+                    }
 
-            @Override
-            public void mouseExited(MouseEvent e) {
+                    @Override
+                    public void mouseExited(MouseEvent e) {
 
-                logintxt.setForeground(new Color(220, 0, 50));
-            }
+                        logintxt.setForeground(new Color(220, 0, 50));
+                    }
 
-            @Override
-            public void mouseClicked(MouseEvent e) {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
 
-                rpage.dispose();
-                new LoginPage();
-            }
-        });
+                        rpage.dispose();
+                        new LoginPage();
+                    }
+                });
 
         rpage.setVisible(true);
-
     }
 }

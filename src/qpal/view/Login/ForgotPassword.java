@@ -6,7 +6,7 @@ import javax.swing.*;
 
 public class ForgotPassword {
 
-    public ForgotPassword() { //palitan mo na lang ng "public static void main (String[] args) {"
+    public ForgotPassword() { // palitan mo na lang ng "public static void main (String[] args) {"
 
         JFrame fpage = new JFrame();
         fpage.setSize(850, 550);
@@ -44,18 +44,21 @@ public class ForgotPassword {
 
         int[] currentImage = {0};
 
-        Timer imageTimer = new Timer(5000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                currentImage[0]++;
+        Timer imageTimer =
+                new Timer(
+                        5000,
+                        new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                currentImage[0]++;
 
-                if (currentImage[0] >= backgrounds.length) {
-                    currentImage[0] = 0;
-                }
+                                if (currentImage[0] >= backgrounds.length) {
+                                    currentImage[0] = 0;
+                                }
 
-                rightbg.setIcon(backgrounds[currentImage[0]]);
-            }
-        });
+                                rightbg.setIcon(backgrounds[currentImage[0]]);
+                            }
+                        });
 
         imageTimer.start();
 
@@ -100,26 +103,31 @@ public class ForgotPassword {
         emailtxt.setBorder(BorderFactory.createEmptyBorder(5, 42, 5, 10));
         leftpanel.add(emailtxt);
 
-         emailtxt.setDocument(new javax.swing.text.PlainDocument() {
+        emailtxt.setDocument(
+                new javax.swing.text.PlainDocument() {
 
-                @Override
-                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
-                        throws javax.swing.text.BadLocationException {
+                    @Override
+                    public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                            throws javax.swing.text.BadLocationException {
 
-                    if (str == null) {
-                        return;
+                        if (str == null) {
+                            return;
+                        }
+
+                        if (getLength() + str.length() <= 100) {
+                            super.insertString(offs, str, a);
+
+                        } else {
+                            emailtxt.setText("");
+                            Toolkit.getDefaultToolkit().beep();
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Email must not exceed 100 characters.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                        }
                     }
-
-                    if (getLength() + str.length() <= 100) {
-                        super.insertString(offs, str, a);
-
-                    } else {
-                        emailtxt.setText("");
-                        Toolkit.getDefaultToolkit().beep();
-                        qpal.components.AppDialogs.showMessageDialog(null, "Email must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    }
-                }
-            });
+                });
 
         JLabel emailicon = new JLabel();
         emailicon.setBounds(10, 0, 40, 40);
@@ -138,23 +146,31 @@ public class ForgotPassword {
         sendcodebtn.setBorderPainted(false);
         leftpanel.add(sendcodebtn);
 
-        ActionListener btnaction1 = new ActionListener() {
-    
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        ActionListener btnaction1 =
+                new ActionListener() {
 
-                String email = emailtxt.getText().trim();
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
 
-                if(email.isEmpty()) {
-                    qpal.components.AppDialogs.showMessageDialog(null, "Email is required.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    return;
+                        String email = emailtxt.getText().trim();
 
-                }
-                qpal.components.AppDialogs.showMessageDialog(null, "Verification code sent successfully.", "Success!", JOptionPane.INFORMATION_MESSAGE);
-                fpage.dispose();
-                new CodeVerification();
-            }
-        };
+                        if (email.isEmpty()) {
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Email is required.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
+                        qpal.components.AppDialogs.showMessageDialog(
+                                null,
+                                "Verification code sent successfully.",
+                                "Success!",
+                                JOptionPane.INFORMATION_MESSAGE);
+                        fpage.dispose();
+                        new CodeVerification();
+                    }
+                };
 
         sendcodebtn.addActionListener(btnaction1);
 
@@ -190,23 +206,24 @@ public class ForgotPassword {
         login.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         leftpanel.add(login);
 
-        login.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                login.setForeground(new Color(180, 0, 40));
-            }
+        login.addMouseListener(
+                new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        login.setForeground(new Color(180, 0, 40));
+                    }
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                login.setForeground(new Color(220, 0, 50));
-            }
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        login.setForeground(new Color(220, 0, 50));
+                    }
 
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                fpage.dispose();
-                new LoginPage();
-            }
-        });
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        fpage.dispose();
+                        new LoginPage();
+                    }
+                });
 
         fpage.setVisible(true);
     }

@@ -40,57 +40,80 @@ public class AdminActivityLogPanel extends JPanel {
 
     public AdminActivityLogPanel(Account account) {
         this.account = account;
-        setLayout(new BorderLayout(0,16));
-        setBackground(new Color(245,245,245));
-        setBorder(new EmptyBorder(20,25,20,25));
-        add(createHeader(),BorderLayout.NORTH);
-        add(createContent(),BorderLayout.CENTER);
+        setLayout(new BorderLayout(0, 16));
+        setBackground(new Color(245, 245, 245));
+        setBorder(new EmptyBorder(20, 25, 20, 25));
+        add(createHeader(), BorderLayout.NORTH);
+        add(createContent(), BorderLayout.CENTER);
         searchActivities();
-        Timer timer = new Timer(5000,e -> refreshData());
-        addHierarchyListener(e -> {
-            if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0) {
-                if (isShowing()) { timer.start(); refreshData(); }
-                else timer.stop();
-            }
-        });
+        Timer timer = new Timer(5000, e -> refreshData());
+        addHierarchyListener(
+                e -> {
+                    if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0) {
+                        if (isShowing()) {
+                            timer.start();
+                            refreshData();
+                        } else timer.stop();
+                    }
+                });
     }
 
     public void refreshData() {
         if (loading || editing) return;
         loading = true;
-        qpal.util.UiTask.run(() -> activityLogDao.getAllActivities(account), data -> {
-            activities.clear();
-            java.time.format.DateTimeFormatter format = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            for (ActivityLog activity : data) {
-                activities.add(new Object[]{activity.getId(), activity.getTimestamp().toLocalDateTime().format(format),
-                        activity.getEmail(), activity.getRole(), activity.getModule(), activity.getAction(), activity.getDescription()});
-            }
-            int page = currentPage;
-            searchActivities();
-            currentPage = page;
-            loadPage();
-            connectionStatus.setText(activities.isEmpty() ? "No activity records yet." : "");
-            if (ActivityLogDao.hasSaveFailed()) connectionStatus.setText("An activity could not be saved. Check the database connection.");
-            connectionStatus.setVisible(!connectionStatus.getText().isEmpty());
-            loading = false;
-        }, ex -> {
-            loading = false;
-            connectionStatus.setText("Unable to refresh activity logs. Check the database connection. Retrying in 5 seconds.");
-            connectionStatus.setVisible(true);
-        });
+        qpal.util.UiTask.run(
+                () -> activityLogDao.getAllActivities(account),
+                data -> {
+                    activities.clear();
+                    java.time.format.DateTimeFormatter format =
+                            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    for (ActivityLog activity : data) {
+                        activities.add(
+                                new Object[] {
+                                    activity.getId(),
+                                    activity.getTimestamp().toLocalDateTime().format(format),
+                                    activity.getEmail(),
+                                    activity.getRole(),
+                                    activity.getModule(),
+                                    activity.getAction(),
+                                    activity.getDescription()
+                                });
+                    }
+                    int page = currentPage;
+                    searchActivities();
+                    currentPage = page;
+                    loadPage();
+                    connectionStatus.setText(
+                            activities.isEmpty() ? "No activity records yet." : "");
+                    if (ActivityLogDao.hasSaveFailed())
+                        connectionStatus.setText(
+                                "An activity could not be saved. Check the database connection.");
+                    connectionStatus.setVisible(!connectionStatus.getText().isEmpty());
+                    loading = false;
+                },
+                ex -> {
+                    loading = false;
+                    connectionStatus.setText(
+                            "Unable to refresh activity logs. Check the database connection."
+                                + " Retrying in 5 seconds.");
+                    connectionStatus.setVisible(true);
+                });
     }
 
     private JPanel createHeader() {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         JLabel title = new JLabel("Activity Log");
-        title.setFont(new Font("SansSerif",Font.BOLD,30));
-        title.setForeground(new Color(228,0,70));
-        JLabel subtitle = new JLabel(account != null && "Employee".equalsIgnoreCase(account.getRole())
-                ? "View your recorded actions and activity." : "View recorded user actions and system activity.");
-        subtitle.setFont(new Font("SansSerif",Font.PLAIN,13));
-        subtitle.setForeground(new Color(120,120,120));
+        title.setFont(new Font("SansSerif", Font.BOLD, 30));
+        title.setForeground(new Color(228, 0, 70));
+        JLabel subtitle =
+                new JLabel(
+                        account != null && "Employee".equalsIgnoreCase(account.getRole())
+                                ? "View your recorded actions and activity."
+                                : "View recorded user actions and system activity.");
+        subtitle.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        subtitle.setForeground(new Color(120, 120, 120));
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(title);
@@ -98,44 +121,54 @@ public class AdminActivityLogPanel extends JPanel {
         panel.add(subtitle);
         if (account != null && "Admin".equalsIgnoreCase(account.getRole())) {
             panel.add(Box.createVerticalStrut(16));
-            JButton daily = new JButton() {
-                @Override protected void paintComponent(Graphics graphics) {
-                    Graphics2D g = (Graphics2D) graphics.create();
-                    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
-                    g.setColor(Color.WHITE);
-                    g.fillRoundRect(1,1,getWidth()-3,getHeight()-3,14,14);
-                    g.setColor(new Color(232,236,242));
-                    g.drawRoundRect(1,1,getWidth()-3,getHeight()-3,14,14);
-                    g.dispose();
-                    super.paintComponent(graphics);
-                }
-            };
-            daily.setLayout(new BorderLayout(12,0));
+            JButton daily =
+                    new JButton() {
+                        @Override
+                        protected void paintComponent(Graphics graphics) {
+                            Graphics2D g = (Graphics2D) graphics.create();
+                            g.setRenderingHint(
+                                    RenderingHints.KEY_ANTIALIASING,
+                                    RenderingHints.VALUE_ANTIALIAS_ON);
+                            g.setColor(Color.WHITE);
+                            g.fillRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 14, 14);
+                            g.setColor(new Color(232, 236, 242));
+                            g.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 14, 14);
+                            g.dispose();
+                            super.paintComponent(graphics);
+                        }
+                    };
+            daily.setLayout(new BorderLayout(12, 0));
             daily.setContentAreaFilled(false);
             daily.setBorderPainted(false);
             daily.setFocusPainted(false);
             daily.setRolloverEnabled(false);
-            daily.setBorder(new EmptyBorder(14,18,14,18));
+            daily.setBorder(new EmptyBorder(14, 18, 14, 18));
             daily.setAlignmentX(Component.LEFT_ALIGNMENT);
-            daily.setPreferredSize(new Dimension(420,78));
-            daily.setMaximumSize(new Dimension(Integer.MAX_VALUE,78));
+            daily.setPreferredSize(new Dimension(420, 78));
+            daily.setMaximumSize(new Dimension(Integer.MAX_VALUE, 78));
             daily.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            daily.getAccessibleContext().setAccessibleName("Daily Staff Summary — View daily staff transactions, collections, and boarding totals.");
-            JPanel copy = new JPanel(new GridLayout(2,1,0,3));
+            daily.getAccessibleContext()
+                    .setAccessibleName(
+                            "Daily Staff Summary — View daily staff transactions, collections, and"
+                                + " boarding totals.");
+            JPanel copy = new JPanel(new GridLayout(2, 1, 0, 3));
             copy.setOpaque(false);
             JLabel heading = new JLabel("Daily Staff Summary");
-            heading.setFont(new Font("SansSerif",Font.BOLD,17));
+            heading.setFont(new Font("SansSerif", Font.BOLD, 17));
             heading.setForeground(Color.BLACK);
-            JLabel hint = new JLabel("View daily staff transactions, collections, and boarding totals.");
-            hint.setFont(new Font("SansSerif",Font.PLAIN,13));
-            hint.setForeground(new Color(120,120,120));
-            copy.add(heading); copy.add(hint);
-            JLabel arrow = new JLabel(">",SwingConstants.RIGHT);
-            arrow.setFont(new Font("SansSerif",Font.PLAIN,24));
-            arrow.setForeground(new Color(120,120,120));
-            daily.add(copy,BorderLayout.CENTER);
-            daily.add(arrow,BorderLayout.EAST);
-            daily.addActionListener(e -> new DailyEmployeeSummaryDialog(this,account).setVisible(true));
+            JLabel hint =
+                    new JLabel("View daily staff transactions, collections, and boarding totals.");
+            hint.setFont(new Font("SansSerif", Font.PLAIN, 13));
+            hint.setForeground(new Color(120, 120, 120));
+            copy.add(heading);
+            copy.add(hint);
+            JLabel arrow = new JLabel(">", SwingConstants.RIGHT);
+            arrow.setFont(new Font("SansSerif", Font.PLAIN, 24));
+            arrow.setForeground(new Color(120, 120, 120));
+            daily.add(copy, BorderLayout.CENTER);
+            daily.add(arrow, BorderLayout.EAST);
+            daily.addActionListener(
+                    e -> new DailyEmployeeSummaryDialog(this, account).setVisible(true));
             panel.add(daily);
         }
         return panel;
@@ -143,18 +176,18 @@ public class AdminActivityLogPanel extends JPanel {
 
     private JPanel createContent() {
         JPanel panel = AdminDashboardPanel.card();
-        panel.setLayout(new BorderLayout(0,12));
-        panel.add(createTopPanel(),BorderLayout.NORTH);
+        panel.setLayout(new BorderLayout(0, 12));
+        panel.add(createTopPanel(), BorderLayout.NORTH);
         JPanel center = new JPanel(new BorderLayout());
         center.setOpaque(false);
-        center.add(createTable(),BorderLayout.CENTER);
+        center.add(createTable(), BorderLayout.CENTER);
         connectionStatus = new JLabel("Loading activity logs...");
-        connectionStatus.setFont(new Font("SansSerif",Font.PLAIN,12));
-        connectionStatus.setForeground(new Color(120,120,120));
-        connectionStatus.setBorder(new EmptyBorder(12,0,8,0));
-        center.add(connectionStatus,BorderLayout.SOUTH);
-        panel.add(center,BorderLayout.CENTER);
-        panel.add(createBottomPanel(),BorderLayout.SOUTH);
+        connectionStatus.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        connectionStatus.setForeground(new Color(120, 120, 120));
+        connectionStatus.setBorder(new EmptyBorder(12, 0, 8, 0));
+        center.add(connectionStatus, BorderLayout.SOUTH);
+        panel.add(center, BorderLayout.CENTER);
+        panel.add(createBottomPanel(), BorderLayout.SOUTH);
         return panel;
     }
 
@@ -162,77 +195,92 @@ public class AdminActivityLogPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
         JLabel title = new JLabel("Activity List");
-        title.setFont(new Font("SansSerif",Font.BOLD,22));
-        panel.add(title,BorderLayout.WEST);
-        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT,8,0));
+        title.setFont(new Font("SansSerif", Font.BOLD, 22));
+        panel.add(title, BorderLayout.WEST);
+        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         controls.setOpaque(false);
         searchField = new JTextField();
-        searchField.setPreferredSize(new Dimension(190,34));
-        searchField.setFont(new Font("SansSerif",Font.PLAIN,13));
-        searchField.setMargin(new Insets(0,10,0,10));
+        searchField.setPreferredSize(new Dimension(190, 34));
+        searchField.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        searchField.setMargin(new Insets(0, 10, 0, 10));
         searchField.setToolTipText("Search timestamp, email, role, module or description");
-        cmbPeriod = new JComboBox<>(new String[]{"Day","Last 7 Days","Last Month"});
+        cmbPeriod = new JComboBox<>(new String[] {"Day", "Last 7 Days", "Last Month"});
         AdminFormStyle.tableFilter(cmbPeriod);
-        cmbPeriod.setToolTipText("Today, seven days including today, or the previous calendar month");
+        cmbPeriod.setToolTipText(
+                "Today, seven days including today, or the previous calendar month");
         cmbPeriod.getAccessibleContext().setAccessibleName("Activity date range");
-        cmbPeriod.setFont(new Font("SansSerif",Font.PLAIN,13));
+        cmbPeriod.setFont(new Font("SansSerif", Font.PLAIN, 13));
         cmbPeriod.setBackground(Color.WHITE);
         cmbPeriod.setFocusable(false);
         cmbPeriod.addActionListener(e -> searchActivities());
-        JButton btnSearch = createButton("Search",new Color(225,29,72));
-        btnSearch.addActionListener(e -> {
-            if (AdminFormStyle.validateSearch(searchField)) {
-                appliedSearch = searchField.getText().trim();
-                searchActivities();
-            }
-        });
-        AdminFormStyle.searchOnEnter(searchField,btnSearch);
-        btnPrint = createButton("Print",new Color(59,130,246));
+        JButton btnSearch = createButton("Search", new Color(225, 29, 72));
+        btnSearch.addActionListener(
+                e -> {
+                    if (AdminFormStyle.validateSearch(searchField)) {
+                        appliedSearch = searchField.getText().trim();
+                        searchActivities();
+                    }
+                });
+        AdminFormStyle.searchOnEnter(searchField, btnSearch);
+        btnPrint = createButton("Print", new Color(59, 130, 246));
         btnPrint.setToolTipText("Print the current page of activity records");
         btnPrint.addActionListener(e -> printActivities());
         controls.add(searchField);
         controls.add(cmbPeriod);
         controls.add(btnSearch);
         controls.add(btnPrint);
-        panel.add(controls,BorderLayout.EAST);
+        panel.add(controls, BorderLayout.EAST);
         return panel;
     }
 
     private JScrollPane createTable() {
-        String[] columns = {"#","Timestamp","Email","Role","Module","Action","Description"};
-        model = new DefaultTableModel(columns,0) {
-            public boolean isCellEditable(int row,int column) { return false; }
-        };
+        String[] columns = {"#", "Timestamp", "Email", "Role", "Module", "Action", "Description"};
+        model =
+                new DefaultTableModel(columns, 0) {
+                    public boolean isCellEditable(int row, int column) {
+                        return false;
+                    }
+                };
         table = new JTable(model);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        table.setFont(new Font("SansSerif",Font.PLAIN,12));
+        table.setFont(new Font("SansSerif", Font.PLAIN, 12));
         table.setRowHeight(42);
         table.setShowVerticalLines(false);
-        table.setGridColor(new Color(236,236,236));
-        table.setSelectionBackground(new Color(240,247,255));
-        table.setDefaultRenderer(Object.class,new ModernTableCellRenderer() {
-            public Component getTableCellRendererComponent(JTable table,Object value,boolean selected,boolean focus,int row,int column) {
-                super.getTableCellRendererComponent(table,value,selected,focus,row,column);
-                setHorizontalAlignment(column == 0 ? CENTER : LEFT);
-                setFont(new Font("SansSerif",Font.PLAIN,12));
-                setToolTipText(value == null ? null : value.toString());
-                return this;
-            }
-        });
+        table.setGridColor(new Color(236, 236, 236));
+        table.setSelectionBackground(new Color(240, 247, 255));
+        table.setDefaultRenderer(
+                Object.class,
+                new ModernTableCellRenderer() {
+                    public Component getTableCellRendererComponent(
+                            JTable table,
+                            Object value,
+                            boolean selected,
+                            boolean focus,
+                            int row,
+                            int column) {
+                        super.getTableCellRendererComponent(
+                                table, value, selected, focus, row, column);
+                        setHorizontalAlignment(column == 0 ? CENTER : LEFT);
+                        setFont(new Font("SansSerif", Font.PLAIN, 12));
+                        setToolTipText(value == null ? null : value.toString());
+                        return this;
+                    }
+                });
         table.getColumnModel().getColumn(5).setCellRenderer(new ActivityActionRenderer());
         table.setFillsViewportHeight(true);
         JTableHeader header = table.getTableHeader();
-        header.setFont(new Font("SansSerif",Font.BOLD,12));
+        header.setFont(new Font("SansSerif", Font.BOLD, 12));
         header.setBackground(Color.WHITE);
-        header.setPreferredSize(new Dimension(0,34));
+        header.setPreferredSize(new Dimension(0, 34));
         header.setReorderingAllowed(false);
-        int[] widths = {35,150,155,75,140,90,245};
-        for (int i = 0; i < widths.length; i++) table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+        int[] widths = {35, 150, 155, 75, 140, 90, 245};
+        for (int i = 0; i < widths.length; i++)
+            table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         JScrollPane scroll = new JScrollPane(table);
         scroll.setColumnHeaderView(header);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(Color.WHITE);
-        AdminCard.styleScrollBar(scroll,Color.WHITE);
+        AdminCard.styleScrollBar(scroll, Color.WHITE);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         return scroll;
     }
@@ -242,11 +290,17 @@ public class AdminActivityLogPanel extends JPanel {
         String search = appliedSearch.toLowerCase(Locale.ROOT);
         String period = cmbPeriod.getSelectedItem().toString();
         java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Manila"));
-        java.time.LocalDate start = period.equals("Day") ? today : period.equals("Last 7 Days")
-                ? today.minusDays(6) : today.withDayOfMonth(1).minusMonths(1);
-        java.time.LocalDate end = period.equals("Last Month") ? today.withDayOfMonth(1) : today.plusDays(1);
+        java.time.LocalDate start =
+                period.equals("Day")
+                        ? today
+                        : period.equals("Last 7 Days")
+                                ? today.minusDays(6)
+                                : today.withDayOfMonth(1).minusMonths(1);
+        java.time.LocalDate end =
+                period.equals("Last Month") ? today.withDayOfMonth(1) : today.plusDays(1);
         for (Object[] activity : activities) {
-            java.time.LocalDate date = java.time.LocalDate.parse(activity[1].toString().substring(0,10));
+            java.time.LocalDate date =
+                    java.time.LocalDate.parse(activity[1].toString().substring(0, 10));
             String details = "";
             for (Object value : activity) details += value + " ";
             if (details.toLowerCase(Locale.ROOT).contains(search)
@@ -257,72 +311,78 @@ public class AdminActivityLogPanel extends JPanel {
         currentPage = 1;
         loadPage();
     }
+
     private JPanel createBottomPanel() {
 
-        JPanel panel = new JPanel(new BorderLayout(12,0));
+        JPanel panel = new JPanel(new BorderLayout(12, 0));
         panel.setOpaque(false);
 
         lblInfo = new JLabel();
-        lblInfo.setFont(new Font("SansSerif",Font.PLAIN,12));
+        lblInfo.setFont(new Font("SansSerif", Font.PLAIN, 12));
         lblInfo.setForeground(Color.GRAY);
-        panel.add(lblInfo,BorderLayout.CENTER);
+        panel.add(lblInfo, BorderLayout.CENTER);
 
-        JPanel pagination = new JPanel(new FlowLayout(FlowLayout.RIGHT,6,0));
+        JPanel pagination = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         pagination.setOpaque(false);
         btnPrev = new JButton("<");
         btnNext = new JButton(">");
         btnOne = new JButton("1");
         btnTwo = new JButton("2");
 
-        JButton[] buttons = {btnPrev,btnOne,btnTwo,btnNext};
+        JButton[] buttons = {btnPrev, btnOne, btnTwo, btnNext};
 
-        for(JButton b : buttons) {
+        for (JButton b : buttons) {
 
-            b.setPreferredSize(new Dimension(34,30));
-            b.setFont(new Font("SansSerif",Font.BOLD,14));
+            b.setPreferredSize(new Dimension(34, 30));
+            b.setFont(new Font("SansSerif", Font.BOLD, 14));
             b.setFocusPainted(false);
             b.setCursor(new Cursor(Cursor.HAND_CURSOR));
             b.setBackground(Color.WHITE);
-            b.setForeground(new Color(80,80,80));
-            b.setBorder(BorderFactory.createLineBorder(new Color(220,220,220)));
+            b.setForeground(new Color(80, 80, 80));
+            b.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
             pagination.add(b);
         }
 
-        btnOne.addActionListener(e -> {
+        btnOne.addActionListener(
+                e -> {
+                    currentPage = Integer.parseInt(btnOne.getText());
+                    loadPage();
+                });
 
-            currentPage = Integer.parseInt(btnOne.getText());
-            loadPage();
-        });
+        btnTwo.addActionListener(
+                e -> {
+                    currentPage = Integer.parseInt(btnTwo.getText());
+                    loadPage();
+                });
+        btnPrev.addActionListener(
+                e -> {
+                    if (currentPage > 1) {
 
-        btnTwo.addActionListener(e -> {
+                        currentPage--;
+                        loadPage();
+                    }
+                });
+        btnNext.addActionListener(
+                e -> {
+                    if (currentPage * rowsPerPage < filteredActivities.size()) {
 
-            currentPage = Integer.parseInt(btnTwo.getText());
-            loadPage();
-        });
-        btnPrev.addActionListener(e -> {
-
-            if(currentPage > 1) {
-
-                currentPage--;
-                loadPage();
-            }
-        });
-        btnNext.addActionListener(e -> {
-
-            if(currentPage * rowsPerPage < filteredActivities.size()) {
-
-                currentPage++;
-                loadPage();
-            }
-        });
-        pagination.add(qpal.components.PagePicker.create(() -> currentPage,
-                () -> (filteredActivities.size() + rowsPerPage - 1) / rowsPerPage,
-                page -> { currentPage = page; loadPage(); }), pagination.getComponentCount() - 1);
+                        currentPage++;
+                        loadPage();
+                    }
+                });
+        pagination.add(
+                qpal.components.PagePicker.create(
+                        () -> currentPage,
+                        () -> (filteredActivities.size() + rowsPerPage - 1) / rowsPerPage,
+                        page -> {
+                            currentPage = page;
+                            loadPage();
+                        }),
+                pagination.getComponentCount() - 1);
         panel.add(pagination, BorderLayout.EAST);
 
         return panel;
     }
-
 
     private void loadPage() {
 
@@ -330,9 +390,9 @@ public class AdminActivityLogPanel extends JPanel {
         int totalPages = Math.max(1, (filteredActivities.size() + rowsPerPage - 1) / rowsPerPage);
         currentPage = Math.max(1, Math.min(currentPage, totalPages));
         int start = (currentPage - 1) * rowsPerPage;
-        int end = Math.min(start + rowsPerPage,filteredActivities.size());
+        int end = Math.min(start + rowsPerPage, filteredActivities.size());
 
-        for(int i = start; i < end; i++) {
+        for (int i = start; i < end; i++) {
 
             model.addRow(filteredActivities.get(i));
         }
@@ -351,12 +411,19 @@ public class AdminActivityLogPanel extends JPanel {
 
         int first = 0;
 
-        if(!filteredActivities.isEmpty()) {
+        if (!filteredActivities.isEmpty()) {
 
             first = start + 1;
         }
 
-        lblInfo.setText("Showing " + first + " to " + end + " of " + filteredActivities.size() + " activities");
+        lblInfo.setText(
+                "Showing "
+                        + first
+                        + " to "
+                        + end
+                        + " of "
+                        + filteredActivities.size()
+                        + " activities");
         table.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
         updatePaginationButtons();
         btnPrev.setEnabled(currentPage > 1);
@@ -366,7 +433,7 @@ public class AdminActivityLogPanel extends JPanel {
 
     private void updatePaginationButtons() {
 
-        int totalPages = (int)Math.ceil(filteredActivities.size() / (double)rowsPerPage);
+        int totalPages = (int) Math.ceil(filteredActivities.size() / (double) rowsPerPage);
 
         btnPrev.setEnabled(currentPage > 1);
         btnNext.setEnabled(currentPage < totalPages);
@@ -376,49 +443,70 @@ public class AdminActivityLogPanel extends JPanel {
         btnTwo.setVisible(pairStart + 1 <= totalPages);
 
         btnOne.setBackground(Color.WHITE);
-        btnOne.setForeground(new Color(80,80,80));
+        btnOne.setForeground(new Color(80, 80, 80));
         btnTwo.setBackground(Color.WHITE);
-        btnTwo.setForeground(new Color(80,80,80));
+        btnTwo.setForeground(new Color(80, 80, 80));
 
-        if(currentPage == pairStart) {
+        if (currentPage == pairStart) {
 
-            btnOne.setBackground(new Color(225,29,72));
+            btnOne.setBackground(new Color(225, 29, 72));
             btnOne.setForeground(Color.WHITE);
 
-        } else if(currentPage == pairStart + 1) {
+        } else if (currentPage == pairStart + 1) {
 
-            btnTwo.setBackground(new Color(225,29,72));
+            btnTwo.setBackground(new Color(225, 29, 72));
             btnTwo.setForeground(Color.WHITE);
         }
     }
+
     private void printActivities() {
         if (loading || editing) return;
         editing = true;
-        DefaultTableModel snapshot = new DefaultTableModel(new String[]{"#","Timestamp","Email","Role","Module","Action","Description"},0) {
-            @Override public boolean isCellEditable(int row,int column) { return false; }
-        };
-        for (int row=0;row<model.getRowCount();row++) {
-            Object[] values=new Object[model.getColumnCount()];
-            for (int col=0;col<values.length;col++) values[col]=table.getValueAt(row,col);
+        DefaultTableModel snapshot =
+                new DefaultTableModel(
+                        new String[] {
+                            "#", "Timestamp", "Email", "Role", "Module", "Action", "Description"
+                        },
+                        0) {
+                    @Override
+                    public boolean isCellEditable(int row, int column) {
+                        return false;
+                    }
+                };
+        for (int row = 0; row < model.getRowCount(); row++) {
+            Object[] values = new Object[model.getColumnCount()];
+            for (int col = 0; col < values.length; col++) values[col] = table.getValueAt(row, col);
             snapshot.addRow(values);
         }
-        JTable preview = new JTable(snapshot); preview.setRowHeight(30);
+        JTable preview = new JTable(snapshot);
+        preview.setRowHeight(30);
         // Lay out the detached snapshot before opening the printer dialog directly.
         preview.setSize(900, Math.max(30, snapshot.getRowCount() * 30));
         preview.doLayout();
-            try {
-                if (preview.print(JTable.PrintMode.FIT_WIDTH,new MessageFormat("Activity Log"),new MessageFormat("Page {0}"))) {
-                    ActivityLogDao.recordActivity("Activity Log","Print","Printed the current page of activity records.");
-                }
+        try {
+            if (preview.print(
+                    JTable.PrintMode.FIT_WIDTH,
+                    new MessageFormat("Activity Log"),
+                    new MessageFormat("Page {0}"))) {
+                ActivityLogDao.recordActivity(
+                        "Activity Log", "Print", "Printed the current page of activity records.");
             }
-            catch (PrinterException ex) { qpal.components.AppDialogs.showMessageDialog(this,"Unable to print activity logs.","Print Error",JOptionPane.ERROR_MESSAGE); }
-            finally { editing=false; }
+        } catch (PrinterException ex) {
+            qpal.components.AppDialogs.showMessageDialog(
+                    this,
+                    "Unable to print activity logs.",
+                    "Print Error",
+                    JOptionPane.ERROR_MESSAGE);
+        } finally {
+            editing = false;
+        }
     }
+
     private JButton createButton(String text, Color color) {
 
         JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(95,34));
-        button.setFont(new Font("SansSerif",Font.BOLD,13));
+        button.setPreferredSize(new Dimension(95, 34));
+        button.setFont(new Font("SansSerif", Font.BOLD, 13));
         button.setBackground(color);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);

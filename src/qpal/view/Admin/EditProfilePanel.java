@@ -5,7 +5,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -43,17 +42,22 @@ public class EditProfilePanel extends JPanel {
     private String currentPassword = "";
 
     public EditProfilePanel(AdminDashboard parent) {
-        this(() -> parent == null ? null : parent.getCurrentAccount(), () -> { if (parent != null) parent.showPage("dashboard"); });
+        this(
+                () -> parent == null ? null : parent.getCurrentAccount(),
+                () -> {
+                    if (parent != null) parent.showPage("dashboard");
+                });
     }
 
-    public EditProfilePanel(java.util.function.Supplier<Account> accountSupplier, Runnable profileSaved) {
+    public EditProfilePanel(
+            java.util.function.Supplier<Account> accountSupplier, Runnable profileSaved) {
 
         this.accountSupplier = accountSupplier;
         this.profileSaved = profileSaved;
 
-        setLayout(new GridLayout(1,2));
+        setLayout(new GridLayout(1, 2));
         setBackground(Color.WHITE);
-        setBorder(new EmptyBorder(24,24,24,24));
+        setBorder(new EmptyBorder(24, 24, 24, 24));
 
         add(createForm());
         add(createPreview());
@@ -63,10 +67,13 @@ public class EditProfilePanel extends JPanel {
     public void showDialog(Component owner) {
 
         loadProfile();
-        setPreferredSize(new Dimension(740,460));
+        setPreferredSize(new Dimension(740, 460));
 
-        dialog = new JDialog(SwingUtilities.getWindowAncestor(owner),
-                "Edit Profile",Dialog.ModalityType.APPLICATION_MODAL);
+        dialog =
+                new JDialog(
+                        SwingUtilities.getWindowAncestor(owner),
+                        "Edit Profile",
+                        Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setUndecorated(true);
         dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         dialog.setContentPane(AdminFormStyle.frame(this));
@@ -75,105 +82,117 @@ public class EditProfilePanel extends JPanel {
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
     }
+
     private JPanel createForm() {
 
         JPanel panel = new JPanel();
         panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
-        panel.setBorder(new EmptyBorder(0,0,0,24));
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(new EmptyBorder(0, 0, 0, 24));
 
         JLabel lblTitle = new JLabel("Edit your Profile");
-        lblTitle.setFont(new Font("SansSerif",Font.BOLD,22));
-        lblTitle.setForeground(new Color(240,0,55));
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
+        lblTitle.setForeground(new Color(240, 0, 55));
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(lblTitle);
         panel.add(Box.createVerticalStrut(7));
 
         JLabel lblSubtitle = new JLabel("Update your photo and personal details.");
-        lblSubtitle.setFont(new Font("SansSerif",Font.PLAIN,12));
-        lblSubtitle.setForeground(new Color(100,100,100));
+        lblSubtitle.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        lblSubtitle.setForeground(new Color(100, 100, 100));
         lblSubtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(lblSubtitle);
         panel.add(Box.createVerticalStrut(20));
 
         txtName = createTextField();
 
-            txtName.setDocument(new javax.swing.text.PlainDocument() {
+        txtName.setDocument(
+                new javax.swing.text.PlainDocument() {
 
-                @Override
-                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
-                        throws javax.swing.text.BadLocationException {
+                    @Override
+                    public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                            throws javax.swing.text.BadLocationException {
 
-                    if (str == null) {
-                        return;
+                        if (str == null) {
+                            return;
+                        }
+
+                        if (getLength() + str.length() <= 100) {
+                            super.insertString(offs, str, a);
+
+                        } else {
+                            txtName.setText("");
+                            Toolkit.getDefaultToolkit().beep();
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Name must not exceed 100 characters.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                        }
                     }
-
-                    if (getLength() + str.length() <= 100) {
-                        super.insertString(offs, str, a);
-
-                    } else {
-                        txtName.setText("");
-                        Toolkit.getDefaultToolkit().beep();
-                        qpal.components.AppDialogs.showMessageDialog(null, "Name must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    }
-                }
-            });
-        addField(panel,"Name",txtName);
+                });
+        addField(panel, "Name", txtName);
         panel.add(Box.createVerticalStrut(18));
 
         txtEmail = createTextField();
 
-            txtEmail.setDocument(new javax.swing.text.PlainDocument() {
+        txtEmail.setDocument(
+                new javax.swing.text.PlainDocument() {
 
-                @Override
-                public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
-                        throws javax.swing.text.BadLocationException {
+                    @Override
+                    public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                            throws javax.swing.text.BadLocationException {
 
-                    if (str == null) {
-                        return;
+                        if (str == null) {
+                            return;
+                        }
+
+                        if (getLength() + str.length() <= 100) {
+                            super.insertString(offs, str, a);
+
+                        } else {
+                            txtEmail.setText("");
+                            Toolkit.getDefaultToolkit().beep();
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    null,
+                                    "Email must not exceed 100 characters.",
+                                    "Warning!",
+                                    JOptionPane.WARNING_MESSAGE);
+                        }
                     }
-
-                    if (getLength() + str.length() <= 100) {
-                        super.insertString(offs, str, a);
-
-                    } else {
-                        txtEmail.setText("");
-                        Toolkit.getDefaultToolkit().beep();
-                        qpal.components.AppDialogs.showMessageDialog(null, "Email must not exceed 100 characters.", "Warning!", JOptionPane.WARNING_MESSAGE);
-                    }
-                }
-            });
-        addField(panel,"Email",txtEmail);
+                });
+        addField(panel, "Email", txtEmail);
         panel.add(Box.createVerticalStrut(22));
 
-        JPanel details = new JPanel(new GridLayout(1,2,24,0));
+        JPanel details = new JPanel(new GridLayout(1, 2, 24, 0));
         details.setOpaque(false);
         details.setAlignmentX(Component.LEFT_ALIGNMENT);
-        details.setMaximumSize(new Dimension(Integer.MAX_VALUE,66));
+        details.setMaximumSize(new Dimension(Integer.MAX_VALUE, 66));
 
         txtAssignment = createTextField();
         txtSessionDetails = createTextField();
-        for (JTextField field : new JTextField[]{txtAssignment,txtSessionDetails}) {
+        for (JTextField field : new JTextField[] {txtAssignment, txtSessionDetails}) {
             field.setEditable(false);
-            field.setFont(new Font("SansSerif",Font.PLAIN,12));
-            field.setBackground(new Color(245,246,248));
+            field.setFont(new Font("SansSerif", Font.PLAIN, 12));
+            field.setBackground(new Color(245, 246, 248));
         }
         boolean employee = isEmployee();
         JPanel assignment = new JPanel();
         assignment.setOpaque(false);
-        assignment.setLayout(new BoxLayout(assignment,BoxLayout.Y_AXIS));
-        addField(assignment,employee ? "Assigned Station" : "Role",txtAssignment);
+        assignment.setLayout(new BoxLayout(assignment, BoxLayout.Y_AXIS));
+        addField(assignment, employee ? "Assigned Station" : "Role", txtAssignment);
         JPanel sessionDetails = new JPanel();
         sessionDetails.setOpaque(false);
-        sessionDetails.setLayout(new BoxLayout(sessionDetails,BoxLayout.Y_AXIS));
-        addField(sessionDetails,employee ? "Session Started" : "Account Status",txtSessionDetails);
+        sessionDetails.setLayout(new BoxLayout(sessionDetails, BoxLayout.Y_AXIS));
+        addField(
+                sessionDetails, employee ? "Session Started" : "Account Status", txtSessionDetails);
         details.add(assignment);
         details.add(sessionDetails);
         panel.add(details);
         panel.add(Box.createVerticalStrut(14));
 
         JSeparator separator = new JSeparator();
-        separator.setMaximumSize(new Dimension(Integer.MAX_VALUE,1));
+        separator.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
         separator.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(separator);
         panel.add(Box.createVerticalStrut(14));
@@ -183,17 +202,17 @@ public class EditProfilePanel extends JPanel {
         panel.add(lblPassword);
         panel.add(Box.createVerticalStrut(8));
 
-        JPanel password = new JPanel(new GridLayout(1,2,16,0));
+        JPanel password = new JPanel(new GridLayout(1, 2, 16, 0));
         password.setOpaque(false);
         password.setAlignmentX(Component.LEFT_ALIGNMENT);
-        password.setMaximumSize(new Dimension(Integer.MAX_VALUE,36));
-        password.setPreferredSize(new Dimension(0,36));
-        password.setMinimumSize(new Dimension(0,36));
+        password.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        password.setPreferredSize(new Dimension(0, 36));
+        password.setMinimumSize(new Dimension(0, 36));
         txtPassword = new JPasswordField("unchanged");
         txtPassword.setEditable(false);
-        txtPassword.setBackground(new Color(220,220,220));
-        txtPassword.setBorder(new EmptyBorder(8,10,8,10));
-        btnPassword = createButton("Change Password",new Color(240,0,55));
+        txtPassword.setBackground(new Color(220, 220, 220));
+        txtPassword.setBorder(new EmptyBorder(8, 10, 8, 10));
+        btnPassword = createButton("Change Password", new Color(240, 0, 55));
         btnPassword.addActionListener(e -> changePassword());
         password.add(txtPassword);
         password.add(btnPassword);
@@ -204,19 +223,20 @@ public class EditProfilePanel extends JPanel {
 
     private JPanel createPreview() {
 
-        JPanel panel = new JPanel(new BorderLayout(0,16));
+        JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setOpaque(false);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0,1,0,0,new Color(230,230,230)),
-                new EmptyBorder(16,23,0,0)));
+        panel.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 1, 0, 0, new Color(230, 230, 230)),
+                        new EmptyBorder(16, 23, 0, 0)));
 
         JPanel preview = new JPanel();
         preview.setOpaque(false);
-        preview.setLayout(new BoxLayout(preview,BoxLayout.Y_AXIS));
+        preview.setLayout(new BoxLayout(preview, BoxLayout.Y_AXIS));
 
         JLabel lblPreview = new JLabel("Preview");
         lblPreview.setForeground(Color.GRAY);
-        lblPreview.setFont(new Font("SansSerif",Font.PLAIN,15));
+        lblPreview.setFont(new Font("SansSerif", Font.PLAIN, 15));
         lblPreview.setAlignmentX(Component.CENTER_ALIGNMENT);
         preview.add(lblPreview);
         preview.add(Box.createVerticalStrut(16));
@@ -224,8 +244,8 @@ public class EditProfilePanel extends JPanel {
         lblPhoto = new JLabel();
         lblPhoto.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblPhoto.setHorizontalAlignment(SwingConstants.CENTER);
-        lblPhoto.setPreferredSize(new Dimension(150,150));
-        lblPhoto.setMaximumSize(new Dimension(150,150));
+        lblPhoto.setPreferredSize(new Dimension(150, 150));
+        lblPhoto.setMaximumSize(new Dimension(150, 150));
         preview.add(lblPhoto);
         preview.add(Box.createVerticalStrut(8));
 
@@ -237,57 +257,58 @@ public class EditProfilePanel extends JPanel {
         preview.add(Box.createVerticalStrut(14));
 
         lblPreviewName = new JLabel("Your name");
-        lblPreviewName.setFont(new Font("SansSerif",Font.BOLD,22));
+        lblPreviewName.setFont(new Font("SansSerif", Font.BOLD, 22));
         lblPreviewName.setAlignmentX(Component.CENTER_ALIGNMENT);
         preview.add(lblPreviewName);
         preview.add(Box.createVerticalStrut(8));
 
         lblPreviewRole = new JLabel("Admin");
-        lblPreviewRole.setFont(new Font("SansSerif",Font.PLAIN,14));
+        lblPreviewRole.setFont(new Font("SansSerif", Font.PLAIN, 14));
         lblPreviewRole.setForeground(Color.GRAY);
         lblPreviewRole.setAlignmentX(Component.CENTER_ALIGNMENT);
         preview.add(lblPreviewRole);
         preview.add(Box.createVerticalStrut(12));
 
         lblPreviewDetails = new JLabel(" ");
-        lblPreviewDetails.setFont(new Font("SansSerif",Font.PLAIN,14));
+        lblPreviewDetails.setFont(new Font("SansSerif", Font.PLAIN, 14));
         lblPreviewDetails.setForeground(Color.GRAY);
         lblPreviewDetails.setAlignmentX(Component.CENTER_ALIGNMENT);
         preview.add(lblPreviewDetails);
-        panel.add(preview,BorderLayout.CENTER);
+        panel.add(preview, BorderLayout.CENTER);
 
         JPanel buttons = new JPanel();
-        buttons.setLayout(new BoxLayout(buttons,BoxLayout.X_AXIS));
+        buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
         buttons.setOpaque(false);
-        buttons.setPreferredSize(new Dimension(276,36));
-        btnCancel = createButton("Cancel",new Color(220,220,220));
+        buttons.setPreferredSize(new Dimension(276, 36));
+        btnCancel = createButton("Cancel", new Color(220, 220, 220));
         btnCancel.setForeground(Color.DARK_GRAY);
-        btnSave = createButton("Save Changes",new Color(240,0,55));
-        for (JButton button : new JButton[]{btnCancel,btnSave}) {
-            Dimension size = new Dimension(132,36);
+        btnSave = createButton("Save Changes", new Color(240, 0, 55));
+        for (JButton button : new JButton[] {btnCancel, btnSave}) {
+            Dimension size = new Dimension(132, 36);
             button.setPreferredSize(size);
             button.setMinimumSize(size);
-            button.setMaximumSize(new Dimension(Integer.MAX_VALUE,36));
+            button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
         }
-        btnCancel.addActionListener(e -> {
-            loadProfile();
-            if(dialog != null) {
+        btnCancel.addActionListener(
+                e -> {
+                    loadProfile();
+                    if (dialog != null) {
 
-                dialog.dispose();
-            }
-        });
+                        dialog.dispose();
+                    }
+                });
         btnSave.addActionListener(e -> saveProfile());
         buttons.add(btnCancel);
         buttons.add(Box.createHorizontalStrut(12));
         buttons.add(btnSave);
         JPanel buttonRow = new JPanel(new GridBagLayout());
         buttonRow.setOpaque(false);
-        buttonRow.setPreferredSize(new Dimension(0,36));
+        buttonRow.setPreferredSize(new Dimension(0, 36));
         GridBagConstraints row = new GridBagConstraints();
         row.weightx = 1;
         row.fill = GridBagConstraints.HORIZONTAL;
-        buttonRow.add(buttons,row);
-        panel.add(buttonRow,BorderLayout.SOUTH);
+        buttonRow.add(buttons, row);
+        panel.add(buttonRow, BorderLayout.SOUTH);
 
         return panel;
     }
@@ -295,7 +316,7 @@ public class EditProfilePanel extends JPanel {
     public void loadProfile() {
 
         Account account = accountSupplier.get();
-        if(account == null) {
+        if (account == null) {
 
             txtName.setText("");
 
@@ -303,7 +324,7 @@ public class EditProfilePanel extends JPanel {
 
             txtName.setText(account.getName());
         }
-        if(account == null) {
+        if (account == null) {
 
             txtEmail.setText("");
 
@@ -311,7 +332,7 @@ public class EditProfilePanel extends JPanel {
 
             txtEmail.setText(account.getEmail());
         }
-        if(account == null) {
+        if (account == null) {
 
             lblPreviewRole.setText("Sign in to edit your profile");
 
@@ -326,24 +347,44 @@ public class EditProfilePanel extends JPanel {
         txtAssignment.setText(account == null ? "—" : account.getRole());
         txtSessionDetails.setText(account == null ? "—" : account.getStatus());
         txtSessionDetails.setToolTipText(null);
-        if(account != null) photoPath = account.getProfileImage() == null ? "" : account.getProfileImage();
-        if(isEmployee()) {
+        if (account != null)
+            photoPath = account.getProfileImage() == null ? "" : account.getProfileImage();
+        if (isEmployee()) {
             var session = qpal.dao.EmployeeStationDao.current();
             boolean assigned = session != null && session.accountId() == account.getID();
             txtAssignment.setText(assigned ? session.station().title() : "Not assigned");
             txtSessionDetails.setText(assigned ? "Loading…" : "Not started");
-            if(assigned) qpal.util.UiTask.run(() -> new qpal.dao.EmployeeSummaryDao().sessionStarted(session), started -> {
-                if(qpal.dao.EmployeeStationDao.current() != session) return;
-                txtSessionDetails.setText(started == null ? "Unavailable" : started.format(
-                        java.time.format.DateTimeFormatter.ofPattern("MMM d, h:mm a",java.util.Locale.ENGLISH)));
-                txtSessionDetails.setToolTipText(started == null ? null : started.format(
-                        java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy, h:mm a",java.util.Locale.ENGLISH))+" (Asia/Manila)");
-            }, ex -> {
-                if(qpal.dao.EmployeeStationDao.current() == session) {
-                    txtSessionDetails.setText("Unavailable");
-                    txtSessionDetails.setToolTipText("Could not load the session start time. Reopen your profile to retry.");
-                }
-            });
+            if (assigned)
+                qpal.util.UiTask.run(
+                        () -> new qpal.dao.EmployeeSummaryDao().sessionStarted(session),
+                        started -> {
+                            if (qpal.dao.EmployeeStationDao.current() != session) return;
+                            txtSessionDetails.setText(
+                                    started == null
+                                            ? "Unavailable"
+                                            : started.format(
+                                                    java.time.format.DateTimeFormatter.ofPattern(
+                                                            "MMM d, h:mm a",
+                                                            java.util.Locale.ENGLISH)));
+                            txtSessionDetails.setToolTipText(
+                                    started == null
+                                            ? null
+                                            : started.format(
+                                                            java.time.format.DateTimeFormatter
+                                                                    .ofPattern(
+                                                                            "MMMM d, yyyy, h:mm a",
+                                                                            java.util.Locale
+                                                                                    .ENGLISH))
+                                                    + " (Asia/Manila)");
+                        },
+                        ex -> {
+                            if (qpal.dao.EmployeeStationDao.current() == session) {
+                                txtSessionDetails.setText("Unavailable");
+                                txtSessionDetails.setToolTipText(
+                                        "Could not load the session start time. Reopen your profile"
+                                            + " to retry.");
+                            }
+                        });
         }
         btnSave.setEnabled(account != null);
         updatePreview();
@@ -353,30 +394,33 @@ public class EditProfilePanel extends JPanel {
         Account account = accountSupplier.get();
         return account != null && "Employee".equalsIgnoreCase(account.getRole());
     }
+
     private void addPreviewListeners() {
 
-        DocumentListener listener = new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) {
+        DocumentListener listener =
+                new DocumentListener() {
+                    public void insertUpdate(DocumentEvent e) {
 
-                updatePreview();
-            }
-            public void removeUpdate(DocumentEvent e) {
+                        updatePreview();
+                    }
 
-                updatePreview();
-            }
-            public void changedUpdate(DocumentEvent e) {
+                    public void removeUpdate(DocumentEvent e) {
 
-                updatePreview();
-            }
-        };
+                        updatePreview();
+                    }
+
+                    public void changedUpdate(DocumentEvent e) {
+
+                        updatePreview();
+                    }
+                };
         txtName.getDocument().addDocumentListener(listener);
-
     }
 
     private void updatePreview() {
 
         String name = txtName.getText().trim();
-        if(name.isEmpty()) {
+        if (name.isEmpty()) {
 
             lblPreviewName.setText("Your name");
 
@@ -384,37 +428,37 @@ public class EditProfilePanel extends JPanel {
 
             lblPreviewName.setText(name);
         }
-        lblPreviewDetails.setText(isEmployee() ? txtAssignment.getText() : txtSessionDetails.getText());
+        lblPreviewDetails.setText(
+                isEmployee() ? txtAssignment.getText() : txtSessionDetails.getText());
 
-        BufferedImage image = new BufferedImage(150,150,BufferedImage.TYPE_INT_ARGB);
+        BufferedImage image = new BufferedImage(150, 150, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setClip(new Ellipse2D.Double(1,1,148,148));
-        g.setColor(new Color(250,235,240));
-        g.fillRect(0,0,150,150);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setClip(new Ellipse2D.Double(1, 1, 148, 148));
+        g.setColor(new Color(250, 235, 240));
+        g.fillRect(0, 0, 150, 150);
         BufferedImage photo = null;
-        if(!photoPath.isEmpty()) {
+        if (!photoPath.isEmpty()) {
 
             try {
 
                 photo = ImageIO.read(new File(photoPath));
-            }
-            catch(Exception e) {
+            } catch (Exception e) {
 
                 photo = null;
             }
         }
-        if(photo != null) {
+        if (photo != null) {
 
-            double scale = Math.max(150.0/photo.getWidth(),150.0/photo.getHeight());
-            int width = (int)(photo.getWidth()*scale);
-            int height = (int)(photo.getHeight()*scale);
-            g.drawImage(photo,(150-width)/2,(150-height)/2,width,height,null);
+            double scale = Math.max(150.0 / photo.getWidth(), 150.0 / photo.getHeight());
+            int width = (int) (photo.getWidth() * scale);
+            int height = (int) (photo.getHeight() * scale);
+            g.drawImage(photo, (150 - width) / 2, (150 - height) / 2, width, height, null);
         } else {
-            g.setColor(new Color(225,29,72));
-            g.setFont(new Font("SansSerif",Font.BOLD,52));
-            String initial = name.isEmpty() ? "?" : name.substring(0,1).toUpperCase();
-            g.drawString(initial,(150-g.getFontMetrics().stringWidth(initial))/2,94);
+            g.setColor(new Color(225, 29, 72));
+            g.setFont(new Font("SansSerif", Font.BOLD, 52));
+            String initial = name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase();
+            g.drawString(initial, (150 - g.getFontMetrics().stringWidth(initial)) / 2, 94);
         }
         g.dispose();
         lblPhoto.setIcon(new ImageIcon(image));
@@ -423,21 +467,26 @@ public class EditProfilePanel extends JPanel {
     private void choosePhoto() {
 
         JFileChooser chooser = new JFileChooser();
-        chooser.setFileFilter(new FileNameExtensionFilter("Profile images (PNG, JPG)","png","jpg","jpeg"));
-        if(chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+        chooser.setFileFilter(
+                new FileNameExtensionFilter("Profile images (PNG, JPG)", "png", "jpg", "jpeg"));
+        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
 
             return;
         }
 
         try {
-            if(ImageIO.read(chooser.getSelectedFile()) == null) {
+            if (ImageIO.read(chooser.getSelectedFile()) == null) {
 
                 throw new Exception();
             }
             photoPath = chooser.getSelectedFile().getAbsolutePath();
             updatePreview();
-        } catch(Exception e) {
-            qpal.components.AppDialogs.showMessageDialog(dialog,"Please select a valid PNG or JPG image.","Warning",JOptionPane.WARNING_MESSAGE);
+        } catch (Exception e) {
+            qpal.components.AppDialogs.showMessageDialog(
+                    dialog,
+                    "Please select a valid PNG or JPG image.",
+                    "Warning",
+                    JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -447,19 +496,23 @@ public class EditProfilePanel extends JPanel {
         if (account == null) {
             return;
         } else {
-            new ChangePasswordPanel(dialog,account.getID(),(current,password) -> {
-
-                currentPassword = current;
-                newPassword = password;
-                txtPassword.setText(password);
-                txtPassword.setToolTipText("New password will be applied when you save changes.");
-            });
+            new ChangePasswordPanel(
+                    dialog,
+                    account.getID(),
+                    (current, password) -> {
+                        currentPassword = current;
+                        newPassword = password;
+                        txtPassword.setText(password);
+                        txtPassword.setToolTipText(
+                                "New password will be applied when you save changes.");
+                    });
         }
     }
+
     private void saveProfile() {
 
         Account account = accountSupplier.get();
-        if(account == null) {
+        if (account == null) {
 
             return;
         }
@@ -469,33 +522,41 @@ public class EditProfilePanel extends JPanel {
         String password = newPassword;
         String verifiedPassword = currentPassword;
         String selectedPhoto = photoPath;
-        if(selectedPhoto.length() > 255) {
+        if (selectedPhoto.length() > 255) {
 
-            qpal.components.AppDialogs.showMessageDialog(dialog,"The image path is too long. Choose a file with a shorter path.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(
+                    dialog,
+                    "The image path is too long. Choose a file with a shorter path.",
+                    "Warning",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        if(name.isEmpty()) {
+        if (name.isEmpty()) {
 
-            qpal.components.AppDialogs.showMessageDialog(dialog,"Name needs an input.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(
+                    dialog, "Name needs an input.", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        if(!email.equals(account.getEmail()) && !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+        if (!email.equals(account.getEmail()) && !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
 
-            qpal.components.AppDialogs.showMessageDialog(dialog,"Enter a valid email address.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(
+                    dialog, "Enter a valid email address.", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         setSaving(true);
-        new SwingWorker<Boolean,Void>() {
+        new SwingWorker<Boolean, Void>() {
             protected Boolean doInBackground() throws Exception {
-                
-                if(!email.equalsIgnoreCase(account.getEmail()) && accountDao.CheckEmail(email)) {
+
+                if (!email.equalsIgnoreCase(account.getEmail()) && accountDao.CheckEmail(email)) {
 
                     throw new IllegalArgumentException("Email already exists.");
                 }
-                return accountDao.updateProfile(account.getID(),name,email,password,selectedPhoto,verifiedPassword);
+                return accountDao.updateProfile(
+                        account.getID(), name, email, password, selectedPhoto, verifiedPassword);
             }
+
             protected void done() {
 
                 setSaving(false);
@@ -504,12 +565,12 @@ public class EditProfilePanel extends JPanel {
 
                     boolean success = get();
 
-                    if(success) {
+                    if (success) {
 
                         account.setName(name);
                         account.setEmail(email);
 
-                        if(!password.isEmpty()) {
+                        if (!password.isEmpty()) {
 
                             account.setPassword(password);
                         }
@@ -520,9 +581,13 @@ public class EditProfilePanel extends JPanel {
                         currentPassword = "";
                         txtPassword.setText("unchanged");
 
-                        qpal.components.AppDialogs.showMessageDialog(dialog,"Profile updated successfully.","Success",JOptionPane.INFORMATION_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(
+                                dialog,
+                                "Profile updated successfully.",
+                                "Success",
+                                JOptionPane.INFORMATION_MESSAGE);
 
-                        if(dialog != null) {
+                        if (dialog != null) {
 
                             dialog.dispose();
                         }
@@ -531,18 +596,31 @@ public class EditProfilePanel extends JPanel {
 
                     } else {
 
-                        qpal.components.AppDialogs.showMessageDialog(dialog,"Unable to save changes. Your current password may have changed; enter it again and retry.","Error",JOptionPane.ERROR_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(
+                                dialog,
+                                "Unable to save changes. Your current password may have changed;"
+                                    + " enter it again and retry.",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
                     }
 
-                } catch(Exception e) {
+                } catch (Exception e) {
 
-                    if(e.getCause() instanceof IllegalArgumentException) {
+                    if (e.getCause() instanceof IllegalArgumentException) {
 
-                        qpal.components.AppDialogs.showMessageDialog(dialog,e.getCause().getMessage(),"Warning",JOptionPane.WARNING_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(
+                                dialog,
+                                e.getCause().getMessage(),
+                                "Warning",
+                                JOptionPane.WARNING_MESSAGE);
 
                     } else {
 
-                        qpal.components.AppDialogs.showMessageDialog(dialog,"Failed to update profile.","Error",JOptionPane.ERROR_MESSAGE);
+                        qpal.components.AppDialogs.showMessageDialog(
+                                dialog,
+                                "Failed to update profile.",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
@@ -556,23 +634,21 @@ public class EditProfilePanel extends JPanel {
         btnPhoto.setEnabled(!saving);
         txtName.setEnabled(!saving);
         txtEmail.setEnabled(!saving);
-
-
     }
 
     private JTextField createTextField() {
         JTextField field = new JTextField();
-        field.setBackground(new Color(220,220,220));
-        field.setBorder(new EmptyBorder(8,10,8,10));
-        field.setPreferredSize(new Dimension(150,36));
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE,36));
+        field.setBackground(new Color(220, 220, 220));
+        field.setBorder(new EmptyBorder(8, 10, 8, 10));
+        field.setPreferredSize(new Dimension(150, 36));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
         field.setAlignmentX(Component.LEFT_ALIGNMENT);
         return field;
     }
 
     private JLabel createLabel(String text) {
         JLabel label = new JLabel(text);
-        label.setFont(new Font("SansSerif",Font.BOLD,14));
+        label.setFont(new Font("SansSerif", Font.BOLD, 14));
         label.setAlignmentX(Component.LEFT_ALIGNMENT);
         return label;
     }
@@ -587,11 +663,10 @@ public class EditProfilePanel extends JPanel {
         JButton button = new JButton(text);
         button.setBackground(color);
         button.setForeground(Color.WHITE);
-        button.setFont(new Font("SansSerif",Font.BOLD,12));
+        button.setFont(new Font("SansSerif", Font.BOLD, 12));
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder());
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return button;
     }
-
 }

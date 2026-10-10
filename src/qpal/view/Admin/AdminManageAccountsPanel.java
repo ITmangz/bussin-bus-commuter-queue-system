@@ -34,9 +34,9 @@ public class AdminManageAccountsPanel extends JPanel {
     public AdminManageAccountsPanel() {
 
         setLayout(new BorderLayout());
-        setBackground(new Color(245,245,245));
-        setBorder(new EmptyBorder(20,25,20,25));
-        
+        setBackground(new Color(245, 245, 245));
+        setBorder(new EmptyBorder(20, 25, 20, 25));
+
         add(createHeader(), BorderLayout.NORTH);
         JPanel body = new JPanel(new BorderLayout(0, 16));
         body.setOpaque(false);
@@ -47,7 +47,6 @@ public class AdminManageAccountsPanel extends JPanel {
         loadAccounts();
     }
 
-
     private JPanel createHeader() {
 
         JPanel panel = new JPanel();
@@ -56,11 +55,12 @@ public class AdminManageAccountsPanel extends JPanel {
 
         JLabel title = new JLabel("Manage Accounts");
         title.setFont(new Font("SansSerif", Font.BOLD, 30));
-        title.setForeground(new Color(228,0,70));
+        title.setForeground(new Color(228, 0, 70));
 
-        JLabel subtitle = new JLabel("Manage administrator and employee accounts and access permissions.");
+        JLabel subtitle =
+                new JLabel("Manage administrator and employee accounts and access permissions.");
         subtitle.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        subtitle.setForeground(new Color(120,120,120));
+        subtitle.setForeground(new Color(120, 120, 120));
 
         panel.add(title);
         panel.add(Box.createVerticalStrut(4));
@@ -69,7 +69,6 @@ public class AdminManageAccountsPanel extends JPanel {
 
         return panel;
     }
-
 
     private JPanel createAccountSummary() {
         JPanel summary = new JPanel(new GridLayout(1, 3, 14, 0));
@@ -82,7 +81,7 @@ public class AdminManageAccountsPanel extends JPanel {
 
             JLabel title = new JLabel(titles[i]);
             title.setFont(new Font("SansSerif", Font.PLAIN, 10));
-            title.setForeground(new Color(100,100,100));
+            title.setForeground(new Color(100, 100, 100));
             title.setAlignmentX(Component.LEFT_ALIGNMENT);
             JPanel content = new JPanel(new BorderLayout(0, 8));
             content.setOpaque(false);
@@ -90,7 +89,7 @@ public class AdminManageAccountsPanel extends JPanel {
 
             accountCounts[i] = new JLabel("—");
             accountCounts[i].setFont(new Font("SansSerif", Font.BOLD, 32));
-            accountCounts[i].setForeground(new Color(170,0,45));
+            accountCounts[i].setForeground(new Color(170, 0, 45));
             accountCounts[i].setAlignmentX(Component.LEFT_ALIGNMENT);
             content.add(accountCounts[i], BorderLayout.CENTER);
 
@@ -125,7 +124,7 @@ public class AdminManageAccountsPanel extends JPanel {
         JPanel center = new JPanel(new BorderLayout());
 
         center.setOpaque(false);
-        center.setBorder(new EmptyBorder(18,0,0,0));
+        center.setBorder(new EmptyBorder(18, 0, 0, 0));
 
         center.add(createTable(), BorderLayout.CENTER);
 
@@ -143,7 +142,6 @@ public class AdminManageAccountsPanel extends JPanel {
         return panel;
     }
 
-
     private JPanel createTopPanel() {
 
         JPanel panel = new JPanel(new BorderLayout());
@@ -154,56 +152,55 @@ public class AdminManageAccountsPanel extends JPanel {
         JLabel lblTitle = new JLabel("Account Details");
 
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
-        lblTitle.setForeground(new Color(40,40,40));
+        lblTitle.setForeground(new Color(40, 40, 40));
 
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT,0,6));
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 6));
 
         left.setOpaque(false);
         left.add(lblTitle);
 
         panel.add(left, BorderLayout.WEST);
 
-        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT,8,4));
+        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
 
         controls.setOpaque(false);
 
         searchField = new JTextField();
 
-        searchField.setPreferredSize(new Dimension(280,34));
-        searchField.setFont(new Font("SansSerif",Font.PLAIN,13));
-        searchField.setMargin(new Insets(0,10,0,10));
+        searchField.setPreferredSize(new Dimension(280, 34));
+        searchField.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        searchField.setMargin(new Insets(0, 10, 0, 10));
 
-        cmbRole = new JComboBox<>(new String[]{
-                "All Roles", "Admin", "Employee"
-        });
+        cmbRole = new JComboBox<>(new String[] {"All Roles", "Admin", "Employee"});
 
         AdminFormStyle.tableFilter(cmbRole);
-        cmbRole.setFont(new Font("SansSerif",Font.PLAIN,13));
+        cmbRole.setFont(new Font("SansSerif", Font.PLAIN, 13));
         cmbRole.setFocusable(false);
         cmbRole.setBackground(Color.WHITE);
-        cmbRole.addActionListener(e -> {
-
-            currentPage = 1;
-            loadPage();
-        });
+        cmbRole.addActionListener(
+                e -> {
+                    currentPage = 1;
+                    loadPage();
+                });
 
         JButton btnSearch = new JButton("Search");
 
-        btnSearch.setPreferredSize(new Dimension(100,34));
-        btnSearch.setFont(new Font("SansSerif",Font.BOLD,13));
-        btnSearch.setBackground(new Color(225,29,72));
+        btnSearch.setPreferredSize(new Dimension(100, 34));
+        btnSearch.setFont(new Font("SansSerif", Font.BOLD, 13));
+        btnSearch.setBackground(new Color(225, 29, 72));
         btnSearch.setForeground(Color.WHITE);
         btnSearch.setFocusPainted(false);
         btnSearch.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnSearch.setBorder(BorderFactory.createEmptyBorder());
 
-        btnSearch.addActionListener(e -> {
-            searchAccounts();
-        });
+        btnSearch.addActionListener(
+                e -> {
+                    searchAccounts();
+                });
 
         AdminFormStyle.searchOnEnter(searchField, btnSearch);
 
-    controls.add(searchField);
+        controls.add(searchField);
         controls.add(cmbRole);
         controls.add(btnSearch);
 
@@ -212,30 +209,28 @@ public class AdminManageAccountsPanel extends JPanel {
         return panel;
     }
 
-
     private JScrollPane createTable() {
 
-        String[] columns = {
-                "ID", "Name", "Email", "Password", "Role", "Status"
-        };
+        String[] columns = {"ID", "Name", "Email", "Password", "Role", "Status"};
 
-        model = new DefaultTableModel(columns, 0) {
+        model =
+                new DefaultTableModel(columns, 0) {
 
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
+                    @Override
+                    public boolean isCellEditable(int row, int column) {
+                        return false;
+                    }
+                };
 
         table = new JTable(model);
         table.setFont(new Font("SansSerif", Font.PLAIN, 12));
         table.setRowHeight(36);
         table.setShowVerticalLines(false);
         table.setShowHorizontalLines(true);
-        table.setGridColor(new Color(236,236,236));
-        table.setIntercellSpacing(new Dimension(0,0));
+        table.setGridColor(new Color(236, 236, 236));
+        table.setIntercellSpacing(new Dimension(0, 0));
         table.setRowMargin(0);
-        table.setSelectionBackground(new Color(240,247,255));
+        table.setSelectionBackground(new Color(240, 247, 255));
         table.setSelectionForeground(Color.BLACK);
         table.setDefaultRenderer(Object.class, new ModernTableCellRenderer());
         table.getColumnModel().getColumn(5).setCellRenderer(new StatusRenderer());
@@ -248,10 +243,10 @@ public class AdminManageAccountsPanel extends JPanel {
         table.getColumnModel().getColumn(5).setPreferredWidth(95);
 
         JTableHeader header = table.getTableHeader();
-        header.setPreferredSize(new Dimension(0,34));
-        header.setFont(new Font("SansSerif",Font.BOLD,12));
+        header.setPreferredSize(new Dimension(0, 34));
+        header.setFont(new Font("SansSerif", Font.BOLD, 12));
         header.setBackground(Color.WHITE);
-        header.setForeground(new Color(90,90,90));
+        header.setForeground(new Color(90, 90, 90));
         header.setReorderingAllowed(false);
 
         JScrollPane scroll = new JScrollPane(table);
@@ -262,35 +257,34 @@ public class AdminManageAccountsPanel extends JPanel {
         return scroll;
     }
 
-
     public void loadAccounts() {
 
         accounts.clear();
 
         List<Account> accountList = accountDao.getAllAccounts();
 
-        for(Account account : accountList) {
+        for (Account account : accountList) {
 
             String password = "********************************";
 
-            accounts.add(new Object[]{
-                    account.getID(),
-                    account.getName(),
-                    account.getEmail(),
-                    password,
-                    account.getRole(),
-                    account.getStatus()
-            });
+            accounts.add(
+                    new Object[] {
+                        account.getID(),
+                        account.getName(),
+                        account.getEmail(),
+                        password,
+                        account.getRole(),
+                        account.getStatus()
+                    });
         }
 
         updateAccountSummary();
         currentPage = 1;
 
-        if(model != null) {
+        if (model != null) {
             loadPage();
         }
     }
-
 
     private void searchAccounts() {
         if (!AdminFormStyle.validateSearch(searchField)) return;
@@ -305,9 +299,14 @@ public class AdminManageAccountsPanel extends JPanel {
         List<Object[]> result = new ArrayList<>();
         String search = appliedSearch;
 
-        for(Object[] row : accounts) {
+        for (Object[] row : accounts) {
 
-            if((row[0].toString().toLowerCase().contains(search) || row[1].toString().toLowerCase().contains(search) || row[2].toString().toLowerCase().contains(search)) && (cmbRole.getSelectedItem().toString().equals("All Roles") || row[4].toString().equalsIgnoreCase(cmbRole.getSelectedItem().toString()))) {
+            if ((row[0].toString().toLowerCase().contains(search)
+                            || row[1].toString().toLowerCase().contains(search)
+                            || row[2].toString().toLowerCase().contains(search))
+                    && (cmbRole.getSelectedItem().toString().equals("All Roles")
+                            || row[4].toString()
+                                    .equalsIgnoreCase(cmbRole.getSelectedItem().toString()))) {
 
                 result.add(row);
             }
@@ -319,82 +318,79 @@ public class AdminManageAccountsPanel extends JPanel {
     private void loadPage() {
 
         List<Object[]> visibleRows = getVisibleRows();
-        currentPage = Math.max(1, Math.min(currentPage, Math.max(1, (visibleRows.size() + rowsPerPage - 1) / rowsPerPage)));
+        currentPage =
+                Math.max(
+                        1,
+                        Math.min(
+                                currentPage,
+                                Math.max(1, (visibleRows.size() + rowsPerPage - 1) / rowsPerPage)));
 
         model.setRowCount(0);
 
         int start = (currentPage - 1) * rowsPerPage;
         int end = Math.min(start + rowsPerPage, visibleRows.size());
 
-        for(int i = start; i < end; i++){
+        for (int i = start; i < end; i++) {
             model.addRow(visibleRows.get(i));
         }
 
-        if(lblInfo != null){
+        if (lblInfo != null) {
 
-            lblInfo.setText("Showing " + (visibleRows.size() == 0 ? 0 : start + 1) + " to " + end + " of " + visibleRows.size() + " accounts");
+            lblInfo.setText(
+                    "Showing "
+                            + (visibleRows.size() == 0 ? 0 : start + 1)
+                            + " to "
+                            + end
+                            + " of "
+                            + visibleRows.size()
+                            + " accounts");
         }
 
         updatePaginationButtons();
     }
 
+    private void updatePaginationButtons() {
 
-    private void updatePaginationButtons(){
-
-        int totalPages =
-                (int)Math.ceil(getVisibleRows().size() / (double)rowsPerPage);
+        int totalPages = (int) Math.ceil(getVisibleRows().size() / (double) rowsPerPage);
         int firstPage = Math.max(1, Math.min(currentPage, totalPages - 1));
         btnOne.setText(String.valueOf(firstPage));
         btnTwo.setText(String.valueOf(firstPage + 1));
 
-        if(btnPrev != null)
-            btnPrev.setEnabled(currentPage > 1);
+        if (btnPrev != null) btnPrev.setEnabled(currentPage > 1);
 
-        if(btnNext != null)
-            btnNext.setEnabled(currentPage < totalPages);
+        if (btnNext != null) btnNext.setEnabled(currentPage < totalPages);
 
-        if(btnOne != null){
+        if (btnOne != null) {
 
-            btnOne.setBackground(
-                    currentPage == firstPage ?
-                    new Color(225,29,72) :
-                    Color.WHITE);
+            btnOne.setBackground(currentPage == firstPage ? new Color(225, 29, 72) : Color.WHITE);
 
-            btnOne.setForeground(
-                    currentPage == firstPage ?
-                    Color.WHITE :
-                    new Color(80,80,80));
+            btnOne.setForeground(currentPage == firstPage ? Color.WHITE : new Color(80, 80, 80));
         }
 
-        if(btnTwo != null){
+        if (btnTwo != null) {
 
             btnTwo.setVisible(totalPages >= 2);
 
             btnTwo.setBackground(
-                    currentPage == firstPage + 1 ?
-                    new Color(225,29,72) :
-                    Color.WHITE);
+                    currentPage == firstPage + 1 ? new Color(225, 29, 72) : Color.WHITE);
 
             btnTwo.setForeground(
-                    currentPage == firstPage + 1 ?
-                    Color.WHITE :
-                    new Color(80,80,80));
+                    currentPage == firstPage + 1 ? Color.WHITE : new Color(80, 80, 80));
         }
     }
-
 
     private JPanel createBottomPanel() {
 
         JPanel panel = new JPanel(new BorderLayout());
 
         panel.setOpaque(false);
-        panel.setBorder(new EmptyBorder(18,0,0,0));
+        panel.setBorder(new EmptyBorder(18, 0, 0, 0));
         lblInfo = new JLabel();
         lblInfo.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        lblInfo.setForeground(new Color(130,130,130));
+        lblInfo.setForeground(new Color(130, 130, 130));
         panel.add(lblInfo, BorderLayout.WEST);
 
-        JPanel pagination = new JPanel(new FlowLayout(FlowLayout.RIGHT,6,0));
+        JPanel pagination = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         pagination.setOpaque(false);
 
         btnPrev = new JButton("<");
@@ -402,57 +398,62 @@ public class AdminManageAccountsPanel extends JPanel {
         btnTwo = new JButton("2");
         btnNext = new JButton(">");
 
-        JButton[] buttons = {
-                btnPrev, btnOne, btnTwo, btnNext
-        };
+        JButton[] buttons = {btnPrev, btnOne, btnTwo, btnNext};
 
         for (JButton b : buttons) {
 
-            b.setPreferredSize(new Dimension(34,30));
-            b.setFont(new Font("SansSerif", Font.BOLD,14));
+            b.setPreferredSize(new Dimension(34, 30));
+            b.setFont(new Font("SansSerif", Font.BOLD, 14));
             b.setFocusPainted(false);
             b.setCursor(new Cursor(Cursor.HAND_CURSOR));
             b.setBackground(Color.WHITE);
-            b.setForeground(new Color(80,80,80));
-            b.setBorder(BorderFactory.createLineBorder(new Color(220,220,220)));
+            b.setForeground(new Color(80, 80, 80));
+            b.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
             pagination.add(b);
         }
 
-        btnPrev.addActionListener(e -> {
+        btnPrev.addActionListener(
+                e -> {
+                    if (currentPage > 1) {
 
-            if(currentPage > 1){
+                        currentPage--;
+                        loadPage();
+                    }
+                });
 
-                currentPage--;
-                loadPage();
-            }
-        });
+        btnNext.addActionListener(
+                e -> {
+                    int totalPages =
+                            (int) Math.ceil(getVisibleRows().size() / (double) rowsPerPage);
 
-        btnNext.addActionListener(e -> {
+                    if (currentPage < totalPages) {
 
-            int totalPages = (int)Math.ceil(getVisibleRows().size() / (double)rowsPerPage);
+                        currentPage++;
+                        loadPage();
+                    }
+                });
 
-            if(currentPage < totalPages){
+        btnOne.addActionListener(
+                e -> {
+                    currentPage = Integer.parseInt(btnOne.getText());
+                    loadPage();
+                });
 
-                currentPage++;
-                loadPage();
-            }
-        });
+        btnTwo.addActionListener(
+                e -> {
+                    currentPage = Integer.parseInt(btnTwo.getText());
+                    loadPage();
+                });
 
-        btnOne.addActionListener(e -> {
-
-            currentPage = Integer.parseInt(btnOne.getText());
-            loadPage();
-        });
-
-        btnTwo.addActionListener(e -> {
-
-            currentPage = Integer.parseInt(btnTwo.getText());
-            loadPage();
-        });
-
-        pagination.add(qpal.components.PagePicker.create(() -> currentPage,
-                () -> (getVisibleRows().size() + rowsPerPage - 1) / rowsPerPage,
-                page -> { currentPage = page; loadPage(); }), pagination.getComponentCount() - 1);
+        pagination.add(
+                qpal.components.PagePicker.create(
+                        () -> currentPage,
+                        () -> (getVisibleRows().size() + rowsPerPage - 1) / rowsPerPage,
+                        page -> {
+                            currentPage = page;
+                            loadPage();
+                        }),
+                pagination.getComponentCount() - 1);
         panel.add(pagination, BorderLayout.EAST);
 
         SwingUtilities.invokeLater(this::loadPage);
@@ -460,34 +461,37 @@ public class AdminManageAccountsPanel extends JPanel {
         return panel;
     }
 
-
     private JPanel createActionButtons() {
 
-        JPanel panel = new JPanel(new GridLayout(1,4,12,0));
+        JPanel panel = new JPanel(new GridLayout(1, 4, 12, 0));
 
         panel.setOpaque(false);
-        panel.setBorder(new EmptyBorder(20,0,0,0));
+        panel.setBorder(new EmptyBorder(20, 0, 0, 0));
 
-        JButton btnAdd = createButton("Add", new Color(34,197,94));
-        JButton btnEdit = createButton("Edit", new Color(245,158,11));
-        JButton btnPrint = createButton("Print", new Color(59,130,246));
-        JButton btnDelete = createButton("Delete", new Color(225,29,72));
+        JButton btnAdd = createButton("Add", new Color(34, 197, 94));
+        JButton btnEdit = createButton("Edit", new Color(245, 158, 11));
+        JButton btnPrint = createButton("Print", new Color(59, 130, 246));
+        JButton btnDelete = createButton("Delete", new Color(225, 29, 72));
 
-        btnAdd.addActionListener(e -> {
-            addAccount();
-        });
+        btnAdd.addActionListener(
+                e -> {
+                    addAccount();
+                });
 
-        btnEdit.addActionListener(e -> {
-            editAccount();
-        });
+        btnEdit.addActionListener(
+                e -> {
+                    editAccount();
+                });
 
-        btnPrint.addActionListener(e -> {
-            printAccounts();
-        });
+        btnPrint.addActionListener(
+                e -> {
+                    printAccounts();
+                });
 
-        btnDelete.addActionListener(e -> {
-            deleteAccount();
-        });
+        btnDelete.addActionListener(
+                e -> {
+                    deleteAccount();
+                });
 
         panel.add(btnAdd);
         panel.add(btnEdit);
@@ -497,64 +501,72 @@ public class AdminManageAccountsPanel extends JPanel {
         return panel;
     }
 
-
     private void addAccount() {
 
-        AddAccountPanel panel =new AddAccountPanel(accountDao, this);
+        AddAccountPanel panel = new AddAccountPanel(accountDao, this);
         panel.showDialog();
     }
-
 
     private void editAccount() {
 
         int selectedRow = table.getSelectedRow();
 
-        if(selectedRow == -1) {
+        if (selectedRow == -1) {
 
-            qpal.components.AppDialogs.showMessageDialog(this,"No selected account to edit.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(
+                    this, "No selected account to edit.", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int id =
-                (int) model.getValueAt(selectedRow,0);
+        int id = (int) model.getValueAt(selectedRow, 0);
 
         EditAccountPanel panel = new EditAccountPanel(accountDao, this, id);
         panel.showDialog();
     }
 
-
     private void deleteAccount() {
 
         int selectedRow = table.getSelectedRow();
 
-        if(selectedRow == -1) {
+        if (selectedRow == -1) {
 
-            qpal.components.AppDialogs.showMessageDialog(this,"No selected account.","Warning",JOptionPane.WARNING_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(
+                    this, "No selected account.", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int id = (int) model.getValueAt(selectedRow,0);
+        int id = (int) model.getValueAt(selectedRow, 0);
 
-        String name = model.getValueAt(selectedRow,1).toString();
+        String name = model.getValueAt(selectedRow, 1).toString();
 
-        int confirm = qpal.components.AppDialogs.showConfirmDialog(this, "Are you sure you want to delete " + name + "?","Delete Account", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        int confirm =
+                qpal.components.AppDialogs.showConfirmDialog(
+                        this,
+                        "Are you sure you want to delete " + name + "?",
+                        "Delete Account",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
 
-        if(confirm == JOptionPane.YES_OPTION) {
+        if (confirm == JOptionPane.YES_OPTION) {
 
             boolean success = accountDao.deleteAccount(id);
 
-            if(success) {
+            if (success) {
 
-                qpal.components.AppDialogs.showMessageDialog(this,"Account deleted successfully.","Success",JOptionPane.INFORMATION_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(
+                        this,
+                        "Account deleted successfully.",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 loadAccounts();
 
             } else {
 
-                qpal.components.AppDialogs.showMessageDialog(this,"Failed to delete account.","Error", JOptionPane.ERROR_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(
+                        this, "Failed to delete account.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
-
 
     private void printAccounts() {
 
@@ -562,31 +574,37 @@ public class AdminManageAccountsPanel extends JPanel {
 
             boolean complete = table.print();
 
-            if(complete) {
-                qpal.dao.ActivityLogDao.recordActivity("Manage Accounts", "Print", "Printed the manage accounts table.");
+            if (complete) {
+                qpal.dao.ActivityLogDao.recordActivity(
+                        "Manage Accounts", "Print", "Printed the manage accounts table.");
 
-                qpal.components.AppDialogs.showMessageDialog(this,"Table printed successfully.","Print", JOptionPane.INFORMATION_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(
+                        this,
+                        "Table printed successfully.",
+                        "Print",
+                        JOptionPane.INFORMATION_MESSAGE);
 
             } else {
 
-                qpal.components.AppDialogs.showMessageDialog(this,"Printing was cancelled.","Print", JOptionPane.WARNING_MESSAGE);
+                qpal.components.AppDialogs.showMessageDialog(
+                        this, "Printing was cancelled.", "Print", JOptionPane.WARNING_MESSAGE);
             }
 
-        } catch(PrinterException e) {
+        } catch (PrinterException e) {
 
-            qpal.components.AppDialogs.showMessageDialog(this,"Unable to print the table.","Print Error", JOptionPane.ERROR_MESSAGE);
+            qpal.components.AppDialogs.showMessageDialog(
+                    this, "Unable to print the table.", "Print Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
     }
 
-
     private JButton createButton(String text, Color color) {
 
-        JButton button =new JButton(text);
-        button.setPreferredSize(new Dimension(145,40));
+        JButton button = new JButton(text);
+        button.setPreferredSize(new Dimension(145, 40));
         button.setBackground(color);
         button.setForeground(Color.WHITE);
-        button.setFont(new Font("SansSerif",Font.BOLD,13));
+        button.setFont(new Font("SansSerif", Font.BOLD, 13));
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder());
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -594,5 +612,3 @@ public class AdminManageAccountsPanel extends JPanel {
         return button;
     }
 }
-
-

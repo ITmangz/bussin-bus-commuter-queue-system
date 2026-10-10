@@ -50,8 +50,8 @@ public class AdminRouteSchedPanel extends JPanel {
         this.readOnly = readOnly;
 
         setLayout(new BorderLayout());
-        setBackground(new Color(245,245,245));
-        setBorder(new EmptyBorder(20,25,20,25));
+        setBackground(new Color(245, 245, 245));
+        setBorder(new EmptyBorder(20, 25, 20, 25));
 
         add(createHeader(), BorderLayout.NORTH);
         JPanel body = new JPanel(new BorderLayout(0, 16));
@@ -63,13 +63,15 @@ public class AdminRouteSchedPanel extends JPanel {
         loadTrips();
 
         Timer timer = new Timer(5000, e -> loadTrips());
-        addHierarchyListener(e -> {
-            if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0) {
-                if (isShowing()) { timer.start(); loadTrips(); }
-                else timer.stop();
-            }
-        });
-
+        addHierarchyListener(
+                e -> {
+                    if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0) {
+                        if (isShowing()) {
+                            timer.start();
+                            loadTrips();
+                        } else timer.stop();
+                    }
+                });
     }
 
     private JPanel createHeader() {
@@ -80,12 +82,12 @@ public class AdminRouteSchedPanel extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JLabel title = new JLabel("Route & Schedule Management");
-        title.setFont(new Font("SansSerif", Font.BOLD,30));
-        title.setForeground(new Color(228,0,70));
+        title.setFont(new Font("SansSerif", Font.BOLD, 30));
+        title.setForeground(new Color(228, 0, 70));
 
         JLabel subtitle = new JLabel("Manage routes, schedules, and assigned buses.");
-        subtitle.setFont(new Font("SansSerif", Font.PLAIN,13));
-        subtitle.setForeground(new Color(120,120,120));
+        subtitle.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        subtitle.setForeground(new Color(120, 120, 120));
 
         panel.add(title);
         panel.add(Box.createVerticalStrut(4));
@@ -93,21 +95,22 @@ public class AdminRouteSchedPanel extends JPanel {
         panel.add(Box.createVerticalStrut(18));
 
         return panel;
-
     }
 
     private JPanel createTripSummary() {
         JPanel summary = new JPanel(new GridLayout(1, 4, 14, 0));
         summary.setOpaque(false);
         summary.setPreferredSize(new Dimension(0, 150));
-        String[] titles = {"SCHEDULED TRIPS", "BOARDING TRIPS", "DEPARTED TRIPS", "CANCELLED TRIPS"};
+        String[] titles = {
+            "SCHEDULED TRIPS", "BOARDING TRIPS", "DEPARTED TRIPS", "CANCELLED TRIPS"
+        };
         for (int i = 0; i < titles.length; i++) {
             JPanel card = new AdminCard(18);
             card.setLayout(new GridBagLayout());
 
             JLabel title = new JLabel(titles[i]);
             title.setFont(new Font("SansSerif", Font.PLAIN, 10));
-            title.setForeground(new Color(100,100,100));
+            title.setForeground(new Color(100, 100, 100));
             title.setAlignmentX(Component.LEFT_ALIGNMENT);
             JPanel content = new JPanel(new BorderLayout(0, 8));
             content.setOpaque(false);
@@ -115,7 +118,7 @@ public class AdminRouteSchedPanel extends JPanel {
 
             tripCounts[i] = new JLabel("—");
             tripCounts[i].setFont(new Font("SansSerif", Font.BOLD, 32));
-            tripCounts[i].setForeground(new Color(170,0,45));
+            tripCounts[i].setForeground(new Color(170, 0, 45));
             tripCounts[i].setAlignmentX(Component.LEFT_ALIGNMENT);
             content.add(tripCounts[i], BorderLayout.CENTER);
 
@@ -137,7 +140,7 @@ public class AdminRouteSchedPanel extends JPanel {
 
         JPanel center = new JPanel(new BorderLayout());
         center.setOpaque(false);
-        center.setBorder(new EmptyBorder(18,0,0,0));
+        center.setBorder(new EmptyBorder(18, 0, 0, 0));
         center.add(createTable(), BorderLayout.CENTER);
 
         panel.add(center, BorderLayout.CENTER);
@@ -151,39 +154,38 @@ public class AdminRouteSchedPanel extends JPanel {
         panel.add(south, BorderLayout.SOUTH);
 
         return panel;
-
     }
 
-        private JPanel createTopPanel() {
+    private JPanel createTopPanel() {
 
         JPanel panel = new JPanel(new BorderLayout());
 
         panel.setOpaque(false);
 
-        panel.setBorder(new EmptyBorder(0,0,10,0));
+        panel.setBorder(new EmptyBorder(0, 0, 10, 0));
 
         JLabel lblTitle = new JLabel("Trip Details");
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD,22));
-        lblTitle.setForeground(new Color(40,40,40));
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
+        lblTitle.setForeground(new Color(40, 40, 40));
 
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT,0,6));
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 6));
         left.setOpaque(false);
         left.add(lblTitle);
 
         panel.add(left, BorderLayout.WEST);
 
-        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT,8,4));
+        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
         controls.setOpaque(false);
 
         searchField = new JTextField();
-        searchField.setPreferredSize(new Dimension(280,34));
-        searchField.setFont(new Font("SansSerif", Font.PLAIN,13));
-        searchField.setMargin(new Insets(0,10,0,10));
+        searchField.setPreferredSize(new Dimension(280, 34));
+        searchField.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        searchField.setMargin(new Insets(0, 10, 0, 10));
 
         JButton btnSearch = new JButton("Search");
-        btnSearch.setPreferredSize(new Dimension(100,34));
-        btnSearch.setFont(new Font("SansSerif", Font.BOLD,13));
-        btnSearch.setBackground(new Color(225,29,72));
+        btnSearch.setPreferredSize(new Dimension(100, 34));
+        btnSearch.setFont(new Font("SansSerif", Font.BOLD, 13));
+        btnSearch.setBackground(new Color(225, 29, 72));
         btnSearch.setForeground(Color.WHITE);
         btnSearch.setFocusPainted(false);
         btnSearch.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -192,67 +194,68 @@ public class AdminRouteSchedPanel extends JPanel {
         btnSearch.addActionListener(e -> searchTrips());
         AdminFormStyle.searchOnEnter(searchField, btnSearch);
 
-            cmbStatus = new JComboBox<>(new String[]{
-                "All Statuses", "Scheduled", "Boarding", "Departed", "Cancelled"
-        });
+        cmbStatus =
+                new JComboBox<>(
+                        new String[] {
+                            "All Statuses", "Scheduled", "Boarding", "Departed", "Cancelled"
+                        });
         AdminFormStyle.tableFilter(cmbStatus);
-        cmbStatus.setFont(new Font("SansSerif",Font.PLAIN,13));
+        cmbStatus.setFont(new Font("SansSerif", Font.PLAIN, 13));
         cmbStatus.setBackground(Color.WHITE);
         cmbStatus.setFocusable(false);
         cmbStatus.setToolTipText("Filter by status");
-        cmbStatus.addActionListener(e -> {
-
-            currentPage = 1;
-            loadPage();
-        });
-    controls.add(searchField);
+        cmbStatus.addActionListener(
+                e -> {
+                    currentPage = 1;
+                    loadPage();
+                });
+        controls.add(searchField);
         controls.add(cmbStatus);
         controls.add(btnSearch);
 
         panel.add(controls, BorderLayout.EAST);
 
         return panel;
-
     }
 
     private JScrollPane createTable() {
 
         String[] columns = {
-                "Trip ID",
-                "Bus",
-                "Route",
-                "Departure Date",
-                "Departure Time",
-                "Fare",
-                "Booked Seats",
-                "Status"
+            "Trip ID",
+            "Bus",
+            "Route",
+            "Departure Date",
+            "Departure Time",
+            "Fare",
+            "Booked Seats",
+            "Status"
         };
 
-        model = new DefaultTableModel(columns,0) {
+        model =
+                new DefaultTableModel(columns, 0) {
 
-            @Override
-            public boolean isCellEditable(int row,int column) {
-                return false;
-            }
-
-        };
+                    @Override
+                    public boolean isCellEditable(int row, int column) {
+                        return false;
+                    }
+                };
 
         table = new JTable(model);
 
-        table.setFont(new Font("SansSerif", Font.PLAIN,12));
+        table.setFont(new Font("SansSerif", Font.PLAIN, 12));
         table.setRowHeight(36);
 
         table.setShowVerticalLines(false);
         table.setShowHorizontalLines(true);
 
-        table.setGridColor(new Color(236,236,236));
-        table.setIntercellSpacing(new Dimension(0,0));
+        table.setGridColor(new Color(236, 236, 236));
+        table.setIntercellSpacing(new Dimension(0, 0));
         table.setRowMargin(0);
 
-        table.setSelectionBackground(new Color(240,247,255));
+        table.setSelectionBackground(new Color(240, 247, 255));
         table.setSelectionForeground(Color.BLACK);
 
-        table.setDefaultRenderer(Object.class,new ModernTableCellRenderer());
+        table.setDefaultRenderer(Object.class, new ModernTableCellRenderer());
 
         table.getColumnModel().getColumn(7).setCellRenderer(new StatusRenderer());
 
@@ -267,39 +270,44 @@ public class AdminRouteSchedPanel extends JPanel {
 
         JTableHeader header = table.getTableHeader();
 
-        header.setPreferredSize(new Dimension(0,34));
-        header.setFont(new Font("SansSerif", Font.BOLD,12));
+        header.setPreferredSize(new Dimension(0, 34));
+        header.setFont(new Font("SansSerif", Font.BOLD, 12));
         header.setBackground(Color.WHITE);
-        header.setForeground(new Color(90,90,90));
+        header.setForeground(new Color(90, 90, 90));
         header.setReorderingAllowed(false);
 
         JScrollPane scroll = new JScrollPane(table);
 
         scroll.setBorder(BorderFactory.createEmptyBorder());
 
-        scroll.setHorizontalScrollBarPolicy(
-                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-        scroll.setVerticalScrollBarPolicy(
-                ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 
         return scroll;
-
     }
 
     public void loadTrips() {
         if (loading) return;
         loading = true;
-        qpal.util.UiTask.run(() -> tripDao.getAllTrips(), tripList -> {
-            try { displayTrips(tripList); }
-            finally { loading = false; }
-        }, ex -> { loading = false; });
+        qpal.util.UiTask.run(
+                () -> tripDao.getAllTrips(),
+                tripList -> {
+                    try {
+                        displayTrips(tripList);
+                    } finally {
+                        loading = false;
+                    }
+                },
+                ex -> {
+                    loading = false;
+                });
     }
 
     private void displayTrips(List<Trip> tripList) {
 
-        Object selectedId = table.getSelectedRow() < 0 ? null
-                : table.getValueAt(table.getSelectedRow(), 0);
+        Object selectedId =
+                table.getSelectedRow() < 0 ? null : table.getValueAt(table.getSelectedRow(), 0);
 
         trips.clear();
         int[] counts = new int[4];
@@ -311,47 +319,67 @@ public class AdminRouteSchedPanel extends JPanel {
             else if ("Departed".equalsIgnoreCase(status)) counts[2]++;
             else if ("Cancelled".equalsIgnoreCase(status)) counts[3]++;
 
-            trips.add(new Object[]{
-
-                    trip.getTripID(),
-                    trip.getBusName(),
-                    trip.getOrigin() + " → " + trip.getDestination(),
-                    trip.getDepartureDate(),
-                    trip.getDepartureTime(),
-                    "₱" + qpal.model.FarePolicy.format(java.math.BigDecimal.valueOf(trip.getFare())),
-                    (trip.getSeatCapacity() - trip.getAvailableSeats()) + "/" + trip.getSeatCapacity(),
-                    trip.getStatus()
-
-            });
-
+            trips.add(
+                    new Object[] {
+                        trip.getTripID(),
+                        trip.getBusName(),
+                        trip.getOrigin() + " → " + trip.getDestination(),
+                        trip.getDepartureDate(),
+                        trip.getDepartureTime(),
+                        "₱"
+                                + qpal.model.FarePolicy.format(
+                                        java.math.BigDecimal.valueOf(trip.getFare())),
+                        (trip.getSeatCapacity() - trip.getAvailableSeats())
+                                + "/"
+                                + trip.getSeatCapacity(),
+                        trip.getStatus()
+                    });
         }
 
         for (int i = 0; i < counts.length; i++) {
             tripCounts[i].setText(String.valueOf(counts[i]));
         }
 
-        trips.sort(java.util.Comparator.<Object[]>comparingInt(row -> {
-            switch (String.valueOf(row[7])) {
-                case "Scheduled": return 0;
-                case "Departed": return 1;
-                case "Boarding": return 2;
-                case "Cancelled": return 3;
-                default: return 4;
-            }
-        }).thenComparing((left, right) -> {
-            if (!"Departed".equals(String.valueOf(left[7]))) return 0;
-            // ISO dates and times sort chronologically; newest departed trip comes first.
-            int dateOrder = String.valueOf(right[3]).compareTo(String.valueOf(left[3]));
-            if (dateOrder != 0) return dateOrder;
-            int timeOrder = String.valueOf(right[4]).compareTo(String.valueOf(left[4]));
-            if (timeOrder != 0) return timeOrder;
-            return Integer.compare((Integer) right[0], (Integer) left[0]);
-        }));
+        trips.sort(
+                java.util.Comparator.<Object[]>comparingInt(
+                                row -> {
+                                    switch (String.valueOf(row[7])) {
+                                        case "Scheduled":
+                                            return 0;
+                                        case "Departed":
+                                            return 1;
+                                        case "Boarding":
+                                            return 2;
+                                        case "Cancelled":
+                                            return 3;
+                                        default:
+                                            return 4;
+                                    }
+                                })
+                        .thenComparing(
+                                (left, right) -> {
+                                    if (!"Departed".equals(String.valueOf(left[7]))) return 0;
+                                    // ISO dates and times sort chronologically; newest departed
+                                    // trip comes first.
+                                    int dateOrder =
+                                            String.valueOf(right[3])
+                                                    .compareTo(String.valueOf(left[3]));
+                                    if (dateOrder != 0) return dateOrder;
+                                    int timeOrder =
+                                            String.valueOf(right[4])
+                                                    .compareTo(String.valueOf(left[4]));
+                                    if (timeOrder != 0) return timeOrder;
+                                    return Integer.compare((Integer) right[0], (Integer) left[0]);
+                                }));
 
-        currentPage = Math.max(1, Math.min(currentPage,
-                (getVisibleRows().size() + rowsPerPage - 1) / rowsPerPage));
+        currentPage =
+                Math.max(
+                        1,
+                        Math.min(
+                                currentPage,
+                                (getVisibleRows().size() + rowsPerPage - 1) / rowsPerPage));
 
-        if(model != null){
+        if (model != null) {
 
             loadPage();
             if (selectedId != null) {
@@ -362,9 +390,7 @@ public class AdminRouteSchedPanel extends JPanel {
                     }
                 }
             }
-
         }
-
     }
 
     private void searchTrips() {
@@ -380,13 +406,18 @@ public class AdminRouteSchedPanel extends JPanel {
         List<Object[]> result = new ArrayList<>();
         String search = appliedSearch;
 
-        for(Object[] row : trips) {
+        for (Object[] row : trips) {
 
-            if(row[0].toString().toLowerCase().contains(search) || row[1].toString().toLowerCase().contains(search) || row[2].toString().toLowerCase().contains(search) || row[3].toString().toLowerCase().contains(search) || row[4].toString().toLowerCase().contains(search)) {
+            if (row[0].toString().toLowerCase().contains(search)
+                    || row[1].toString().toLowerCase().contains(search)
+                    || row[2].toString().toLowerCase().contains(search)
+                    || row[3].toString().toLowerCase().contains(search)
+                    || row[4].toString().toLowerCase().contains(search)) {
 
                 String selectedStatus = cmbStatus.getSelectedItem().toString();
 
-                if(selectedStatus.equals("All Statuses") || row[7].toString().equalsIgnoreCase(selectedStatus)) {
+                if (selectedStatus.equals("All Statuses")
+                        || row[7].toString().equalsIgnoreCase(selectedStatus)) {
 
                     result.add(row);
                 }
@@ -407,73 +438,55 @@ public class AdminRouteSchedPanel extends JPanel {
         int start = (currentPage - 1) * rowsPerPage;
         int end = Math.min(start + rowsPerPage, visibleRows.size());
 
-        for(int i = start; i < end; i++){
+        for (int i = start; i < end; i++) {
 
             model.addRow(visibleRows.get(i));
-
         }
 
-        if(lblInfo != null){
+        if (lblInfo != null) {
 
             lblInfo.setText(
                     "Showing "
-                    + (visibleRows.size() == 0 ? 0 : start + 1)
-                    + " to "
-                    + end
-                    + " of "
-                    + visibleRows.size()
-                    + " trips");
-
+                            + (visibleRows.size() == 0 ? 0 : start + 1)
+                            + " to "
+                            + end
+                            + " of "
+                            + visibleRows.size()
+                            + " trips");
         }
 
         updatePaginationButtons();
-
     }
 
-        private void updatePaginationButtons() {
+    private void updatePaginationButtons() {
 
         int totalPages =
                 Math.max(1, (int) Math.ceil(getVisibleRows().size() / (double) rowsPerPage));
         int firstPage = Math.max(1, Math.min(currentPage, totalPages - 1));
 
-        if(btnPrev != null)
-            btnPrev.setEnabled(currentPage > 1);
+        if (btnPrev != null) btnPrev.setEnabled(currentPage > 1);
 
-        if(btnNext != null)
-            btnNext.setEnabled(currentPage < totalPages);
+        if (btnNext != null) btnNext.setEnabled(currentPage < totalPages);
 
-        if(btnOne != null){
+        if (btnOne != null) {
             btnOne.setText(String.valueOf(firstPage));
 
-            btnOne.setBackground(
-                    currentPage == firstPage
-                            ? new Color(225,29,72)
-                            : Color.WHITE);
+            btnOne.setBackground(currentPage == firstPage ? new Color(225, 29, 72) : Color.WHITE);
 
-            btnOne.setForeground(
-                    currentPage == firstPage
-                            ? Color.WHITE
-                            : new Color(80,80,80));
-
+            btnOne.setForeground(currentPage == firstPage ? Color.WHITE : new Color(80, 80, 80));
         }
 
-        if(btnTwo != null){
+        if (btnTwo != null) {
             btnTwo.setText(String.valueOf(firstPage + 1));
 
             btnTwo.setVisible(totalPages >= 2);
 
             btnTwo.setBackground(
-                    currentPage == firstPage + 1
-                            ? new Color(225,29,72)
-                            : Color.WHITE);
+                    currentPage == firstPage + 1 ? new Color(225, 29, 72) : Color.WHITE);
 
             btnTwo.setForeground(
-                    currentPage == firstPage + 1
-                            ? Color.WHITE
-                            : new Color(80,80,80));
-
+                    currentPage == firstPage + 1 ? Color.WHITE : new Color(80, 80, 80));
         }
-
     }
 
     private JPanel createBottomPanel() {
@@ -482,16 +495,16 @@ public class AdminRouteSchedPanel extends JPanel {
 
         panel.setOpaque(false);
 
-        panel.setBorder(new EmptyBorder(18,0,0,0));
+        panel.setBorder(new EmptyBorder(18, 0, 0, 0));
 
         lblInfo = new JLabel();
 
-        lblInfo.setFont(new Font("SansSerif", Font.PLAIN,12));
-        lblInfo.setForeground(new Color(130,130,130));
+        lblInfo.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        lblInfo.setForeground(new Color(130, 130, 130));
 
         panel.add(lblInfo, BorderLayout.WEST);
 
-        JPanel pagination = new JPanel(new FlowLayout(FlowLayout.RIGHT,6,0));
+        JPanel pagination = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
 
         pagination.setOpaque(false);
 
@@ -500,94 +513,86 @@ public class AdminRouteSchedPanel extends JPanel {
         btnTwo = new JButton("2");
         btnNext = new JButton(">");
 
-        JButton[] buttons = {
-                btnPrev,
-                btnOne,
-                btnTwo,
-                btnNext
-        };
+        JButton[] buttons = {btnPrev, btnOne, btnTwo, btnNext};
 
-        for(JButton b : buttons){
+        for (JButton b : buttons) {
 
-            b.setPreferredSize(new Dimension(34,30));
-            b.setFont(new Font("SansSerif", Font.BOLD,14));
+            b.setPreferredSize(new Dimension(34, 30));
+            b.setFont(new Font("SansSerif", Font.BOLD, 14));
             b.setFocusPainted(false);
             b.setCursor(new Cursor(Cursor.HAND_CURSOR));
             b.setBackground(Color.WHITE);
-            b.setForeground(new Color(80,80,80));
-            b.setBorder(BorderFactory.createLineBorder(new Color(220,220,220)));
+            b.setForeground(new Color(80, 80, 80));
+            b.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
 
             pagination.add(b);
-
         }
 
-        btnPrev.addActionListener(e -> {
+        btnPrev.addActionListener(
+                e -> {
+                    if (currentPage > 1) {
 
-            if(currentPage > 1){
+                        currentPage--;
 
-                currentPage--;
+                        loadPage();
+                    }
+                });
 
-                loadPage();
+        btnNext.addActionListener(
+                e -> {
+                    int totalPages =
+                            (int) Math.ceil(getVisibleRows().size() / (double) rowsPerPage);
 
-            }
+                    if (currentPage < totalPages) {
 
-        });
+                        currentPage++;
 
-        btnNext.addActionListener(e -> {
+                        loadPage();
+                    }
+                });
 
-            int totalPages =
-                    (int) Math.ceil(getVisibleRows().size() / (double) rowsPerPage);
+        btnOne.addActionListener(
+                e -> {
+                    currentPage = Integer.parseInt(btnOne.getText());
 
-            if(currentPage < totalPages){
+                    loadPage();
+                });
 
-                currentPage++;
+        btnTwo.addActionListener(
+                e -> {
+                    currentPage = Integer.parseInt(btnTwo.getText());
 
-                loadPage();
+                    loadPage();
+                });
 
-            }
-
-        });
-
-        btnOne.addActionListener(e -> {
-
-            currentPage = Integer.parseInt(btnOne.getText());
-
-            loadPage();
-
-
-        });
-
-        btnTwo.addActionListener(e -> {
-
-            currentPage = Integer.parseInt(btnTwo.getText());
-
-            loadPage();
-
-        });
-
-        pagination.add(qpal.components.PagePicker.create(() -> currentPage,
-                () -> (getVisibleRows().size() + rowsPerPage - 1) / rowsPerPage,
-                page -> { currentPage = page; loadPage(); }), pagination.getComponentCount() - 1);
+        pagination.add(
+                qpal.components.PagePicker.create(
+                        () -> currentPage,
+                        () -> (getVisibleRows().size() + rowsPerPage - 1) / rowsPerPage,
+                        page -> {
+                            currentPage = page;
+                            loadPage();
+                        }),
+                pagination.getComponentCount() - 1);
         panel.add(pagination, BorderLayout.EAST);
 
         SwingUtilities.invokeLater(this::loadPage);
 
         return panel;
-
     }
 
-        private JPanel createActionButtons() {
+    private JPanel createActionButtons() {
 
-        JPanel panel = new JPanel(new GridLayout(1,4,12,0));
+        JPanel panel = new JPanel(new GridLayout(1, 4, 12, 0));
 
         panel.setOpaque(false);
 
-        panel.setBorder(new EmptyBorder(20,0,0,0));
+        panel.setBorder(new EmptyBorder(20, 0, 0, 0));
 
-        JButton btnAdd = createButton("Add", new Color(34,197,94));
-        JButton btnEdit = createButton("Edit", new Color(245,158,11));
-        JButton btnPrint = createButton("Print", new Color(59,130,246));
-        JButton btnDelete = createButton("Delete", new Color(225,29,72));
+        JButton btnAdd = createButton("Add", new Color(34, 197, 94));
+        JButton btnEdit = createButton("Edit", new Color(245, 158, 11));
+        JButton btnPrint = createButton("Print", new Color(59, 130, 246));
+        JButton btnDelete = createButton("Delete", new Color(225, 29, 72));
 
         btnAdd.addActionListener(e -> addTrip());
         btnEdit.addActionListener(e -> editTrip());
@@ -600,88 +605,73 @@ public class AdminRouteSchedPanel extends JPanel {
         panel.add(btnDelete);
 
         return panel;
-
     }
 
     private void addTrip() {
 
-        AddTripPanel panel = new AddTripPanel(
-                tripDao,
-                busDao,
-                routeDao,
-                this);
+        AddTripPanel panel = new AddTripPanel(tripDao, busDao, routeDao, this);
 
         panel.showDialog();
-
     }
 
     private void editTrip() {
 
         int selectedRow = table.getSelectedRow();
 
-        if(selectedRow == -1){
+        if (selectedRow == -1) {
 
             qpal.components.AppDialogs.showMessageDialog(
-                    this,
-                    "No selected trip to edit.",
-                    "Warning",
-                    JOptionPane.WARNING_MESSAGE);
+                    this, "No selected trip to edit.", "Warning", JOptionPane.WARNING_MESSAGE);
 
             return;
-
         }
 
-        int id = (int) model.getValueAt(selectedRow,0);
+        int id = (int) model.getValueAt(selectedRow, 0);
 
-        EditTripPanel panel = new EditTripPanel(
-                tripDao,
-                busDao,
-                routeDao,
-                this,
-                id);
+        EditTripPanel panel = new EditTripPanel(tripDao, busDao, routeDao, this, id);
 
         panel.showDialog();
-
     }
 
     private void deleteTrip() {
 
         int selectedRow = table.getSelectedRow();
 
-        if(selectedRow == -1){
+        if (selectedRow == -1) {
 
             qpal.components.AppDialogs.showMessageDialog(
-                    this,
-                    "No selected trip.",
-                    "Warning",
-                    JOptionPane.WARNING_MESSAGE);
+                    this, "No selected trip.", "Warning", JOptionPane.WARNING_MESSAGE);
 
             return;
-
         }
 
-        int id = (int) model.getValueAt(selectedRow,0);
+        int id = (int) model.getValueAt(selectedRow, 0);
 
         String trip =
-                model.getValueAt(selectedRow,2).toString()
-                + " | "
-                + model.getValueAt(selectedRow,3).toString()
-                + " "
-                + model.getValueAt(selectedRow,4).toString();
+                model.getValueAt(selectedRow, 2).toString()
+                        + " | "
+                        + model.getValueAt(selectedRow, 3).toString()
+                        + " "
+                        + model.getValueAt(selectedRow, 4).toString();
 
-        int confirm = qpal.components.AppDialogs.showConfirmDialog(
-                this,
-                "Permanently delete this trip?\n\n" + trip
-                + "\n\nIts bookings, passengers, seats, queues and payment/revenue records\nwill also be deleted. This cannot be undone.",
-                "Delete Trip",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE);
+        int confirm =
+                qpal.components.AppDialogs.showConfirmDialog(
+                        this,
+                        "Permanently delete this trip?\n\n"
+                                + trip
+                                + "\n\n"
+                                + "Its bookings, passengers, seats, queues and payment/revenue"
+                                + " records\n"
+                                + "will also be deleted. This cannot be undone.",
+                        "Delete Trip",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
 
-        if(confirm == JOptionPane.YES_OPTION){
+        if (confirm == JOptionPane.YES_OPTION) {
 
             boolean success = tripDao.deleteTrip(id);
 
-            if(success){
+            if (success) {
 
                 qpal.components.AppDialogs.showMessageDialog(
                         this,
@@ -691,18 +681,12 @@ public class AdminRouteSchedPanel extends JPanel {
 
                 loadTrips();
 
-            }else{
+            } else {
 
                 qpal.components.AppDialogs.showMessageDialog(
-                        this,
-                        "Failed to delete trip.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-
+                        this, "Failed to delete trip.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-
         }
-
     }
 
     private void printTrips() {
@@ -711,8 +695,9 @@ public class AdminRouteSchedPanel extends JPanel {
 
             boolean complete = table.print();
 
-            if(complete){
-                qpal.dao.ActivityLogDao.recordActivity("Route & Schedule", "Print", "Printed the route & schedule table.");
+            if (complete) {
+                qpal.dao.ActivityLogDao.recordActivity(
+                        "Route & Schedule", "Print", "Printed the route & schedule table.");
 
                 qpal.components.AppDialogs.showMessageDialog(
                         this,
@@ -720,40 +705,31 @@ public class AdminRouteSchedPanel extends JPanel {
                         "Print",
                         JOptionPane.INFORMATION_MESSAGE);
 
-            }else{
+            } else {
 
                 qpal.components.AppDialogs.showMessageDialog(
-                        this,
-                        "Printing was cancelled.",
-                        "Print",
-                        JOptionPane.WARNING_MESSAGE);
-
+                        this, "Printing was cancelled.", "Print", JOptionPane.WARNING_MESSAGE);
             }
 
         } catch (PrinterException e) {
 
             qpal.components.AppDialogs.showMessageDialog(
-                    this,
-                    "Unable to print the table.",
-                    "Print Error",
-                    JOptionPane.ERROR_MESSAGE);
+                    this, "Unable to print the table.", "Print Error", JOptionPane.ERROR_MESSAGE);
 
             e.printStackTrace();
-
         }
-
     }
 
     private JButton createButton(String text, Color color) {
 
         JButton button = new JButton(text);
 
-        button.setPreferredSize(new Dimension(145,40));
+        button.setPreferredSize(new Dimension(145, 40));
 
         button.setBackground(color);
         button.setForeground(Color.WHITE);
 
-        button.setFont(new Font("SansSerif", Font.BOLD,13));
+        button.setFont(new Font("SansSerif", Font.BOLD, 13));
 
         button.setFocusPainted(false);
 
@@ -762,8 +738,5 @@ public class AdminRouteSchedPanel extends JPanel {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         return button;
-
     }
-
 }
-

@@ -19,7 +19,9 @@ public class ActivityLogDao {
         currentAccount = account;
     }
 
-    public static Account getCurrentAccount() { return currentAccount; }
+    public static Account getCurrentAccount() {
+        return currentAccount;
+    }
 
     public static boolean hasSaveFailed() {
         return saveFailed;
@@ -36,14 +38,13 @@ public class ActivityLogDao {
 
     // ADD ACTIVITY
     public boolean addActivity(Account account, String module, String action, String description) {
-        String sql = "INSERT INTO activity_logs "
-                + "(account_id, user_name, email, role, module, action, description) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql =
+                "INSERT INTO activity_logs "
+                        + "(account_id, user_name, email, role, module, action, description) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        try (
-            Connection connection = DbConnection.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)
-        ) {
+        try (Connection connection = DbConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, account.getID());
             statement.setString(2, account.getName());
             statement.setString(3, account.getEmail());
@@ -72,10 +73,8 @@ public class ActivityLogDao {
         }
         sql += " ORDER BY created_at DESC, log_id DESC";
 
-        try (
-            Connection connection = DbConnection.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)
-        ) {
+        try (Connection connection = DbConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             if (!admin) {
                 statement.setInt(1, account.getID());
             }

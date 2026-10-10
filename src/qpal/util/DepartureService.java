@@ -9,29 +9,42 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /** Expires unpaid reservations and departs due trips using the database clock. */
 public final class DepartureService {
     private static final AtomicBoolean started = new AtomicBoolean();
+
     private DepartureService() {}
 
     public static void start() {
         if (!started.compareAndSet(false, true)) return;
-        var executor = Executors.newSingleThreadScheduledExecutor(task -> {
-            Thread thread = new Thread(task, "scheduled-departures");
-            thread.setDaemon(true);
-            return thread;
-        });
-        executor.scheduleWithFixedDelay(() -> {
-            try (Connection connection = DbConnection.getConnection()) {
-                reconcile(connection);
-            } catch (SQLException ex) {
-                System.err.println("Departure/deadline update failed; retrying: " + ex.getMessage());
-            }
-        }, 0, 5, TimeUnit.SECONDS);
-        executor.scheduleWithFixedDelay(() -> {
-            try {
-                new qpal.dao.EmployeeSummaryDao().reconcile();
-            } catch (SQLException ex) {
-                System.err.println("Employee daily summary failed; retrying: " + ex.getMessage());
-            }
-        }, 0, 60, TimeUnit.SECONDS);
+        var executor =
+                Executors.newSingleThreadScheduledExecutor(
+                        task -> {
+                            Thread thread = new Thread(task, "scheduled-departures");
+                            thread.setDaemon(true);
+                            return thread;
+                        });
+        executor.scheduleWithFixedDelay(
+                () -> {
+                    try (Connection connection = DbConnection.getConnection()) {
+                        reconcile(connection);
+                    } catch (SQLException ex) {
+                        System.err.println(
+                                "Departure/deadline update failed; retrying: " + ex.getMessage());
+                    }
+                },
+                0,
+                5,
+                TimeUnit.SECONDS);
+        executor.scheduleWithFixedDelay(
+                () -> {
+                    try {
+                        new qpal.dao.EmployeeSummaryDao().reconcile();
+                    } catch (SQLException ex) {
+                        System.err.println(
+                                "Employee daily summary failed; retrying: " + ex.getMessage());
+                    }
+                },
+                0,
+                60,
+                TimeUnit.SECONDS);
     }
 
     public static void reconcile(Connection connection) throws SQLException {

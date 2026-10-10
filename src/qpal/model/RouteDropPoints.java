@@ -1,11 +1,15 @@
 package qpal.model;
+
 import java.util.*;
+
 public final class RouteDropPoints {
     private RouteDropPoints() {}
-    private static final Map<String,List<String>> ROUTES=new LinkedHashMap<>();
+
+    private static final Map<String, List<String>> ROUTES = new LinkedHashMap<>();
+
     static {
         // Destination | drop-off point 1 | drop-off point 2.
-        String[] rows={
+        String[] rows = {
             "Alfonso, Cavite|Silang Town Proper|Tagaytay Rotonda",
             "Amadeo, Cavite|Robinsons Place Dasmariñas|Silang Bypass Road",
             "Antipolo City, Rizal|Ortigas Avenue Extension|Cainta Junction",
@@ -34,37 +38,50 @@ public final class RouteDropPoints {
             "Tagkawayan, Quezon|Lopez Junction|Calauag Town Proper",
             "Tanza, Cavite|Kawit Junction|General Trias Tejero",
             "Ternate, Cavite|Naic Town Proper|Maragondon Junction",
-            "Trece Martires City, Cavite|Imus Anabu|General Trias Manggahan"};
-        for(String row:rows) {
-            String[] p=row.split("\\|");
-            ROUTES.put(key(p[0]),List.of("PITX",p[1],p[2],p[0]));
+            "Trece Martires City, Cavite|Imus Anabu|General Trias Manggahan"
+        };
+        for (String row : rows) {
+            String[] p = row.split("\\|");
+            ROUTES.put(key(p[0]), List.of("PITX", p[1], p[2], p[0]));
         }
     }
+
     private static String key(String s) {
-        String k=java.text.Normalizer.normalize(s.trim(),java.text.Normalizer.Form.NFD).replaceAll("\\p{M}","").toLowerCase(Locale.ROOT);
-        k = k.split(",",2)[0].trim();
-        if(k.equals("tagaytay")) k = "tagaytay city";
-        if(k.equals("trece martires")) k = "trece martires city";
-        if(k.equals("tanauan")) k = "tanauan city";
-        if(k.equals("gma")) return "general mariano alvarez (gma)";
-        if(k.equals("santa cruz")) return "sta. cruz";
+        String k =
+                java.text.Normalizer.normalize(s.trim(), java.text.Normalizer.Form.NFD)
+                        .replaceAll("\\p{M}", "")
+                        .toLowerCase(Locale.ROOT);
+        k = k.split(",", 2)[0].trim();
+        if (k.equals("tagaytay")) k = "tagaytay city";
+        if (k.equals("trece martires")) k = "trece martires city";
+        if (k.equals("tanauan")) k = "tanauan city";
+        if (k.equals("gma")) return "general mariano alvarez (gma)";
+        if (k.equals("santa cruz")) return "sta. cruz";
         return k;
     }
+
     public static List<String> route(String destination) {
         List<String> mapped = ROUTES.get(key(destination));
-        return mapped == null ? List.of("PITX",destination)
-                : List.of("PITX",mapped.get(1),mapped.get(2),destination);
+        return mapped == null
+                ? List.of("PITX", destination)
+                : List.of("PITX", mapped.get(1), mapped.get(2), destination);
     }
+
     public static List<String> options(String destination) {
-        var route=route(destination);
-        return List.copyOf(new LinkedHashSet<>(route.subList(1,route.size())));
+        var route = route(destination);
+        return List.copyOf(new LinkedHashSet<>(route.subList(1, route.size())));
     }
-    public static boolean valid(String origin,String destination,String stop) {
-        return stop!=null && (stop.equals(destination) || (origin.equalsIgnoreCase("PITX") && options(destination).contains(stop)));
+
+    public static boolean valid(String origin, String destination, String stop) {
+        return stop != null
+                && (stop.equals(destination)
+                        || (origin.equalsIgnoreCase("PITX")
+                                && options(destination).contains(stop)));
     }
 
     /** Approved fare policy: first stop 60%, second stop 80%, final destination 100%. */
-    public static java.math.BigDecimal fare(String destination, String stop, java.math.BigDecimal fullFare) {
+    public static java.math.BigDecimal fare(
+            String destination, String stop, java.math.BigDecimal fullFare) {
         List<String> stops = options(destination);
         if (stop == null || !stops.contains(stop) || fullFare == null || fullFare.signum() <= 0)
             throw new IllegalArgumentException("A valid drop-off and route fare are required.");

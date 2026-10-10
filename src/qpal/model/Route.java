@@ -8,8 +8,7 @@ public class Route {
     private double fare;
     private String status;
 
-    public Route() {
-    }
+    public Route() {}
 
     public Route(int routeID, String origin, String destination, double fare, String status) {
         this.routeID = routeID;

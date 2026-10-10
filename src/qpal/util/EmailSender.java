@@ -1,5 +1,3 @@
 package qpal.util;
 
-public class EmailSender {
-    
-}
+public class EmailSender {}

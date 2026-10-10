@@ -15,11 +15,20 @@ public class Trip {
     private int seatCapacity;
     private String status;
 
-    public Trip() {
+    public Trip() {}
 
-    }
-
-    public Trip(int tripID, int busID, int routeID, String busName, String origin, String destination, String departureDate, String departureTime, double fare, int availableSeats, String status) {
+    public Trip(
+            int tripID,
+            int busID,
+            int routeID,
+            String busName,
+            String origin,
+            String destination,
+            String departureDate,
+            String departureTime,
+            double fare,
+            int availableSeats,
+            String status) {
 
         this.tripID = tripID;
         this.busID = busID;
@@ -32,7 +41,6 @@ public class Trip {
         this.fare = fare;
         this.availableSeats = availableSeats;
         this.status = status;
-
     }
 
     public int getTripID() {
@@ -52,7 +60,7 @@ public class Trip {
     }
 
     public int getRouteID() {
-    return routeID;
+        return routeID;
     }
 
     public void setRouteID(int routeID) {
@@ -130,5 +138,4 @@ public class Trip {
     public void setStatus(String status) {
         this.status = status;
     }
-
 }

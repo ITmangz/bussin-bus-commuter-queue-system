@@ -8,9 +8,7 @@ public class Bus {
     private int availableSeats;
     private String busStatus;
 
-    public Bus() {
-
-    }
+    public Bus() {}
 
     public int getBusID() {
         return busID;
@@ -53,8 +51,7 @@ public class Bus {
     }
 
     @Override
-        public String toString() {
-            return busNumber;
-        }
-
+    public String toString() {
+        return busNumber;
+    }
 }

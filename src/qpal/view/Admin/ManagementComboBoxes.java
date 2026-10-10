@@ -14,7 +14,7 @@ final class ManagementComboBoxes {
     }
 
     static boolean validateBusSelection(JComboBox<qpal.model.Bus> combo, Component parent) {
-        qpal.model.Bus bus = (qpal.model.Bus)combo.getSelectedItem();
+        qpal.model.Bus bus = (qpal.model.Bus) combo.getSelectedItem();
         if (bus == null) return true;
         String status = bus.getBusStatus();
         String message;
@@ -26,16 +26,16 @@ final class ManagementComboBoxes {
             return true;
         }
         combo.setSelectedIndex(-1);
-        qpal.components.AppDialogs.showMessageDialog(parent, message,
-                "Bus Unavailable", JOptionPane.WARNING_MESSAGE);
+        qpal.components.AppDialogs.showMessageDialog(
+                parent, message, "Bus Unavailable", JOptionPane.WARNING_MESSAGE);
         return false;
     }
 
     static JComboBox<Integer> seatCapacity(int selected) {
         JComboBox<Integer> combo = new JComboBox<>();
         for (int seats = 24; seats <= 44; seats += 4) combo.addItem(seats);
-        combo.setSelectedIndex(selected >= 24 && selected <= 44 && selected % 4 == 0
-                ? (selected - 24) / 4 : -1);
+        combo.setSelectedIndex(
+                selected >= 24 && selected <= 44 && selected % 4 == 0 ? (selected - 24) / 4 : -1);
         style(combo);
         return combo;
     }
@@ -69,21 +69,30 @@ final class ManagementComboBoxes {
         combo.setMinimumSize(size);
         combo.setPreferredSize(size);
         combo.setMaximumSize(size);
-        combo.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value,
-                    int index, boolean selected, boolean focused) {
-                super.getListCellRendererComponent(list, value, index, selected, focused);
-                if (value instanceof LocalTime) {
-                    LocalTime time = (LocalTime)value;
-                    setText(time.format(DateTimeFormatter.ofPattern(
-                            time.getSecond() == 0 ? "h:mm a" : "h:mm:ss a", Locale.ENGLISH)));
-                }
-                setBorder(BorderFactory.createEmptyBorder(4, 12, 4, 8));
-                setBackground(selected && index >= 0 ? new Color(255, 235, 240) : Color.WHITE);
-                setForeground(new Color(20, 23, 28));
-                return this;
-            }
-        });
+        combo.setRenderer(
+                new DefaultListCellRenderer() {
+                    @Override
+                    public Component getListCellRendererComponent(
+                            JList<?> list,
+                            Object value,
+                            int index,
+                            boolean selected,
+                            boolean focused) {
+                        super.getListCellRendererComponent(list, value, index, selected, focused);
+                        if (value instanceof LocalTime) {
+                            LocalTime time = (LocalTime) value;
+                            setText(
+                                    time.format(
+                                            DateTimeFormatter.ofPattern(
+                                                    time.getSecond() == 0 ? "h:mm a" : "h:mm:ss a",
+                                                    Locale.ENGLISH)));
+                        }
+                        setBorder(BorderFactory.createEmptyBorder(4, 12, 4, 8));
+                        setBackground(
+                                selected && index >= 0 ? new Color(255, 235, 240) : Color.WHITE);
+                        setForeground(new Color(20, 23, 28));
+                        return this;
+                    }
+                });
     }
 }

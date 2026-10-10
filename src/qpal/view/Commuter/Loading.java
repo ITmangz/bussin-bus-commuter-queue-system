@@ -1,5 +1,3 @@
 package qpal.view.Commuter;
 
-public class Loading {
-    
-}
+public class Loading {}

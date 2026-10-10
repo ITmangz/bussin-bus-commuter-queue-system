@@ -13,8 +13,10 @@ public class RouteDao {
 
     public java.math.BigDecimal getActiveFare(String destination) throws SQLException {
         try (Connection con = DbConnection.getConnection();
-                PreparedStatement pst = con.prepareStatement(
-                        "SELECT fare FROM routes WHERE origin='PITX' AND destination=? AND status='Active'")) {
+                PreparedStatement pst =
+                        con.prepareStatement(
+                                "SELECT fare FROM routes WHERE origin='PITX' AND destination=? AND"
+                                    + " status='Active'")) {
             pst.setString(1, destination);
             try (ResultSet rs = pst.executeQuery()) {
                 if (!rs.next() || rs.getBigDecimal("fare").signum() <= 0)
@@ -30,8 +32,7 @@ public class RouteDao {
 
         String sql = "SELECT * FROM routes ORDER BY origin, destination";
 
-        try (
-                Connection con = DbConnection.getConnection();
+        try (Connection con = DbConnection.getConnection();
                 PreparedStatement pst = con.prepareStatement(sql);
                 ResultSet rs = pst.executeQuery()) {
 
@@ -59,8 +60,7 @@ public class RouteDao {
 
         String sql = "INSERT INTO routes (origin, destination, fare, status) VALUES (?, ?, ?, ?)";
 
-        try (
-                Connection con = DbConnection.getConnection();
+        try (Connection con = DbConnection.getConnection();
                 PreparedStatement pst = con.prepareStatement(sql)) {
 
             pst.setString(1, route.getOrigin());
@@ -69,7 +69,11 @@ public class RouteDao {
             pst.setString(4, route.getStatus());
 
             boolean saved = pst.executeUpdate() > 0;
-            if (saved) ActivityLogDao.recordActivity("Route & Schedule", "Create", "Added route " + route.getOrigin() + " to " + route.getDestination() + ".");
+            if (saved)
+                ActivityLogDao.recordActivity(
+                        "Route & Schedule",
+                        "Create",
+                        "Added route " + route.getOrigin() + " to " + route.getDestination() + ".");
             return saved;
 
         } catch (SQLException e) {
@@ -83,8 +87,7 @@ public class RouteDao {
 
         String sql = "SELECT * FROM routes WHERE route_id=?";
 
-        try (
-                Connection con = DbConnection.getConnection();
+        try (Connection con = DbConnection.getConnection();
                 PreparedStatement pst = con.prepareStatement(sql)) {
 
             pst.setInt(1, id);

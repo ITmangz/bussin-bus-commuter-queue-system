@@ -6,7 +6,7 @@ import javax.swing.*;
 
 public class CodeVerification {
 
-    public CodeVerification() { //palitan mo na lang ng "public static void main (String[] args) {"
+    public CodeVerification() { // palitan mo na lang ng "public static void main (String[] args) {"
 
         JFrame cpage = new JFrame();
         cpage.setSize(850, 550);
@@ -107,100 +107,123 @@ public class CodeVerification {
         code6txt.setBorder(BorderFactory.createEmptyBorder());
         leftpanel.add(code6txt);
 
-        code1txt.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                if (!Character.isDigit(e.getKeyChar()) || code1txt.getText().length() >= 1) {
-                    e.consume();
-                }
-            }
-            public void keyReleased(KeyEvent e) {
-                if (Character.isDigit(e.getKeyChar()) && code1txt.getText().length() == 1) {
-                    code2txt.requestFocus();
-                }
-            }
-        });
+        code1txt.addKeyListener(
+                new KeyAdapter() {
+                    public void keyTyped(KeyEvent e) {
+                        if (!Character.isDigit(e.getKeyChar())
+                                || code1txt.getText().length() >= 1) {
+                            e.consume();
+                        }
+                    }
 
-        code2txt.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                if (!Character.isDigit(e.getKeyChar()) || code2txt.getText().length() >= 1) {
-                    e.consume();
-                }
-            }
-            public void keyReleased(KeyEvent e) {
-                if (Character.isDigit(e.getKeyChar()) && code2txt.getText().length() == 1) {
-                    code3txt.requestFocus();
-                }
-                if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && code2txt.getText().isEmpty()) {
-                    code1txt.requestFocus();
-                    code1txt.setText("");
-                }
-            }
-        });
+                    public void keyReleased(KeyEvent e) {
+                        if (Character.isDigit(e.getKeyChar()) && code1txt.getText().length() == 1) {
+                            code2txt.requestFocus();
+                        }
+                    }
+                });
 
-        code3txt.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                if (!Character.isDigit(e.getKeyChar()) || code3txt.getText().length() >= 1) {
-                    e.consume();
-                }
-            }
-            public void keyReleased(KeyEvent e) {
-                if (Character.isDigit(e.getKeyChar()) && code3txt.getText().length() == 1) {
-                    code4txt.requestFocus();
-                }
-                if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && code3txt.getText().isEmpty()) {
-                    code2txt.requestFocus();
-                    code2txt.setText("");
-                }
-            }
-        });
+        code2txt.addKeyListener(
+                new KeyAdapter() {
+                    public void keyTyped(KeyEvent e) {
+                        if (!Character.isDigit(e.getKeyChar())
+                                || code2txt.getText().length() >= 1) {
+                            e.consume();
+                        }
+                    }
 
-        code4txt.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                if (!Character.isDigit(e.getKeyChar()) || code4txt.getText().length() >= 1) {
-                    e.consume();
-                }
-            }
-            public void keyReleased(KeyEvent e) {
-                if (Character.isDigit(e.getKeyChar()) && code4txt.getText().length() == 1) {
-                    code5txt.requestFocus();
-                }
-                if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && code4txt.getText().isEmpty()) {
-                    code3txt.requestFocus();
-                    code3txt.setText("");
-                }
-            }
-        });
+                    public void keyReleased(KeyEvent e) {
+                        if (Character.isDigit(e.getKeyChar()) && code2txt.getText().length() == 1) {
+                            code3txt.requestFocus();
+                        }
+                        if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE
+                                && code2txt.getText().isEmpty()) {
+                            code1txt.requestFocus();
+                            code1txt.setText("");
+                        }
+                    }
+                });
 
-        code5txt.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                if (!Character.isDigit(e.getKeyChar()) || code5txt.getText().length() >= 1) {
-                    e.consume();
-                }
-            }
-            public void keyReleased(KeyEvent e) {
-                if (Character.isDigit(e.getKeyChar()) && code5txt.getText().length() == 1) {
-                    code6txt.requestFocus();
-                }
-                if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && code5txt.getText().isEmpty()) {
-                    code4txt.requestFocus();
-                    code4txt.setText("");
-                }
-            }
-        });
+        code3txt.addKeyListener(
+                new KeyAdapter() {
+                    public void keyTyped(KeyEvent e) {
+                        if (!Character.isDigit(e.getKeyChar())
+                                || code3txt.getText().length() >= 1) {
+                            e.consume();
+                        }
+                    }
 
-        code6txt.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                if (!Character.isDigit(e.getKeyChar()) || code6txt.getText().length() >= 1) {
-                    e.consume();
-                }
-            }
-            public void keyReleased(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && code6txt.getText().isEmpty()) {
-                    code5txt.requestFocus();
-                    code5txt.setText("");
-                }
-            }
-        });
+                    public void keyReleased(KeyEvent e) {
+                        if (Character.isDigit(e.getKeyChar()) && code3txt.getText().length() == 1) {
+                            code4txt.requestFocus();
+                        }
+                        if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE
+                                && code3txt.getText().isEmpty()) {
+                            code2txt.requestFocus();
+                            code2txt.setText("");
+                        }
+                    }
+                });
+
+        code4txt.addKeyListener(
+                new KeyAdapter() {
+                    public void keyTyped(KeyEvent e) {
+                        if (!Character.isDigit(e.getKeyChar())
+                                || code4txt.getText().length() >= 1) {
+                            e.consume();
+                        }
+                    }
+
+                    public void keyReleased(KeyEvent e) {
+                        if (Character.isDigit(e.getKeyChar()) && code4txt.getText().length() == 1) {
+                            code5txt.requestFocus();
+                        }
+                        if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE
+                                && code4txt.getText().isEmpty()) {
+                            code3txt.requestFocus();
+                            code3txt.setText("");
+                        }
+                    }
+                });
+
+        code5txt.addKeyListener(
+                new KeyAdapter() {
+                    public void keyTyped(KeyEvent e) {
+                        if (!Character.isDigit(e.getKeyChar())
+                                || code5txt.getText().length() >= 1) {
+                            e.consume();
+                        }
+                    }
+
+                    public void keyReleased(KeyEvent e) {
+                        if (Character.isDigit(e.getKeyChar()) && code5txt.getText().length() == 1) {
+                            code6txt.requestFocus();
+                        }
+                        if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE
+                                && code5txt.getText().isEmpty()) {
+                            code4txt.requestFocus();
+                            code4txt.setText("");
+                        }
+                    }
+                });
+
+        code6txt.addKeyListener(
+                new KeyAdapter() {
+                    public void keyTyped(KeyEvent e) {
+                        if (!Character.isDigit(e.getKeyChar())
+                                || code6txt.getText().length() >= 1) {
+                            e.consume();
+                        }
+                    }
+
+                    public void keyReleased(KeyEvent e) {
+                        if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE
+                                && code6txt.getText().isEmpty()) {
+                            code5txt.requestFocus();
+                            code5txt.setText("");
+                        }
+                    }
+                });
 
         JButton confirmbtn = new JButton("Confirm Code");
         confirmbtn.setBounds(50, 320, 345, 40);
@@ -224,20 +247,27 @@ public class CodeVerification {
         resend.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         leftpanel.add(resend);
 
-        resend.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                resend.setForeground(new Color(180, 0, 40));
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                resend.setForeground(new Color(220, 0, 50));
-            }
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                qpal.components.AppDialogs.showMessageDialog(null, "Verification code resent successfully.", "Success!", JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
+        resend.addMouseListener(
+                new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        resend.setForeground(new Color(180, 0, 40));
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        resend.setForeground(new Color(220, 0, 50));
+                    }
+
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        qpal.components.AppDialogs.showMessageDialog(
+                                null,
+                                "Verification code resent successfully.",
+                                "Success!",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    }
+                });
 
         JLabel line1 = new JLabel();
         line1.setBounds(50, 420, 145, 1);
@@ -271,23 +301,25 @@ public class CodeVerification {
         login.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         leftpanel.add(login);
 
-        login.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                login.setForeground(new Color(180, 0, 40));
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                login.setForeground(new Color(220, 0, 50));
-            }
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                cpage.dispose();
-                new LoginPage();
-            }
-        });
+        login.addMouseListener(
+                new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        login.setForeground(new Color(180, 0, 40));
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        login.setForeground(new Color(220, 0, 50));
+                    }
+
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        cpage.dispose();
+                        new LoginPage();
+                    }
+                });
 
         cpage.setVisible(true);
     }
-
 }

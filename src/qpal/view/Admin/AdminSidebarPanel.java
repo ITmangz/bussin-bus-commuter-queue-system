@@ -19,7 +19,8 @@ public class AdminSidebarPanel extends JPanel {
         this(dashboard::showPage, dashboard::logout, false);
     }
 
-    public AdminSidebarPanel(java.util.function.Consumer<String> navigate, Runnable logout, boolean employee) {
+    public AdminSidebarPanel(
+            java.util.function.Consumer<String> navigate, Runnable logout, boolean employee) {
 
         setPreferredSize(new Dimension(220, 700));
         setOpaque(false);
@@ -37,12 +38,15 @@ public class AdminSidebarPanel extends JPanel {
         logo.setMaximumSize(new Dimension(180, 70));
         logo.setMinimumSize(new Dimension(180, 70));
         ImageIcon logoImage = new ImageIcon("resources/icons/bussinlogokiosk.png");
-        if(logoImage.getIconWidth() > 0) {
+        if (logoImage.getIconWidth() > 0) {
 
             int width = 140;
             int height = width * logoImage.getIconHeight() / logoImage.getIconWidth();
-            logo.setIcon(new ImageIcon(logoImage.getImage()
-                    .getScaledInstance(width, height, Image.SCALE_SMOOTH)));
+            logo.setIcon(
+                    new ImageIcon(
+                            logoImage
+                                    .getImage()
+                                    .getScaledInstance(width, height, Image.SCALE_SMOOTH)));
         } else {
             logo.setText("Bussin");
             logo.setForeground(Color.WHITE);
@@ -60,12 +64,12 @@ public class AdminSidebarPanel extends JPanel {
         accountsBtn = createButton("Manage<br>Accounts");
         activityBtn = createButton("Activity Log");
 
-        addMenuIcon(dashboardBtn,"dashboardicon");
-        addMenuIcon(queueBtn,"queueicon");
-        addMenuIcon(busBtn,"busicon");
-        addMenuIcon(routeBtn,"routeicon");
-        addMenuIcon(revenueBtn,"revenueicon");
-        addMenuIcon(accountsBtn,"manageaccsicon");
+        addMenuIcon(dashboardBtn, "dashboardicon");
+        addMenuIcon(queueBtn, "queueicon");
+        addMenuIcon(busBtn, "busicon");
+        addMenuIcon(routeBtn, "routeicon");
+        addMenuIcon(revenueBtn, "revenueicon");
+        addMenuIcon(accountsBtn, "manageaccsicon");
         addMenuIcon(activityBtn, "activitylogicon");
 
         dashboardBtn.addActionListener(e -> navigate.accept("dashboard"));
@@ -76,12 +80,21 @@ public class AdminSidebarPanel extends JPanel {
         accountsBtn.addActionListener(e -> navigate.accept("accounts"));
         activityBtn.addActionListener(e -> navigate.accept("activity"));
 
-        JButton[] buttons = employee
-                ? new JButton[]{dashboardBtn, queueBtn, busBtn, routeBtn, activityBtn}
-                : new JButton[]{dashboardBtn, queueBtn, busBtn, routeBtn, revenueBtn, accountsBtn, activityBtn};
-        for(int i = 0; i < buttons.length; i++) {
+        JButton[] buttons =
+                employee
+                        ? new JButton[] {dashboardBtn, queueBtn, busBtn, routeBtn, activityBtn}
+                        : new JButton[] {
+                            dashboardBtn,
+                            queueBtn,
+                            busBtn,
+                            routeBtn,
+                            revenueBtn,
+                            accountsBtn,
+                            activityBtn
+                        };
+        for (int i = 0; i < buttons.length; i++) {
             menuPanel.add(buttons[i]);
-            if(i < buttons.length - 1) {
+            if (i < buttons.length - 1) {
 
                 menuPanel.add(Box.createVerticalStrut(8));
             }
@@ -93,7 +106,7 @@ public class AdminSidebarPanel extends JPanel {
         bottom.setBorder(new EmptyBorder(16, 20, 24, 20));
         logoutBtn = createButton("Log Out");
 
-        addMenuIcon(logoutBtn,"logouticon");
+        addMenuIcon(logoutBtn, "logouticon");
 
         logoutBtn.addActionListener(e -> logout.run());
         bottom.add(logoutBtn, BorderLayout.CENTER);
@@ -101,10 +114,13 @@ public class AdminSidebarPanel extends JPanel {
         setSelectedPage("dashboard");
     }
 
-    private static void addMenuIcon(JButton button,String name) {
-        ImageIcon source=new ImageIcon("resources/icons/"+name+".png");
-        JLabel icon=new JLabel(new ImageIcon(source.getImage().getScaledInstance(24,24,Image.SCALE_SMOOTH)));
-        icon.setBounds(16,14,24,24);
+    private static void addMenuIcon(JButton button, String name) {
+        ImageIcon source = new ImageIcon("resources/icons/" + name + ".png");
+        JLabel icon =
+                new JLabel(
+                        new ImageIcon(
+                                source.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH)));
+        icon.setBounds(16, 14, 24, 24);
         button.add(icon);
     }
 
@@ -112,10 +128,10 @@ public class AdminSidebarPanel extends JPanel {
     protected void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
         Graphics2D g = (Graphics2D) graphics.create();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setPaint(new GradientPaint(0, 0, new Color(240, 0, 55),
-                0, getHeight(), new Color(82, 8, 30)));
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setPaint(
+                new GradientPaint(
+                        0, 0, new Color(240, 0, 55), 0, getHeight(), new Color(82, 8, 30)));
         g.fillRect(0, 0, getWidth(), getHeight());
         g.dispose();
     }
@@ -132,56 +148,61 @@ public class AdminSidebarPanel extends JPanel {
 
         repaint();
     }
+
     private JButton createButton(String text) {
-        JButton btn = new JButton("<html>" + text + "</html>") {
+        JButton btn =
+                new JButton("<html>" + text + "</html>") {
 
-            @Override
-            protected void paintComponent(Graphics graphics) {
+                    @Override
+                    protected void paintComponent(Graphics graphics) {
 
-                Graphics2D g = (Graphics2D) graphics.create();
-                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                        RenderingHints.VALUE_ANTIALIAS_ON);
+                        Graphics2D g = (Graphics2D) graphics.create();
+                        g.setRenderingHint(
+                                RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                if(isSelected()) {
+                        if (isSelected()) {
 
-                    g.setColor(new Color(255,255,255,48));
-                    g.fillRoundRect(0,0,getWidth(),getHeight(),12,12);
-                    g.setColor(Color.WHITE);
-                    g.fillRoundRect(7,12,4,getHeight()-24,4,4);
+                            g.setColor(new Color(255, 255, 255, 48));
+                            g.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                            g.setColor(Color.WHITE);
+                            g.fillRoundRect(7, 12, 4, getHeight() - 24, 4, 4);
 
-                } else if(getModel().isRollover() || hasFocus()) {
+                        } else if (getModel().isRollover() || hasFocus()) {
 
-                    g.setColor(new Color(255,255,255,26));
-                    g.fillRoundRect(0,0,getWidth(),getHeight(),12,12);
-                }
+                            g.setColor(new Color(255, 255, 255, 26));
+                            g.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                        }
 
-                if(getModel().isPressed()) {
+                        if (getModel().isPressed()) {
 
-                    g.setColor(new Color(255,255,255,20));
-                    g.fillRoundRect(0,0,getWidth(),getHeight(),12,12);
-                }
+                            g.setColor(new Color(255, 255, 255, 20));
+                            g.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                        }
 
-                g.dispose();
-                super.paintComponent(graphics);
-            }
-        };
+                        g.dispose();
+                        super.paintComponent(graphics);
+                    }
+                };
         btn.setRolloverEnabled(true);
         btn.setLayout(null);
-        btn.getModel().addChangeListener(e -> {
-            btn.repaint();
-        });
-        btn.addFocusListener(new java.awt.event.FocusAdapter() {
+        btn.getModel()
+                .addChangeListener(
+                        e -> {
+                            btn.repaint();
+                        });
+        btn.addFocusListener(
+                new java.awt.event.FocusAdapter() {
 
-            @Override
-            public void focusGained(java.awt.event.FocusEvent e) {
-                btn.repaint();
-            }
+                    @Override
+                    public void focusGained(java.awt.event.FocusEvent e) {
+                        btn.repaint();
+                    }
 
-            @Override
-            public void focusLost(java.awt.event.FocusEvent e) {
-                btn.repaint();
-            }
-        });
+                    @Override
+                    public void focusLost(java.awt.event.FocusEvent e) {
+                        btn.repaint();
+                    }
+                });
         Dimension size = new Dimension(180, 52);
         btn.setMaximumSize(size);
         btn.setPreferredSize(size);
@@ -198,5 +219,4 @@ public class AdminSidebarPanel extends JPanel {
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
     }
-
 }

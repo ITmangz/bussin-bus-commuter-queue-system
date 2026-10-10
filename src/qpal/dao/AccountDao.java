@@ -13,19 +13,19 @@ public class AccountDao {
     // LOGIN
     public Account Login(String email, String password) {
 
-        String sql = "SELECT * FROM accounts WHERE CAST(email AS BINARY) = CAST(? AS BINARY) AND CAST(password AS BINARY) = CAST(? AS BINARY) AND status = 'Active'";
+        String sql =
+                "SELECT * FROM accounts WHERE CAST(email AS BINARY) = CAST(? AS BINARY) AND"
+                    + " CAST(password AS BINARY) = CAST(? AS BINARY) AND status = 'Active'";
 
-        try (
-            Connection connection = DbConnection.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)
-        ) {
+        try (Connection connection = DbConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, email);
             statement.setString(2, password);
 
             ResultSet result = statement.executeQuery();
 
-            if(result.next()) {
+            if (result.next()) {
 
                 Account account = new Account();
 
@@ -40,23 +40,20 @@ public class AccountDao {
                 return account;
             }
 
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         return null;
     }
 
-
     // CHECK EMAIL
     public boolean CheckEmail(String email) {
 
         String sql = "SELECT email FROM accounts WHERE email = ?";
 
-        try (
-            Connection connection = DbConnection.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)
-        ) {
+        try (Connection connection = DbConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, email);
 
@@ -64,7 +61,7 @@ public class AccountDao {
 
             return result.next();
 
-        } catch(Exception e) {
+        } catch (Exception e) {
 
             e.printStackTrace();
         }
@@ -75,48 +72,42 @@ public class AccountDao {
     // CHECK INACTIVE ACCOUNT
     public boolean CheckInactive(String email) {
 
-    String sql = "SELECT status FROM accounts WHERE email = ?";
+        String sql = "SELECT status FROM accounts WHERE email = ?";
 
-    try (
-        Connection connection = DbConnection.getConnection();
-        PreparedStatement statement = connection.prepareStatement(sql)
-    ) {
+        try (Connection connection = DbConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
 
-        statement.setString(1, email);
+            statement.setString(1, email);
 
-        ResultSet result = statement.executeQuery();
+            ResultSet result = statement.executeQuery();
 
-        if(result.next()) {
+            if (result.next()) {
 
-            return result.getString("status").equalsIgnoreCase("Inactive");
+                return result.getString("status").equalsIgnoreCase("Inactive");
+            }
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
         }
 
-    } catch(Exception e) {
-
-        e.printStackTrace();
+        return false;
     }
-
-    return false;
-}
-
 
     // GET ALL ACCOUNTS
     public List<Account> getAllAccounts() {
 
         List<Account> accounts = new ArrayList<>();
 
-        String sql = "SELECT id, name, email, role, status, profile_image "
-                   + "FROM accounts ORDER BY id";
+        String sql =
+                "SELECT id, name, email, role, status, profile_image "
+                        + "FROM accounts ORDER BY id";
 
+        try (Connection connection = DbConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql);
+                ResultSet result = statement.executeQuery()) {
 
-        try (
-            Connection connection = DbConnection.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql);
-            ResultSet result = statement.executeQuery()
-        ) {
-
-
-            while(result.next()) {
+            while (result.next()) {
 
                 Account account = new Account();
 
@@ -130,32 +121,24 @@ public class AccountDao {
                 accounts.add(account);
             }
 
-
-        } catch(Exception e) {
+        } catch (Exception e) {
 
             e.printStackTrace();
         }
 
-
         return accounts;
     }
-
-
 
     // ADD ACCOUNT
     public boolean addAccount(Account account) {
 
+        String sql =
+                "INSERT INTO accounts "
+                        + "(name, email, password, role, status) "
+                        + "VALUES (?, ?, ?, ?, ?)";
 
-        String sql = "INSERT INTO accounts "
-                   + "(name, email, password, role, status) "
-                   + "VALUES (?, ?, ?, ?, ?)";
-
-
-        try (
-            Connection connection = DbConnection.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)
-        ) {
-
+        try (Connection connection = DbConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, account.getName());
             statement.setString(2, account.getEmail());
@@ -163,34 +146,36 @@ public class AccountDao {
             statement.setString(4, account.getRole());
             statement.setString(5, "Active");
 
-
             boolean saved = statement.executeUpdate() > 0;
-            if (saved) ActivityLogDao.recordActivity("Manage Accounts", "Create", "Created account " + account.getEmail() + " with role " + account.getRole() + ".");
+            if (saved)
+                ActivityLogDao.recordActivity(
+                        "Manage Accounts",
+                        "Create",
+                        "Created account "
+                                + account.getEmail()
+                                + " with role "
+                                + account.getRole()
+                                + ".");
             return saved;
 
-
-        } catch(Exception e) {
+        } catch (Exception e) {
 
             e.printStackTrace();
         }
 
-
         return false;
     }
-
-
 
     // UPDATE ACCOUNT
     public boolean updateAccount(Account account) {
 
-        String sql = "UPDATE accounts SET "
-                   + "name = ?, email = ?, password = ?, role = ?, status = ? "
-                   + "WHERE id = ?";
+        String sql =
+                "UPDATE accounts SET "
+                        + "name = ?, email = ?, password = ?, role = ?, status = ? "
+                        + "WHERE id = ?";
 
-        try (
-            Connection connection = DbConnection.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)
-        ) {
+        try (Connection connection = DbConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, account.getName());
             statement.setString(2, account.getEmail());
@@ -200,75 +185,60 @@ public class AccountDao {
             statement.setInt(6, account.getID());
 
             boolean saved = statement.executeUpdate() > 0;
-            if (saved) ActivityLogDao.recordActivity("Manage Accounts", "Update", "Updated account #" + account.getID() + " (" + account.getEmail() + ").");
+            if (saved)
+                ActivityLogDao.recordActivity(
+                        "Manage Accounts",
+                        "Update",
+                        "Updated account #" + account.getID() + " (" + account.getEmail() + ").");
             return saved;
 
-        } catch(Exception e) {
+        } catch (Exception e) {
 
             e.printStackTrace();
         }
 
         return false;
     }
-
-
 
     // DELETE ACCOUNT
     public boolean deleteAccount(int id) {
 
-
         String sql = "DELETE FROM accounts WHERE id = ?";
 
-
-        try (
-            Connection connection = DbConnection.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)
-        ) {
-
+        try (Connection connection = DbConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, id);
 
-
             boolean saved = statement.executeUpdate() > 0;
-            if (saved) ActivityLogDao.recordActivity("Manage Accounts", "Delete", "Deleted account #" + id + ".");
+            if (saved)
+                ActivityLogDao.recordActivity(
+                        "Manage Accounts", "Delete", "Deleted account #" + id + ".");
             return saved;
 
-
-        } catch(Exception e) {
+        } catch (Exception e) {
 
             e.printStackTrace();
         }
 
-
         return false;
     }
-
-
 
     // GET ACCOUNT BY ID
     public Account getAccount(int id) {
 
-
         String sql = "SELECT * FROM accounts WHERE id = ?";
 
-
-        try (
-            Connection connection = DbConnection.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)
-        ) {
-
+        try (Connection connection = DbConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, id);
 
-
             ResultSet result = statement.executeQuery();
 
-
-            if(result.next()) {
-
+            if (result.next()) {
 
                 Account account = new Account();
-
 
                 account.setID(result.getInt("id"));
                 account.setName(result.getString("name"));
@@ -278,13 +248,10 @@ public class AccountDao {
                 account.setStatus(result.getString("status"));
                 account.setProfileImage(result.getString("profile_image"));
 
-
                 return account;
-
             }
 
-
-        } catch(Exception e) {
+        } catch (Exception e) {
 
             e.printStackTrace();
         }
@@ -294,9 +261,11 @@ public class AccountDao {
 
     public boolean verifyCurrentPassword(int id, String password) throws java.sql.SQLException {
 
-        String sql = "SELECT id FROM accounts WHERE id = ? AND CAST(password AS BINARY) = CAST(? AS BINARY)";
+        String sql =
+                "SELECT id FROM accounts WHERE id = ? AND CAST(password AS BINARY) = CAST(? AS"
+                    + " BINARY)";
         try (Connection connection = DbConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, id);
             statement.setString(2, password);
@@ -311,40 +280,51 @@ public class AccountDao {
     }
 
     // UPDATE PERSONAL DETAILS WITHOUT CHANGING ROLE OR STATUS
-    public boolean updateProfile(int id, String name, String email, String password, String profileImage, String currentPassword) {
+    public boolean updateProfile(
+            int id,
+            String name,
+            String email,
+            String password,
+            String profileImage,
+            String currentPassword) {
 
-        String sql = "UPDATE accounts SET name = ?, email = ?, "
-                + "password = CASE WHEN ? = '' THEN password ELSE ? END, profile_image = ? WHERE id = ?";
+        String sql =
+                "UPDATE accounts SET name = ?, email = ?, password = CASE WHEN ? = '' THEN password"
+                    + " ELSE ? END, profile_image = ? WHERE id = ?";
 
         if (!password.isEmpty()) {
-            if (currentPassword == null || currentPassword.isEmpty() || password.isBlank()
-                    || password.length() > 100 || password.equals(currentPassword)) {
+            if (currentPassword == null
+                    || currentPassword.isEmpty()
+                    || password.isBlank()
+                    || password.length() > 100
+                    || password.equals(currentPassword)) {
                 return false;
             } else {
                 sql += " AND CAST(password AS BINARY) = CAST(? AS BINARY)";
             }
         }
 
-        try (
-            Connection connection = DbConnection.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)
-        ) {
+        try (Connection connection = DbConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, name);
             statement.setString(2, email);
             statement.setString(3, password);
             statement.setString(4, password);
-            statement.setString(5, profileImage == null || profileImage.isEmpty() ? null : profileImage);
+            statement.setString(
+                    5, profileImage == null || profileImage.isEmpty() ? null : profileImage);
             statement.setInt(6, id);
             if (!password.isEmpty()) {
                 statement.setString(7, currentPassword);
             }
 
             boolean saved = statement.executeUpdate() > 0;
-            if (saved) ActivityLogDao.recordActivity("Profile", "Update", "Updated personal profile for account #" + id + ".");
+            if (saved)
+                ActivityLogDao.recordActivity(
+                        "Profile", "Update", "Updated personal profile for account #" + id + ".");
             return saved;
 
-        } catch(Exception e) {
+        } catch (Exception e) {
 
             e.printStackTrace();
         }

@@ -18,12 +18,14 @@ public class AdminTopPanel extends JPanel {
         this(dashboard.getCurrentAccount(), clock, dashboard::showPage);
     }
 
-    public AdminTopPanel(Account currentAccount, JLabel clock, java.util.function.Consumer<String> navigate) {
+    public AdminTopPanel(
+            Account currentAccount, JLabel clock, java.util.function.Consumer<String> navigate) {
         setLayout(new BorderLayout(16, 0));
         setBackground(new Color(248, 249, 251));
-        setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(225, 228, 234)),
-                new EmptyBorder(10, 25, 10, 20)));
+        setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(225, 228, 234)),
+                        new EmptyBorder(10, 25, 10, 20)));
         setPreferredSize(new Dimension(0, 64));
 
         JButton home = new JButton("Home >");
@@ -48,9 +50,10 @@ public class AdminTopPanel extends JPanel {
 
         JPanel account = new JPanel(new BorderLayout(12, 0));
         account.setOpaque(false);
-        account.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 1, 0, 0, new Color(225, 228, 234)),
-                new EmptyBorder(0, 20, 0, 0)));
+        account.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 1, 0, 0, new Color(225, 228, 234)),
+                        new EmptyBorder(0, 20, 0, 0)));
         account.add(photo, BorderLayout.WEST);
         JPanel labels = new JPanel(new GridLayout(2, 1, 0, 2));
         labels.setOpaque(false);
@@ -62,7 +65,7 @@ public class AdminTopPanel extends JPanel {
         labels.add(name);
         labels.add(role);
         account.add(labels, BorderLayout.CENTER);
-        
+
         JButton edit = new JButton("\u2304");
         edit.setFont(new Font("SansSerif", Font.PLAIN, 20));
         edit.setForeground(new Color(70, 75, 85));
@@ -106,28 +109,36 @@ public class AdminTopPanel extends JPanel {
         name.setText(displayName);
         name.setToolTipText(displayName);
         String displayRole = account == null ? null : account.getRole();
-        role.setText(displayRole != null && "employee".equalsIgnoreCase(displayRole.trim())
-                ? "Employee" : "Admin");
+        role.setText(
+                displayRole != null && "employee".equalsIgnoreCase(displayRole.trim())
+                        ? "Employee"
+                        : "Admin");
         BufferedImage image = new BufferedImage(36, 36, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setClip(new Ellipse2D.Double(0, 0, 36, 36));
         g.setColor(new Color(255, 230, 237));
         g.fillRect(0, 0, 36, 36);
-        ImageIcon source = account == null || account.getProfileImage() == null
-                ? null : new ImageIcon(account.getProfileImage());
+        ImageIcon source =
+                account == null || account.getProfileImage() == null
+                        ? null
+                        : new ImageIcon(account.getProfileImage());
         if (source != null && source.getIconWidth() > 0 && source.getIconHeight() > 0) {
             double scale = Math.max(36.0 / source.getIconWidth(), 36.0 / source.getIconHeight());
             int width = (int) Math.ceil(source.getIconWidth() * scale);
             int height = (int) Math.ceil(source.getIconHeight() * scale);
-            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            g.drawImage(source.getImage(), (36 - width) / 2, (36 - height) / 2, width, height, null);
+            g.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g.drawImage(
+                    source.getImage(), (36 - width) / 2, (36 - height) / 2, width, height, null);
         } else {
             g.setColor(new Color(190, 0, 50));
             g.setFont(new Font("SansSerif", Font.BOLD, 16));
             String initial = displayName.substring(0, 1).toUpperCase(java.util.Locale.ROOT);
             FontMetrics metrics = g.getFontMetrics();
-            g.drawString(initial, (36 - metrics.stringWidth(initial)) / 2,
+            g.drawString(
+                    initial,
+                    (36 - metrics.stringWidth(initial)) / 2,
                     (36 - metrics.getHeight()) / 2 + metrics.getAscent());
         }
         g.dispose();

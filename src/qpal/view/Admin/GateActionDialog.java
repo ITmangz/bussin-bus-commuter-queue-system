@@ -9,10 +9,13 @@ import javax.swing.border.EmptyBorder;
 final class GateActionDialog {
     private GateActionDialog() {}
 
-    static int show(Component parent, String title, String message,
-            JComboBox<?> trips, String... options) {
-        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(parent), title,
-                Dialog.ModalityType.APPLICATION_MODAL);
+    static int show(
+            Component parent, String title, String message, JComboBox<?> trips, String... options) {
+        JDialog dialog =
+                new JDialog(
+                        SwingUtilities.getWindowAncestor(parent),
+                        title,
+                        Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setUndecorated(true);
         dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         int[] result = {JOptionPane.CLOSED_OPTION};
@@ -51,8 +54,13 @@ final class GateActionDialog {
         form.add(content, BorderLayout.CENTER);
 
         // Stack longer departure choices so every action remains readable.
-        JPanel actions = new JPanel(new GridLayout(options.length > 2 ? options.length : 1,
-                options.length > 2 ? 1 : options.length, 12, 12));
+        JPanel actions =
+                new JPanel(
+                        new GridLayout(
+                                options.length > 2 ? options.length : 1,
+                                options.length > 2 ? 1 : options.length,
+                                12,
+                                12));
         actions.setOpaque(false);
         actions.putClientProperty("fullWidthActions", Boolean.TRUE);
         int actionRows = options.length > 2 ? options.length : 1;
@@ -63,19 +71,28 @@ final class GateActionDialog {
             JButton button = new JButton(options[i]);
             button.setFont(new Font("SansSerif", Font.BOLD, 12));
             button.setForeground(Color.WHITE);
-            button.setBackground(i == options.length - 1 ? new Color(240, 0, 55)
-                    : i == 0 ? new Color(0, 190, 100) : new Color(245, 158, 0));
+            button.setBackground(
+                    i == options.length - 1
+                            ? new Color(240, 0, 55)
+                            : i == 0 ? new Color(0, 190, 100) : new Color(245, 158, 0));
             button.setPreferredSize(new Dimension(360, 38));
             button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            button.addActionListener(e -> { result[0] = choice; dialog.dispose(); });
+            button.addActionListener(
+                    e -> {
+                        result[0] = choice;
+                        dialog.dispose();
+                    });
             actions.add(button);
             cancel = button;
         }
         form.add(actions, BorderLayout.SOUTH);
         dialog.setContentPane(AdminFormStyle.frame(form));
         dialog.getRootPane().setDefaultButton(cancel);
-        dialog.getRootPane().registerKeyboardAction(e -> dialog.dispose(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+        dialog.getRootPane()
+                .registerKeyboardAction(
+                        e -> dialog.dispose(),
+                        KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                        JComponent.WHEN_IN_FOCUSED_WINDOW);
         dialog.pack();
         dialog.setResizable(false);
         dialog.setLocationRelativeTo(null);

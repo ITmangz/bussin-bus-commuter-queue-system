@@ -60,40 +60,44 @@ public class AdminDashboard {
 
         dashpage.add(sidebar, BorderLayout.WEST);
         JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(new java.awt.Color(245,245,245));
+        mainPanel.setBackground(new java.awt.Color(245, 245, 245));
 
         javax.swing.JLabel lblDateTime = new javax.swing.JLabel();
         lblDateTime.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        lblDateTime.setFont(new java.awt.Font("SansSerif",java.awt.Font.PLAIN,12));
-        lblDateTime.setForeground(new java.awt.Color(110,110,110));
-
+        lblDateTime.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 12));
+        lblDateTime.setForeground(new java.awt.Color(110, 110, 110));
 
         java.time.format.DateTimeFormatter dateFormat =
-                java.time.format.DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy  |  hh:mm:ss a",java.util.Locale.ENGLISH);
+                java.time.format.DateTimeFormatter.ofPattern(
+                        "EEEE, MMMM d, yyyy  |  hh:mm:ss a", java.util.Locale.ENGLISH);
         lblDateTime.setText(java.time.LocalDateTime.now().format(dateFormat));
 
-        javax.swing.Timer clockTimer = new javax.swing.Timer(1000,e -> {
-            lblDateTime.setText(java.time.LocalDateTime.now().format(dateFormat));
-        });
+        javax.swing.Timer clockTimer =
+                new javax.swing.Timer(
+                        1000,
+                        e -> {
+                            lblDateTime.setText(java.time.LocalDateTime.now().format(dateFormat));
+                        });
         clockTimer.start();
 
-        dashpage.addWindowListener(new java.awt.event.WindowAdapter() {
+        dashpage.addWindowListener(
+                new java.awt.event.WindowAdapter() {
 
-            @Override
-            public void windowClosing(java.awt.event.WindowEvent e) {
-                logout(true);
-            }
+                    @Override
+                    public void windowClosing(java.awt.event.WindowEvent e) {
+                        logout(true);
+                    }
 
-            @Override
-            public void windowClosed(java.awt.event.WindowEvent e) {
-                clockTimer.stop();
-            }
-        });
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        clockTimer.stop();
+                    }
+                });
 
         topPanel = new AdminTopPanel(this, lblDateTime);
-        mainPanel.add(topPanel,BorderLayout.NORTH);
-        mainPanel.add(contentPanel,BorderLayout.CENTER);
-        dashpage.add(mainPanel,BorderLayout.CENTER);
+        mainPanel.add(topPanel, BorderLayout.NORTH);
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        dashpage.add(mainPanel, BorderLayout.CENTER);
 
         dashpage.setVisible(true);
         dashboardPanel.refreshData();
@@ -106,20 +110,23 @@ public class AdminDashboard {
     private void logout(boolean exit) {
         if (closing) return;
         if (queuePanel.isActionInProgress()) {
-            qpal.components.AppDialogs.showMessageDialog(dashpage,
+            qpal.components.AppDialogs.showMessageDialog(
+                    dashpage,
                     "Finish the current queue action or close its dialog before logging out.");
             return;
         }
         closing = true;
-        int choice = qpal.components.AppDialogs.showConfirmDialog(
-                dashpage,
-                "Are you sure you want to log out?",
-                "Confirm Logout",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
+        int choice =
+                qpal.components.AppDialogs.showConfirmDialog(
+                        dashpage,
+                        "Are you sure you want to log out?",
+                        "Confirm Logout",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE);
 
         if (choice == JOptionPane.YES_OPTION) {
-            qpal.dao.ActivityLogDao.recordActivity("Authentication", "Logout", "User logged out of the system.");
+            qpal.dao.ActivityLogDao.recordActivity(
+                    "Authentication", "Logout", "User logged out of the system.");
             qpal.dao.ActivityLogDao.setCurrentAccount(null);
             currentAccount = null;
             dashpage.dispose();
@@ -136,14 +143,14 @@ public class AdminDashboard {
     }
 
     public void showPage(String page) {
-        if("profile".equals(page)) {
+        if ("profile".equals(page)) {
 
             profilePanel.showDialog(contentPanel);
             topPanel.updateProfile(currentAccount);
             dashboardPanel.updateProfile();
             return;
         }
-        if("dashboard".equals(page)) {
+        if ("dashboard".equals(page)) {
 
             dashboardPanel.refreshData();
         }

@@ -15,26 +15,15 @@ public class ModernTableCellRenderer extends DefaultTableCellRenderer {
 
     @Override
     public Component getTableCellRendererComponent(
-            JTable table,
-            Object value,
-            boolean isSelected,
-            boolean hasFocus,
-            int row,
-            int column) {
+            JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
-        super.getTableCellRendererComponent(
-                table,
-                value,
-                isSelected,
-                hasFocus,
-                row,
-                column);
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
         setFont(new Font("SansSerif", Font.PLAIN, 13));
 
         if (isSelected) {
 
-            setBackground(new Color(235,245,255));
+            setBackground(new Color(235, 245, 255));
             setForeground(Color.BLACK);
 
         } else {
@@ -43,10 +32,10 @@ public class ModernTableCellRenderer extends DefaultTableCellRenderer {
             if (row % 2 == 0) {
                 setBackground(Color.WHITE);
             } else {
-                setBackground(new Color(249,249,249));
+                setBackground(new Color(249, 249, 249));
             }
 
-            setForeground(new Color(70,70,70));
+            setForeground(new Color(70, 70, 70));
         }
 
         // Center ID, Role, Status
@@ -59,4 +48,3 @@ public class ModernTableCellRenderer extends DefaultTableCellRenderer {
         return this;
     }
 }
-
