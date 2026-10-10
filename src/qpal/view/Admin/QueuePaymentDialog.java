@@ -21,7 +21,7 @@ public final class QueuePaymentDialog extends JDialog {
     private final JLabel change = new JLabel("Change: PHP 0.00");
     private final JLabel status = new JLabel(" ");
     private final JButton pay = new JButton("Mark as Paid");
-    private final JCheckBox verified = new JCheckBox("Verified in merchant records / terminal");
+    private boolean simulationApproved;
     private final JTextField transactionReference = new JTextField();
 
     private boolean cashless() {
@@ -74,6 +74,17 @@ public final class QueuePaymentDialog extends JDialog {
                                     closed.run();
                                 }
                             });
+                    if (dialog.cashless() && !"Paid".equals(dialog.receipt.paymentStatus())) {
+                        String reference = CashlessSimulationDialog.show(
+                                dialog.getOwner(), dialog.receipt.method(), dialog.receipt.total());
+                        if (reference == null) {
+                            dialog.dispose();
+                            return;
+                        }
+                        dialog.transactionReference.setText(reference);
+                        dialog.simulationApproved = true;
+                        dialog.updateButtons();
+                    }
                     dialog.setVisible(true);
                 },
                 ex -> {
@@ -96,7 +107,7 @@ public final class QueuePaymentDialog extends JDialog {
                         qpal.components.AppDialogs.showMessageDialog(
                                 parent,
                                 "Please finish Payment and collect the payment receipt before"
-                                    + " printing boarding tickets.",
+                                        + " printing boarding tickets.",
                                 "Payment Required",
                                 JOptionPane.WARNING_MESSAGE);
                         closed.run();
@@ -164,12 +175,7 @@ public final class QueuePaymentDialog extends JDialog {
         if (progress.received() != null) received.setText(progress.received().toPlainString());
         else if (cashless()) received.setText(receipt.total().toPlainString());
         if (cashless()) {
-            addInput(content, "Merchant / Terminal Transaction Reference", transactionReference);
-            verified.setOpaque(false);
-            verified.setFont(new Font("SansSerif", Font.PLAIN, 11));
-            verified.setAlignmentX(Component.LEFT_ALIGNMENT);
-            content.add(verified);
-            verified.addActionListener(e -> updateButtons());
+            addInput(content, "Transaction Reference", transactionReference);
         }
         ((javax.swing.text.AbstractDocument) received.getDocument())
                 .setDocumentFilter(
@@ -291,6 +297,7 @@ public final class QueuePaymentDialog extends JDialog {
             setSize(getWidth() + 12, maximumHeight);
         }
         setLocationRelativeTo(getOwner());
+
     }
 
     private static void addField(JPanel content, String label, String value) {
@@ -339,9 +346,10 @@ public final class QueuePaymentDialog extends JDialog {
     private void updateButtons() {
         boolean paid = "Paid".equals(receipt.paymentStatus());
         received.setEditable(!cashless() && !paid && !busy);
-        verified.setEnabled(!paid && !busy);
-        transactionReference.setEditable(!paid && !busy);
-        pay.setEnabled(!paid && !busy && (!cashless() || verified.isSelected()));
+
+        transactionReference.setEditable(false);
+        pay.setEnabled(!paid && !busy);
+        pay.setText(cashless() && !simulationApproved ? "Simulate Payment" : "Mark as Paid");
 
         status.setText(
                 progress.ticketsPrinted()
@@ -354,10 +362,13 @@ public final class QueuePaymentDialog extends JDialog {
     }
 
     private void pay() {
-        if (cashless() && !verified.isSelected()) {
-            error(
-                    new IllegalArgumentException(
-                            "Verify payment in merchant records or the card terminal first."));
+        if (cashless() && !simulationApproved) {
+            String reference =
+                    CashlessSimulationDialog.show(this, receipt.method(), receipt.total());
+            if (reference == null) return;
+            transactionReference.setText(reference);
+            simulationApproved = true;
+            pay();
             return;
         }
         final BigDecimal amount;
@@ -368,12 +379,12 @@ public final class QueuePaymentDialog extends JDialog {
             return;
         }
         final String reference = transactionReference.getText().trim();
-        final boolean paymentVerified = verified.isSelected();
+        final boolean paymentVerified = simulationApproved;
         if (cashless() && !reference.matches("[A-Za-z0-9-]{1,64}")) {
             error(
                     new IllegalArgumentException(
                             "Enter the merchant or terminal reference (1–64 letters, numbers or"
-                                + " hyphens)."));
+                                    + " hyphens)."));
             return;
         }
         busy = true;

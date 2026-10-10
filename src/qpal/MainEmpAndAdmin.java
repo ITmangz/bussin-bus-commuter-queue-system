@@ -10,3 +10,4 @@ public class MainEmpAndAdmin {
         SwingUtilities.invokeLater(LoginPage::new);
     }
 }
+    

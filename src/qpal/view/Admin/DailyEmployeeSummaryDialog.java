@@ -102,6 +102,15 @@ final class DailyEmployeeSummaryDialog extends JDialog {
             button.setBackground(selected ? new Color(225, 29, 72) : Color.WHITE);
             button.setForeground(selected ? Color.WHITE : new Color(80, 80, 80));
         }
+        int[] minimumWidths = {200, 240, 100, 90, 185, 180, 175};
+        for (int column = 0; column < table.getColumnCount(); column++) {
+            int width = minimumWidths[column];
+            for (int row = 0; row < table.getRowCount(); row++) {
+                Component cell = table.prepareRenderer(table.getCellRenderer(row, column), row, column);
+                width = Math.max(width, cell.getPreferredSize().width + 24);
+            }
+            table.getColumnModel().getColumn(column).setPreferredWidth(width);
+        }
         table.clearSelection();
         table.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
     }
@@ -210,10 +219,11 @@ final class DailyEmployeeSummaryDialog extends JDialog {
         table.getTableHeader().setBackground(Color.WHITE);
         table.getTableHeader().setPreferredSize(new Dimension(0, 36));
         table.getTableHeader().setReorderingAllowed(false);
-        int[] widths = {160, 140, 85, 75, 165, 155, 150};
+        int[] widths = {200, 240, 100, 90, 185, 180, 175};
         for (int i = 0; i < widths.length; i++)
             table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         JScrollPane scroll = new JScrollPane(table);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         scroll.setBorder(BorderFactory.createLineBorder(new Color(232, 236, 242)));
         scroll.getViewport().setBackground(Color.WHITE);
         AdminCard.styleScrollBar(scroll, Color.WHITE);
@@ -308,24 +318,6 @@ final class DailyEmployeeSummaryDialog extends JDialog {
                 button.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
                 button.setBorderPainted(true);
             }
-        // Fit the viewport when possible; preserve a horizontal scrollbar on smaller screens.
-        scroll.getViewport()
-                .addComponentListener(
-                        new java.awt.event.ComponentAdapter() {
-                            @Override
-                            public void componentResized(java.awt.event.ComponentEvent e) {
-                                int available = scroll.getViewport().getWidth();
-                                int minimum = java.util.Arrays.stream(widths).sum();
-                                int extra = Math.max(0, available - minimum);
-                                for (int i = 0; i < widths.length; i++) {
-                                    var column = table.getColumnModel().getColumn(i);
-                                    column.setPreferredWidth(
-                                            widths[i]
-                                                    + extra / widths.length
-                                                    + (i < extra % widths.length ? 1 : 0));
-                                }
-                            }
-                        });
         // Keep the full date and calendar button visible in this compact filter row.
         Dimension dateSize = new Dimension(190, 38);
         date.setPreferredSize(dateSize);

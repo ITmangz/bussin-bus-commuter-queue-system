@@ -18,7 +18,6 @@ public final class EmployeeStationPanel extends JPanel {
     private EmployeeStation selected;
     private boolean loading, submitting;
     private final javax.swing.Timer timer;
-    // Add your ImageIcons here later, just like the image JLabels in LoginPage.
     private final JLabel lblCounter1Image = new JLabel();
     private final JLabel lblCounter2Image = new JLabel();
     private final JLabel lblGate1Image = new JLabel();
@@ -62,9 +61,11 @@ public final class EmployeeStationPanel extends JPanel {
                 icon.setHorizontalAlignment(SwingConstants.CENTER);
                 icon.setVerticalAlignment(SwingConstants.CENTER);
                 icon.setAlignmentX(CENTER_ALIGNMENT);
-                // Example: lblCounter1Image.setIcon(new ImageIcon(new
-                // ImageIcon("resources/icons/counter1.png")
-                //         .getImage().getScaledInstance(90,76,Image.SCALE_SMOOTH)));
+                String imagePath = "resources/icons/"
+                        + (station.boarding() ? "gate" : "counter") + number + "ic.png";
+                ImageIcon stationImage = new ImageIcon(imagePath);
+                icon.setIcon(new ImageIcon(stationImage.getImage()
+                        .getScaledInstance(90, 76, Image.SCALE_SMOOTH)));
                 card.add(icon);
                 card.add(Box.createVerticalStrut(16));
                 card.add(label(station.title(), 16, true, Color.BLACK));
