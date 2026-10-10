@@ -122,13 +122,15 @@ public final class EmployeeStationDao {
 
     /** Writes attribution in the same transaction as the successful business action. */
     public static void recordWork(Connection c,String event,String kind,int station,int queue) throws SQLException {
-        if (!isEmployee()) return;
-        Session session=current;
-        if (session==null) throw new SQLException("Select your station first.");
+        Account actor = ActivityLogDao.getCurrentAccount();
+        if (actor == null || (!"Employee".equalsIgnoreCase(actor.getRole()) && !"Admin".equalsIgnoreCase(actor.getRole()))) return;
+        Session session = "Employee".equalsIgnoreCase(actor.getRole()) ? current : null;
+        if ("Employee".equalsIgnoreCase(actor.getRole()) && (session == null || session.accountId() != actor.getID()))
+            throw new SQLException("Select your station first.");
         update(c,"INSERT INTO employee_queue_work(event,queue_entry_id,account_id,kind,station,passengers,amount) "
                 + "SELECT ?,q.queue_entry_id,?,?,?,(SELECT COUNT(*) FROM booking_passengers bp WHERE bp.booking_id=q.booking_id),"
                 + "CASE WHEN ?='Payment' THEN COALESCE((SELECT amount FROM payments WHERE booking_id=q.booking_id ORDER BY payment_id DESC LIMIT 1),0) ELSE 0 END "
-                + "FROM queue_entries q WHERE q.queue_entry_id=?",event,session.accountId(),kind,station,event,queue);
-        EmployeeSummaryDao.credit(c,session,event,queue);
+                + "FROM queue_entries q WHERE q.queue_entry_id=?",event,actor.getID(),kind,station,event,queue);
+        if (session != null) EmployeeSummaryDao.credit(c,session,event,queue);
     }
 }

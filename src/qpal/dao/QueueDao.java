@@ -131,7 +131,11 @@ public class QueueDao {
                 QueuePaymentDao.requirePrinted(c,queueId);
                 if (update(c,"INSERT IGNORE INTO queue_boarding(queue_entry_id) VALUES (?)",queueId)==0)
                     throw new SQLException("Boarding has already been completed for this queue.");
-                if (EmployeeStationDao.isEmployee()) EmployeeStationDao.recordWork(c,"Boarded","Boarding",EmployeeStationDao.current().station().number(),queueId);
+                try (PreparedStatement p = statement(c,"SELECT station FROM queue_stations WHERE kind='Boarding' AND queue_entry_id=?",queueId);
+                        ResultSet r = p.executeQuery()) {
+                    if (!r.next()) throw new SQLException("This queue is not assigned to a boarding gate.");
+                    EmployeeStationDao.recordWork(c,"Boarded","Boarding",r.getInt(1),queueId);
+                }
                 c.commit();
                 ActivityLogDao.recordActivity("Queue Management", "Update", "Marked queue #" + queueId + " as boarded.");
             } catch (SQLException | RuntimeException ex) { c.rollback(); throw ex; }

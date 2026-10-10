@@ -9,27 +9,27 @@ import static qpal.dao.BookingDao.*;
 
 /** Durable session totals and once-only daily activity summaries. */
 public final class EmployeeSummaryDao {
-    public record DailyEmployee(int id, String name, String email, int payments,
-            BigDecimal collected, int served, int boarded) {}
+    public record DailyEmployee(int id, String name, String email, String role, int payments,
+            BigDecimal collected, int transactionsMade, int boarded) {}
 
     public List<DailyEmployee> dailyEmployees(qpal.model.Account viewer, LocalDate day) throws SQLException {
         if (viewer == null || !"Admin".equalsIgnoreCase(viewer.getRole()))
-            throw new SQLException("Only administrators can view all employee summaries.");
+            throw new SQLException("Only administrators can view all staff summaries.");
         List<DailyEmployee> rows = new ArrayList<>();
         try (Connection c = DbConnection.getConnection()) {
             EmployeeStationDao.ensure(c);
-            try (PreparedStatement p = statement(c, "SELECT a.id,a.name,a.email,"
+            try (PreparedStatement p = statement(c, "SELECT a.id,a.name,a.email,a.role,"
                     + "COALESCE(SUM(w.event='Payment'),0),"
                     + "COALESCE(SUM(CASE WHEN w.event='Payment' THEN w.amount ELSE 0 END),0),"
-                    + "COALESCE(SUM(CASE WHEN w.event='Served' THEN w.passengers ELSE 0 END),0),"
-                    + "COALESCE(SUM(CASE WHEN w.event='Boarded' THEN w.passengers ELSE 0 END),0) "
+                    + "COALESCE(SUM(CASE WHEN w.event='Served' AND w.kind='Payment' THEN 1 ELSE 0 END),0),"
+                    + "COALESCE(SUM(CASE WHEN w.event='Boarded' AND w.kind='Boarding' THEN w.passengers ELSE 0 END),0) "
                     + "FROM accounts a LEFT JOIN employee_queue_work w ON w.account_id=a.id "
-                    + "AND w.created_at>=? AND w.created_at<? WHERE a.role='Employee' "
-                    + "GROUP BY a.id,a.name,a.email ORDER BY a.name,a.id",
+                    + "AND w.created_at>=? AND w.created_at<? WHERE a.role IN ('Employee','Admin') "
+                    + "GROUP BY a.id,a.name,a.email,a.role ORDER BY a.name,a.id",
                     java.sql.Date.valueOf(day), java.sql.Date.valueOf(day.plusDays(1)));
                     ResultSet r = p.executeQuery()) {
                 while (r.next()) rows.add(new DailyEmployee(r.getInt(1),r.getString(2),r.getString(3),
-                        r.getInt(4),r.getBigDecimal(5),r.getInt(6),r.getInt(7)));
+                        r.getString(4),r.getInt(5),r.getBigDecimal(6),r.getInt(7),r.getInt(8)));
             }
         }
         return rows;

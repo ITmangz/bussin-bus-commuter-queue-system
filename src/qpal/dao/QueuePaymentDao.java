@@ -10,6 +10,7 @@ public class QueuePaymentDao {
     public record Progress(BigDecimal received, boolean receiptPrinted, boolean ticketsPrinted) {}
 
     public static void ensureTable(Connection c) throws SQLException {
+        EmployeeStationDao.ensure(c);
         try (Statement s = c.createStatement()) {
             s.executeUpdate("CREATE TABLE IF NOT EXISTS cashless_verifications (payment_id INT PRIMARY KEY, "
                     + "payment_method VARCHAR(20) NOT NULL, transaction_reference VARCHAR(64) NOT NULL, "

@@ -102,9 +102,9 @@ public class AdminActivityLogPanel extends JPanel {
                 @Override protected void paintComponent(Graphics graphics) {
                     Graphics2D g = (Graphics2D) graphics.create();
                     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
-                    g.setColor(getModel().isRollover() ? new Color(250,251,253) : Color.WHITE);
+                    g.setColor(Color.WHITE);
                     g.fillRoundRect(1,1,getWidth()-3,getHeight()-3,14,14);
-                    g.setColor(isFocusOwner() ? new Color(228,0,70) : new Color(232,236,242));
+                    g.setColor(new Color(232,236,242));
                     g.drawRoundRect(1,1,getWidth()-3,getHeight()-3,14,14);
                     g.dispose();
                     super.paintComponent(graphics);
@@ -114,24 +114,25 @@ public class AdminActivityLogPanel extends JPanel {
             daily.setContentAreaFilled(false);
             daily.setBorderPainted(false);
             daily.setFocusPainted(false);
+            daily.setRolloverEnabled(false);
             daily.setBorder(new EmptyBorder(14,18,14,18));
             daily.setAlignmentX(Component.LEFT_ALIGNMENT);
             daily.setPreferredSize(new Dimension(420,78));
             daily.setMaximumSize(new Dimension(Integer.MAX_VALUE,78));
             daily.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            daily.getAccessibleContext().setAccessibleName("Daily Employee Summary — See message");
+            daily.getAccessibleContext().setAccessibleName("Daily Staff Summary — View daily staff transactions, collections, and boarding totals.");
             JPanel copy = new JPanel(new GridLayout(2,1,0,3));
             copy.setOpaque(false);
-            JLabel heading = new JLabel("Daily Employee Summary");
+            JLabel heading = new JLabel("Daily Staff Summary");
             heading.setFont(new Font("SansSerif",Font.BOLD,17));
             heading.setForeground(Color.BLACK);
-            JLabel hint = new JLabel("See message");
+            JLabel hint = new JLabel("View daily staff transactions, collections, and boarding totals.");
             hint.setFont(new Font("SansSerif",Font.PLAIN,13));
             hint.setForeground(new Color(120,120,120));
             copy.add(heading); copy.add(hint);
             JLabel arrow = new JLabel(">",SwingConstants.RIGHT);
             arrow.setFont(new Font("SansSerif",Font.PLAIN,24));
-            arrow.setForeground(new Color(228,0,70));
+            arrow.setForeground(new Color(120,120,120));
             daily.add(copy,BorderLayout.CENTER);
             daily.add(arrow,BorderLayout.EAST);
             daily.addActionListener(e -> new DailyEmployeeSummaryDialog(this,account).setVisible(true));
@@ -427,6 +428,3 @@ public class AdminActivityLogPanel extends JPanel {
         return button;
     }
 }
-
-
-
