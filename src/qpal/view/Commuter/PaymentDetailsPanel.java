@@ -49,8 +49,6 @@ public class PaymentDetailsPanel extends JPanel {
         formpanel.add(numberlabel);
         numberfield.setBounds(0, 112, 480, 38);
         numberfield.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        numberfield.setToolTipText(
-                wallet ? "Enter 11 digits starting with 09" : "Enter only the last four digits");
         limitInput(numberfield, wallet ? 11 : 4, "[0-9]*");
         numberlabel.setLabelFor(numberfield);
         formpanel.add(numberfield);

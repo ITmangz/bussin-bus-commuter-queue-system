@@ -20,7 +20,6 @@ public final class PagePicker {
         button.setForeground(new Color(80, 80, 80));
         button.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setToolTipText("Go to page");
         button.getAccessibleContext().setAccessibleName("Go to page");
         button.addActionListener(
                 event -> {

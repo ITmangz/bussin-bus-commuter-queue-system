@@ -199,7 +199,6 @@ public class AdminRevenuePanel extends JPanel {
         searchField.setPreferredSize(new Dimension(190, 34));
         searchField.setFont(new Font("SansSerif", Font.PLAIN, 13));
         searchField.setMargin(new Insets(0, 10, 0, 10));
-        searchField.setToolTipText("Search payment ID, queue number, seat, bus or route");
 
         cmbStatus = new JComboBox<>(new String[] {"All Statuses", "Paid", "Pending", "Cancelled"});
         AdminFormStyle.tableFilter(cmbStatus);
@@ -222,7 +221,6 @@ public class AdminRevenuePanel extends JPanel {
         controls.add(cmbStatus);
         controls.add(btnSearch);
         btnPrint = createButton("Print", new Color(59, 130, 246));
-        btnPrint.setToolTipText("Print the current page of revenue records");
         btnPrint.addActionListener(e -> printRevenue());
         controls.add(btnPrint);
         panel.add(controls, BorderLayout.EAST);

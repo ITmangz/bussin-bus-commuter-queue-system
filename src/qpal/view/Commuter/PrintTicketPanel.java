@@ -44,7 +44,9 @@ public class PrintTicketPanel extends JPanel {
         JPanel header = new JPanel(null);
         header.setBounds(0, 0, 1000, 100);
         header.setBackground(new Color(225, 0, 45));
-        JLabel bussinlogo = new JLabel(); // Add your header logo here later.
+        JLabel bussinlogo = new JLabel(
+                new ImageIcon(new ImageIcon("resources/icons/bussinlogokiosk.png")
+                        .getImage().getScaledInstance(120, 55, Image.SCALE_SMOOTH)));
         bussinlogo.setBounds(35, 20, 120, 55);
         header.add(bussinlogo);
         JLabel date = new JLabel("", SwingConstants.CENTER);
@@ -273,7 +275,9 @@ public class PrintTicketPanel extends JPanel {
 
     private static class QueueTicket extends JPanel {
         static final int WIDTH = 560, HEIGHT = 390;
-        private final JLabel bussinlogo = new JLabel(); // Add your ticket logo here later.
+        private final JLabel bussinlogo = new JLabel(
+                new ImageIcon(new ImageIcon("resources/icons/bussinlogokiosk.png")
+                        .getImage().getScaledInstance(180, 82, Image.SCALE_SMOOTH)));
         private Receipt receipt;
 
         QueueTicket() {
@@ -301,7 +305,7 @@ public class PrintTicketPanel extends JPanel {
             g.setPaint(
                     new GradientPaint(0, 0, new Color(237, 0, 58), 0, 114, new Color(165, 14, 48)));
             g.fillRect(0, 0, WIDTH, 114);
-            if (bussinlogo.getIcon() != null) bussinlogo.getIcon().paintIcon(this, g, 175, 16);
+            if (bussinlogo.getIcon() != null) bussinlogo.getIcon().paintIcon(this, g, 190, 16);
 
             centered(
                     g,

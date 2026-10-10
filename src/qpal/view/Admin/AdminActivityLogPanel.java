@@ -203,11 +203,8 @@ public class AdminActivityLogPanel extends JPanel {
         searchField.setPreferredSize(new Dimension(190, 34));
         searchField.setFont(new Font("SansSerif", Font.PLAIN, 13));
         searchField.setMargin(new Insets(0, 10, 0, 10));
-        searchField.setToolTipText("Search timestamp, email, role, module or description");
         cmbPeriod = new JComboBox<>(new String[] {"Day", "Last 7 Days", "Last Month"});
         AdminFormStyle.tableFilter(cmbPeriod);
-        cmbPeriod.setToolTipText(
-                "Today, seven days including today, or the previous calendar month");
         cmbPeriod.getAccessibleContext().setAccessibleName("Activity date range");
         cmbPeriod.setFont(new Font("SansSerif", Font.PLAIN, 13));
         cmbPeriod.setBackground(Color.WHITE);
@@ -223,7 +220,6 @@ public class AdminActivityLogPanel extends JPanel {
                 });
         AdminFormStyle.searchOnEnter(searchField, btnSearch);
         btnPrint = createButton("Print", new Color(59, 130, 246));
-        btnPrint.setToolTipText("Print the current page of activity records");
         btnPrint.addActionListener(e -> printActivities());
         controls.add(searchField);
         controls.add(cmbPeriod);
@@ -262,7 +258,6 @@ public class AdminActivityLogPanel extends JPanel {
                                 table, value, selected, focus, row, column);
                         setHorizontalAlignment(column == 0 ? CENTER : LEFT);
                         setFont(new Font("SansSerif", Font.PLAIN, 12));
-                        setToolTipText(value == null ? null : value.toString());
                         return this;
                     }
                 });

@@ -72,7 +72,6 @@ public class AdminTopPanel extends JPanel {
         edit.setContentAreaFilled(false);
         edit.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
         edit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        edit.setToolTipText("Edit profile");
         edit.getAccessibleContext().setAccessibleName("Edit profile");
         edit.addActionListener(e -> navigate.accept("profile"));
         account.add(edit, BorderLayout.EAST);
@@ -100,14 +99,12 @@ public class AdminTopPanel extends JPanel {
         }
 
         currentPage.setText(title);
-        currentPage.setToolTipText(title);
     }
 
     public void updateProfile(Account account) {
         String displayName = account == null ? null : account.getName();
         if (displayName == null || displayName.trim().isEmpty()) displayName = "Admin";
         name.setText(displayName);
-        name.setToolTipText(displayName);
         String displayRole = account == null ? null : account.getRole();
         role.setText(
                 displayRole != null && "employee".equalsIgnoreCase(displayRole.trim())

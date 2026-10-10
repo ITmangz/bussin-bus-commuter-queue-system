@@ -290,7 +290,6 @@ public class SeatSelectionPanel extends JPanel {
         add(seatsPanel);
 
         btnPrev = createButton("▲");
-        btnPrev.setToolTipText("Previous seat page");
         btnPrev.setBounds(900, 330, 60, 44);
         btnPrev.addActionListener(
                 e -> {
@@ -307,7 +306,6 @@ public class SeatSelectionPanel extends JPanel {
         add(lblPage);
 
         btnNext = createButton("▼");
-        btnNext.setToolTipText("Next seat page");
         btnNext.setBounds(900, 473, 60, 44);
         btnNext.addActionListener(
                 e -> {
@@ -549,7 +547,6 @@ public class SeatSelectionPanel extends JPanel {
                 btnSeat.setForeground(Color.WHITE);
             }
 
-            btnSeat.setToolTipText(seat.getStatus());
             btnSeat.addActionListener(
                     e -> {
                         String number = seat.getSeatNumber();
@@ -606,7 +603,6 @@ public class SeatSelectionPanel extends JPanel {
         }
 
         lblSelectedCount.setText(selectedSeats.size() + " / " + passengerCount + " selected");
-        lblSelectedCount.setToolTipText("Passenger page " + passengerPage);
         btnPassengerPrev.setEnabled(passengerPage > 1);
         btnPassengerNext.setEnabled(passengerPage * 3 < passengerCount);
         seatsPanel.revalidate();

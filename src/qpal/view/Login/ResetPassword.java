@@ -12,6 +12,7 @@ public class ResetPassword {
         rpage.setSize(850, 550);
         rpage.setResizable(false);
         rpage.setLocationRelativeTo(null);
+
         rpage.setLayout(null);
         rpage.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -27,11 +28,51 @@ public class ResetPassword {
 
         JLabel rightbg = new JLabel();
         rightbg.setBounds(0, 0, 425, 550);
-        ImageIcon rightpic = new ImageIcon("resources/icons/rightbg.png");
-        Image img = rightpic.getImage().getScaledInstance(425, 550, Image.SCALE_SMOOTH);
-        rightbg.setIcon(new ImageIcon(img));
+
+        String[] rightimages = {
+            "resources/icons/RCommuteSmarter.png",
+            "resources/icons/RJoinQueue.png",
+            "resources/icons/RTrackQueue.png",
+            "resources/icons/RKnowGo.png",
+            "resources/icons/RBussinExp.png"
+        };
+
+        ImageIcon[] backgrounds = new ImageIcon[rightimages.length];
+
+        for (int i = 0; i < rightimages.length; i++) {
+            ImageIcon rightpic = new ImageIcon(rightimages[i]);
+            Image img = rightpic.getImage().getScaledInstance(425, 550, Image.SCALE_SMOOTH);
+            backgrounds[i] = new ImageIcon(img);
+        }
+
+        rightbg.setIcon(backgrounds[0]);
         rightpanel.add(rightbg);
 
+        int[] currentImage = {0};
+
+        Timer imageTimer =
+                new Timer(
+                        5000,
+                        new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                currentImage[0]++;
+
+                                if (currentImage[0] >= backgrounds.length) {
+                                    currentImage[0] = 0;
+                                }
+
+                                rightbg.setIcon(backgrounds[currentImage[0]]);
+                            }
+                        });
+
+        imageTimer.start();
+        rpage.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                imageTimer.stop();
+            }
+        });
         JLabel label1 = new JLabel("Reset Password");
         label1.setBounds(110, 70, 345, 45);
         label1.setFont(new Font("Segoe UI", Font.BOLD, 30));

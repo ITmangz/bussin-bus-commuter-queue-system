@@ -120,13 +120,13 @@ public class PaymentPanel extends JPanel {
 
         // ================ PAYMENT CARDS =================//
 
-        cashCard = createPaymentCard("Cash", "Pay at the counter", "resources/icons/cash.png", 135);
+        cashCard = createPaymentCard("Cash", "Pay at the counter", "resources/icons/cashpaymentic.png", 135);
 
         ewalletCard =
                 createPaymentCard(
-                        "E-Wallet", "Pay at the counter", "resources/icons/ewallet.png", 387);
+                        "E-Wallet", "Pay at the counter", "resources/icons/e-cashpaymentic.png", 387);
 
-        cardCard = createPaymentCard("Card", "Pay at the counter", "resources/icons/card.png", 639);
+        cardCard = createPaymentCard("Card", "Pay at the counter", "resources/icons/cardpaymentic.png", 639);
 
         paymentpanel.add(cashCard);
         paymentpanel.add(ewalletCard);

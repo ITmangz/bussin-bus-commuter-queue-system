@@ -4,7 +4,6 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-/** Shared appearance for login and password recovery fields. */
 final class LoginFieldStyle {
     private LoginFieldStyle() {}
 

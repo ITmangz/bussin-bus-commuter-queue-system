@@ -18,6 +18,7 @@ public class LoginPage {
         lpage.setSize(850, 550);
         lpage.setResizable(false);
         lpage.setLocationRelativeTo(null);
+
         lpage.setLayout(null);
         lpage.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 

@@ -221,8 +221,6 @@ public class AvailableTripPanel extends JPanel {
             button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             availabletrippanel.add(button);
         }
-        previousPage.setToolTipText("Previous trip page");
-        nextPage.setToolTipText("Next trip page");
         availabletrippanel.add(pageLabel);
         previousPage.addActionListener(
                 e -> {

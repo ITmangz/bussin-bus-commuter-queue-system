@@ -331,6 +331,18 @@ public class TripDetailsPanel extends JPanel {
                                                 JOptionPane.INFORMATION_MESSAGE);
                                         return;
                                     }
+                                    if (!results.get(0).time().equals(search.time())) {
+                                        qpal.components.AppDialogs.showMessageDialog(
+                                                TripDetailsPanel.this,
+                                                "No schedule is available for your selected trip"
+                                                    + " time.\nWe will show other available trips to "
+                                                    + search.destination()
+                                                    + " on "
+                                                    + search.date()
+                                                    + ".",
+                                                "No Exact Schedule Available",
+                                                JOptionPane.INFORMATION_MESSAGE);
+                                    }
                                     CardLayout cardlayout = (CardLayout) getParent().getLayout();
                                     cardlayout.show(getParent(), "DropPoint");
                                 },

@@ -142,7 +142,6 @@ public class EditTripPanel {
                             Route route = (Route) value;
                             String routeName = route.getOrigin() + " - " + route.getDestination();
                             setText(routeName);
-                            setToolTipText(routeName);
                         }
 
                         return this;
@@ -179,7 +178,6 @@ public class EditTripPanel {
         txtFare.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
         txtFare.setMaximumSize(new Dimension(300, 38));
         txtFare.setAlignmentX(Component.LEFT_ALIGNMENT);
-        txtFare.setToolTipText("Applies to all trips using the selected route.");
         Route initialRoute = (Route) cmbRoute.getSelectedItem();
 
         if (initialRoute != null && initialRoute.getFare() > 0) {

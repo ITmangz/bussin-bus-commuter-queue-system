@@ -126,7 +126,6 @@ public class AddTripPanel {
                             Route route = (Route) value;
                             String routeName = route.getOrigin() + " - " + route.getDestination();
                             setText(routeName);
-                            setToolTipText(routeName);
                         }
 
                         return this;
@@ -160,7 +159,6 @@ public class AddTripPanel {
         txtFare.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
         txtFare.setMaximumSize(new Dimension(300, 38));
         txtFare.setAlignmentX(Component.LEFT_ALIGNMENT);
-        txtFare.setToolTipText("Applies to all trips using the selected route.");
         cmbRoute.addActionListener(e -> txtFare.setText(""));
 
         panel.add(txtFare);

@@ -89,7 +89,6 @@ public class TripCardPanel extends JPanel {
                         12,
                         Font.PLAIN,
                         new Color(35, 40, 48));
-        routeLabel.setToolTipText(route);
 
         int separator = schedule.lastIndexOf('|');
         String time = separator >= 0 ? schedule.substring(separator + 1).trim() : schedule;
@@ -97,7 +96,6 @@ public class TripCardPanel extends JPanel {
         clock.setBounds(112, 69, 18, 18);
         add(clock);
         JLabel timeLabel = addLabel(time, 137, 68, 167, 21, 13, Font.PLAIN, new Color(35, 40, 48));
-        timeLabel.setToolTipText(schedule);
         addLabel(fare, 112, 92, 192, 23, 15, Font.BOLD, Color.BLACK);
 
         // Reserved for your seat image: seatIconLabel.setIcon(...).

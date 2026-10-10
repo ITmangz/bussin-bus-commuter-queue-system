@@ -147,7 +147,6 @@ final class DailyEmployeeSummaryDialog extends JDialog {
         subtitle.setForeground(new Color(100, 100, 100));
         JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         controls.setOpaque(false);
-        date.setToolTipText("Work date (Manila)");
         date.setDateFormatString("yyyy-MM-dd");
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Manila"));
         Calendar initial = Calendar.getInstance();
@@ -157,12 +156,10 @@ final class DailyEmployeeSummaryDialog extends JDialog {
         // Selection-only input prevents invalid text from silently retaining a previous date.
         if (date.getDateEditor().getUiComponent() instanceof JTextField editor)
             editor.setEditable(false);
-        date.getCalendarButton().setToolTipText("Choose work date");
         date.getCalendarButton().getAccessibleContext().setAccessibleName("Choose work date");
         controls.add(date);
         JComboBox<String> roles = new JComboBox<>(new String[] {"All Roles", "Admin", "Employee"});
         AdminFormStyle.tableFilter(roles);
-        roles.setToolTipText("Filter staff by role");
         roles.getAccessibleContext().setAccessibleName("Staff role");
         controls.add(roles);
         JButton load = button("View / Refresh", new Color(228, 0, 70), Color.WHITE);
@@ -203,7 +200,6 @@ final class DailyEmployeeSummaryDialog extends JDialog {
                             int column) {
                         super.getTableCellRendererComponent(t, value, selected, focus, row, column);
                         setHorizontalAlignment(column < 2 ? LEFT : column == 4 ? RIGHT : CENTER);
-                        setToolTipText(value == null ? null : value.toString());
                         return this;
                     }
                 };
@@ -231,8 +227,6 @@ final class DailyEmployeeSummaryDialog extends JDialog {
         navigation.add(info, BorderLayout.WEST);
         JPanel pages = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         pages.setOpaque(false);
-        previous.setToolTipText("Previous page");
-        next.setToolTipText("Next page");
         previous.addActionListener(
                 e -> {
                     currentPage--;

@@ -296,7 +296,6 @@ public final class QueuePaymentDialog extends JDialog {
     private static void addField(JPanel content, String label, String value) {
         JTextField field = new JTextField(value);
         field.setEditable(false);
-        field.setToolTipText(value);
         field.setCaretPosition(0);
         addInput(content, label, field);
     }
@@ -643,8 +642,6 @@ public final class QueuePaymentDialog extends JDialog {
                                 + (tickets
                                         ? pages.size() + " boarding tickets"
                                         : "payment receipt"));
-        collect.setToolTipText(
-                "Click the paper to collect " + (tickets ? "boarding tickets" : "your receipt"));
         paper.add(collect);
         long[] start = {System.nanoTime()};
         Timer timer = new Timer(30, null);
@@ -674,13 +671,12 @@ public final class QueuePaymentDialog extends JDialog {
                                 return true;
                             },
                             printed -> {
-                                collect.setToolTipText(
-                                        "Click to collect boarding ticket "
-                                                + (current[0] + 1)
-                                                + " of "
-                                                + pages.size());
                                 collect.getAccessibleContext()
-                                        .setAccessibleName(collect.getToolTipText());
+                                        .setAccessibleName(
+                                                "Click to collect boarding ticket "
+                                                        + (current[0] + 1)
+                                                        + " of "
+                                                        + pages.size());
                                 start[0] = System.nanoTime();
                                 timer.start();
                             },

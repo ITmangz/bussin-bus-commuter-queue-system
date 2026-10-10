@@ -29,13 +29,12 @@ public class PassengerDetailsPanel extends JPanel {
 
     private final JLabel[] values = new JLabel[4];
     private final JButton[] plus = new JButton[4], minus = new JButton[4];
-    private final JLabel total = new JLabel("", SwingConstants.CENTER);
-    private final JLabel note = new JLabel("", SwingConstants.CENTER);
     private final JPanel pages = new JPanel(new CardLayout());
     private final JPanel forms = new JPanel();
     private final List<PassengerForm> passengers = new ArrayList<>();
     private boolean details;
     private int detailIndex;
+    private JButton next;
     private final JLabel subtitle =
             new JLabel(
                     "Use + or − to add or remove passengers in each category.",
@@ -134,46 +133,42 @@ public class PassengerDetailsPanel extends JPanel {
         add(pages);
         JPanel selection = new JPanel(null);
         selection.setOpaque(false);
-        total.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        total.setForeground(new Color(85, 94, 108));
-        total.setHorizontalAlignment(SwingConstants.RIGHT);
-        total.setBounds(580, 0, 280, 28);
-        selection.add(total);
-        note.setHorizontalAlignment(SwingConstants.LEFT);
-        note.setBounds(0, 0, 570, 28);
-        note.setForeground(new Color(85, 94, 108));
-        note.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        selection.add(note);
         for (int i = 0; i < TYPES.length; i++) {
             final int index = i;
             JPanel card = new RoundedPanel();
 
-            card.setBounds(i * 220, 42, 200, 224);
+            card.setBounds(i * 220, 8, 200, 258);
             JLabel imageLabel = new JLabel();
             imageLabel.setName(TYPES[i].toLowerCase(java.util.Locale.ROOT) + "ImageLabel");
-            imageLabel.setBounds(60, 18, 80, 64);
+            imageLabel.setBounds(30, 14, 140, 110);
             imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
             imageLabel.getAccessibleContext().setAccessibleName(TYPES[i] + " passenger image");
-            // Add an image using imageLabel.setIcon(new
-            // ImageIcon("resources/icons/your-image.png"));
+            ImageIcon passengerIcon =
+                    new ImageIcon(
+                            "resources/icons/"
+                                    + TYPES[i].toLowerCase(java.util.Locale.ROOT)
+                                    + "ic.png");
+            imageLabel.setIcon(
+                    new ImageIcon(
+                            passengerIcon.getImage().getScaledInstance(140, 110, Image.SCALE_SMOOTH)));
             passengerImageLabels[i] = imageLabel;
             card.add(imageLabel);
             JLabel label = new JLabel(TYPES[i]);
             label.setFont(new Font("Segoe UI", Font.BOLD, 18));
             label.setHorizontalAlignment(SwingConstants.CENTER);
-            label.setBounds(10, 88, 180, 28);
+            label.setBounds(10, 130, 180, 28);
             card.add(label);
             JLabel discount =
                     new JLabel(i == 0 ? "Standard fare" : "20% discount", SwingConstants.CENTER);
-            discount.setBounds(10, 118, 180, 24);
+            discount.setBounds(10, 158, 180, 24);
             card.add(discount);
             minus[i] = counterButton("−", new Color(240, 243, 245), Color.BLACK);
-            minus[i].setBounds(16, 160, 44, 44);
+            minus[i].setBounds(16, 194, 44, 44);
             plus[i] = counterButton("+", new Color(225, 0, 45), Color.WHITE);
-            plus[i].setBounds(140, 160, 44, 44);
+            plus[i].setBounds(140, 194, 44, 44);
             values[i] = new JLabel("0", SwingConstants.CENTER);
             values[i].setFont(new Font("Segoe UI", Font.BOLD, 24));
-            values[i].setBounds(64, 160, 72, 44);
+            values[i].setBounds(64, 194, 72, 44);
             minus[i].getAccessibleContext().setAccessibleName("Remove " + TYPES[i] + " passenger");
             plus[i].getAccessibleContext().setAccessibleName("Add " + TYPES[i] + " passenger");
             minus[i].addActionListener(
@@ -206,7 +201,7 @@ public class PassengerDetailsPanel extends JPanel {
                     else showPage("AvailableTrip");
                 });
         add(back);
-        JButton next = button("Continue  >", new Color(225, 0, 45), Color.WHITE);
+        next = button("Continue  >", new Color(225, 0, 45), Color.WHITE);
         next.setBounds(500, 590, 500, 60);
         next.setFont(new Font("Segoe UI", Font.BOLD, 16));
         next.addActionListener(
@@ -216,7 +211,7 @@ public class PassengerDetailsPanel extends JPanel {
                         qpal.components.AppDialogs.showMessageDialog(
                                 this,
                                 "Add at least one passenger. Seats must be available for the"
-                                    + " selected trip.");
+                                        + " selected trip.");
                         return;
                     }
                     if (!details) {
@@ -318,15 +313,20 @@ public class PassengerDetailsPanel extends JPanel {
             minus[i].setEnabled(counts[i] > 0);
             plus[i].setEnabled(getPassengerCount() < limit);
         }
-        total.setText(getPassengerCount() + " selected  /  " + limit + " maximum");
-        note.setText(
-                limit == 0
-                        ? "No seats available. Please select another trip."
-                        : getPassengerCount() == limit
-                                ? "Limit reached. Remove a passenger to change categories."
-                                : "Select passengers below. "
-                                        + (limit - getPassengerCount())
-                                        + " more can be added.");
+        if (!details)
+            subtitle.setText(
+                    getPassengerCount()
+                            + " selected / "
+                            + limit
+                            + " maximum · "
+                            + (limit == 0
+                                    ? "No seats available. Please select another trip."
+                                    : getPassengerCount() == limit
+                                            ? "Limit reached. Remove a passenger to change"
+                                                  + " categories."
+                                            : "Select passengers below. "
+                                                    + (limit - getPassengerCount())
+                                                    + " more can be added."));
         if (changed && details) {
             rebuildForms();
             showCounts();
@@ -342,6 +342,7 @@ public class PassengerDetailsPanel extends JPanel {
             List<PassengerForm> same = previous.stream().filter(p -> p.type.equals(type)).toList();
             for (int i = 0; i < counts[t]; i++) {
                 PassengerForm form = i < same.size() ? same.get(i) : new PassengerForm(type);
+                if (i >= same.size()) form.id.addActionListener(e -> next.doClick());
                 passengers.add(form);
                 form.heading.setText(type + " passenger " + (i + 1) + " of " + counts[t]);
                 if (!type.equals("Regular"))
@@ -366,7 +367,7 @@ public class PassengerDetailsPanel extends JPanel {
     private void showCounts() {
         details = false;
         pages.setBounds(70, 282, 860, 290);
-        subtitle.setText("Use + or − to add or remove passengers in each category.");
+        updatePassengerCounter();
         ((CardLayout) pages.getLayout()).show(pages, "Counts");
     }
 
@@ -405,6 +406,7 @@ public class PassengerDetailsPanel extends JPanel {
         final JLabel heading = new JLabel();
         final JTextField id = new JTextField();
         String manuallyCheckedPwdId = "";
+        boolean staffAssistanceRequested;
         final JComboBox<String> disability =
                 new JComboBox<>(
                         new String[] {
@@ -492,7 +494,7 @@ public class PassengerDetailsPanel extends JPanel {
             input.setBorder(
                     BorderFactory.createCompoundBorder(
                             BorderFactory.createLineBorder(new Color(220, 225, 232)),
-                            BorderFactory.createEmptyBorder(4, 9, 4, 9)));
+                            BorderFactory.createEmptyBorder(8, 14, 8, 14)));
             if (input instanceof JComboBox<?> combo)
                 qpal.components.FormInputStyle.styleCombo(combo);
             input.setBounds(x, y + 26, width, 44);
@@ -523,36 +525,49 @@ public class PassengerDetailsPanel extends JPanel {
                     message = "Please enter a valid Senior Citizen ID Number.";
                 }
             } else if (type.equals("PWD")) {
-                if (number.isEmpty()) {
-                    message = "PWD ID Number is required.";
-                } else if (!number.matches("[0-9]{2}-[0-9]{4}-[0-9]{3}-[0-9]{7}")
-                        && !number.equals(manuallyCheckedPwdId)) {
+                if (staffAssistanceRequested && number.equalsIgnoreCase("staff")) {
+                    manuallyCheckedPwdId = number;
+                } else if (number.isEmpty()
+                        || (!number.matches("[0-9]{2}-[0-9]{4}-[0-9]{3}-[0-9]{7}")
+                                && !number.equals(manuallyCheckedPwdId))) {
+                    id.setBorder(
+                            BorderFactory.createCompoundBorder(
+                                    BorderFactory.createLineBorder(new Color(225, 0, 45)),
+                                    BorderFactory.createEmptyBorder(8, 14, 8, 14)));
                     qpal.components.AppDialogs.showMessageDialog(
                             this,
-                            "Please check your PWD ID Number.",
-                            "Passenger Details",
+                            number.isEmpty()
+                                    ? "PWD ID Number is required."
+                                    : "Please check your PWD ID Number.",
+                            "PWD ID Verification",
                             JOptionPane.ERROR_MESSAGE);
-                    // Alternative formats need a staff check, not a guessed regular expression.
                     int answer =
                             qpal.components.AppDialogs.showConfirmDialog(
                                     this,
-                                    "Please ask staff to inspect your officially issued PWD ID.\n"
-                                        + "Staff: have you checked this alternative ID and"
-                                        + " confirmed eligibility?",
-                                    "Manual PWD ID Verification",
+                                    "Would you like staff assistance to verify your PWD ID?",
+                                    "PWD ID Verification",
                                     JOptionPane.YES_NO_OPTION,
                                     JOptionPane.QUESTION_MESSAGE);
-                    if (answer == JOptionPane.YES_OPTION) {
-                        manuallyCheckedPwdId = number;
-                    } else {
-                        id.requestFocusInWindow();
-                        return false;
+                    staffAssistanceRequested = answer == JOptionPane.YES_OPTION;
+                    if (staffAssistanceRequested) {
+                        qpal.components.AppDialogs.showMessageDialog(
+                                this,
+                                "Please ask a staff member to verify your PWD ID\n"
+                                        + "before continuing.",
+                                "PWD ID Verification",
+                                JOptionPane.INFORMATION_MESSAGE);
                     }
+                    id.requestFocusInWindow();
+                    id.selectAll();
+                    return false;
                 }
             }
 
             if (!message.isEmpty()) {
-                id.setBorder(BorderFactory.createLineBorder(new Color(225, 0, 45)));
+                id.setBorder(
+                        BorderFactory.createCompoundBorder(
+                                BorderFactory.createLineBorder(new Color(225, 0, 45)),
+                                BorderFactory.createEmptyBorder(8, 14, 8, 14)));
                 qpal.components.AppDialogs.showMessageDialog(
                         this, message, "Passenger Details", JOptionPane.ERROR_MESSAGE);
                 id.requestFocusInWindow();
@@ -561,7 +576,7 @@ public class PassengerDetailsPanel extends JPanel {
             id.setBorder(
                     BorderFactory.createCompoundBorder(
                             BorderFactory.createLineBorder(new Color(220, 225, 232)),
-                            BorderFactory.createEmptyBorder(4, 9, 4, 9)));
+                            BorderFactory.createEmptyBorder(8, 14, 8, 14)));
 
             // Keep the existing PWD disability field and its required validation.
             if (type.equals("PWD") && disability.getSelectedIndex() == 0) {

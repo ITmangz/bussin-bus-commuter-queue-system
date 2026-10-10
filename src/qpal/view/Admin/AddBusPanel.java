@@ -79,8 +79,6 @@ public class AddBusPanel {
                     }
                 });
 
-        txtBusNumber.setToolTipText(
-                "Enter Bus followed by 1 to 3 digits, for example Bus01 or Bus100.");
         txtBusNumber.setBackground(new Color(220, 220, 220));
         txtBusNumber.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
         txtBusNumber.setPreferredSize(new Dimension(300, 34));

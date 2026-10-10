@@ -70,8 +70,6 @@ public final class EmployeeDashboardPanel extends JPanel {
                         transactions,
                         lblQueueImage,
                         "Your completed tickets today"));
-        transactions.setToolTipText(
-                "Each completed booking counts as one transaction, regardless of passenger count.");
         details.add(stats, BorderLayout.NORTH);
         JPanel bottom = transparent(new GridLayout(1, 2, 16, 0));
         bottom.add(

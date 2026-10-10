@@ -208,7 +208,6 @@ public class AdminBusPanel extends JPanel {
         cmbStatus.setFont(new Font("SansSerif", Font.PLAIN, 13));
         cmbStatus.setBackground(Color.WHITE);
         cmbStatus.setFocusable(false);
-        cmbStatus.setToolTipText("Filter by status");
         cmbStatus.addActionListener(
                 e -> {
                     currentPage = 1;
@@ -319,7 +318,6 @@ public class AdminBusPanel extends JPanel {
                 },
                 ex -> {
                     loading = false;
-                    table.setToolTipText("Unable to refresh buses. Retrying in 5 seconds.");
                 });
     }
 

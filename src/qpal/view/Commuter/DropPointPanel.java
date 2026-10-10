@@ -192,7 +192,6 @@ public class DropPointPanel extends JPanel {
         strip.points = new java.util.ArrayList<>(List.of("PITX"));
         strip.points.addAll(RouteDropPoints.options(destination));
         strip.selectStop(details.getDropPoint(), false);
-        strip.setToolTipText(String.join(" → ", strip.points));
         subtitle.setText(
                 "PITX to " + destination + " · Choose your stop. Fares shown are per passenger.");
         details.setSelectedFare(null);
@@ -223,8 +222,6 @@ public class DropPointPanel extends JPanel {
             choice.setEnabled(fare != null);
             choice.setSelected(stop.equals(details.getDropPoint()));
 
-            choice.setToolTipText(
-                    stop + (stop.equals(destination) ? " · Final destination" : " · Drop-off"));
             JLabel amount = new JLabel(fare == null ? "—" : money(fare), SwingConstants.RIGHT);
             amount.setPreferredSize(new Dimension(156, 50));
             amount.setFont(new Font("Segoe UI", Font.BOLD, 20));

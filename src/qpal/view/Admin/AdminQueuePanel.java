@@ -199,9 +199,6 @@ public class AdminQueuePanel extends JPanel {
 
     private static final Color RED = new Color(225, 0, 45);
     private static final Color MUTED = new Color(100, 109, 124);
-    private final JLabel lblCommutersImage = new JLabel();
-    private final JLabel lblBusesImage = new JLabel();
-    private final JLabel lblQueueImage = new JLabel();
     private final DefaultTableModel queueModel =
             new DefaultTableModel(
                     new String[] {
@@ -243,9 +240,9 @@ public class AdminQueuePanel extends JPanel {
         JPanel upper = transparent(new BorderLayout(0, 14));
         JPanel summary = transparent(new GridLayout(1, 3, 16, 0));
         summary.setPreferredSize(new Dimension(0, 155));
-        summary.add(stat("TOTAL NUMBER OF COMMUTERS", lblCommutersImage, new Color(255, 232, 238)));
-        summary.add(stat("NUMBER OF AVAILABLE BUSES", lblBusesImage, new Color(255, 245, 210)));
-        summary.add(stat("CURRENT QUEUE NUMBER", lblQueueImage, new Color(228, 249, 233)));
+        summary.add(stat("TOTAL NUMBER OF COMMUTERS"));
+        summary.add(stat("NUMBER OF AVAILABLE BUSES"));
+        summary.add(stat("CURRENT QUEUE NUMBER"));
         stats.get(2).setText("— | —");
         upper.add(summary, BorderLayout.NORTH);
 
@@ -317,7 +314,6 @@ public class AdminQueuePanel extends JPanel {
         search.setPreferredSize(new Dimension(190, 34));
         search.setFont(new Font("SansSerif", Font.PLAIN, 13));
         search.setMargin(new Insets(0, 10, 0, 10));
-        search.setToolTipText("Search queue number");
         search.getAccessibleContext().setAccessibleName("Search queue number");
 
         JComboBox<String> trips =
@@ -329,7 +325,6 @@ public class AdminQueuePanel extends JPanel {
         trips.setFont(new Font("SansSerif", Font.PLAIN, 13));
         trips.setFocusable(false);
         trips.setBackground(Color.WHITE);
-        trips.setToolTipText("Filter queue status");
 
         JButton searchButton = button("Search", true);
         searchButton.setPreferredSize(new Dimension(100, 34));
@@ -344,7 +339,6 @@ public class AdminQueuePanel extends JPanel {
         printButton.setFont(new Font("SansSerif", Font.BOLD, 13));
         printButton.setBackground(new Color(59, 130, 246));
         printButton.setBorder(BorderFactory.createEmptyBorder());
-        printButton.setToolTipText("Open the live commuter queue monitor");
         printButton.addActionListener(e -> QueueMonitor.open(this, isBoarding()));
         filters.add(printButton);
         toolbar.add(filters, BorderLayout.EAST);
@@ -453,7 +447,6 @@ public class AdminQueuePanel extends JPanel {
         search.setPreferredSize(new Dimension(190, 34));
         search.setFont(new Font("SansSerif", Font.PLAIN, 13));
         search.setMargin(new Insets(0, 10, 0, 10));
-        search.setToolTipText("Search queue number");
         search.getAccessibleContext().setAccessibleName("Search queue number");
 
         JComboBox<String> trips =
@@ -462,7 +455,6 @@ public class AdminQueuePanel extends JPanel {
         trips.setFont(new Font("SansSerif", Font.PLAIN, 13));
         trips.setFocusable(false);
         trips.setBackground(Color.WHITE);
-        trips.setToolTipText("Filter queue status");
 
         JButton searchButton = button("Search", true);
         searchButton.setPreferredSize(new Dimension(100, 34));
@@ -477,7 +469,6 @@ public class AdminQueuePanel extends JPanel {
         printButton.setFont(new Font("SansSerif", Font.BOLD, 13));
         printButton.setBackground(new Color(59, 130, 246));
         printButton.setBorder(BorderFactory.createEmptyBorder());
-        printButton.setToolTipText("Open the live commuter queue monitor");
         printButton.addActionListener(e -> QueueMonitor.open(this, isBoarding()));
         filters.add(printButton);
         toolbar.add(filters, BorderLayout.EAST);
@@ -711,11 +702,6 @@ public class AdminQueuePanel extends JPanel {
                         employeeStation == null
                                 ? current[0] + " | " + current[1]
                                 : current[employeeStation.number() - 1]);
-        stats.get(2)
-                .setToolTipText(
-                        isBoarding()
-                                ? "Current boarding queues • Gate 1 | Gate 2"
-                                : "Current payment queues • Counter 1 | Counter 2");
     }
 
     private void styleQueueTabs() {
@@ -1197,27 +1183,23 @@ public class AdminQueuePanel extends JPanel {
         }
     }
 
-    private JPanel stat(String title, JLabel icon, Color tint) {
+    private JPanel stat(String title) {
         JPanel panel = card();
-        panel.setLayout(new BorderLayout(0, 8));
-        // Add your summary ImageIcons to these labels when ready.
-        icon.setOpaque(true);
-        icon.setBackground(tint);
-        icon.setPreferredSize(new Dimension(42, 42));
-        icon.setHorizontalAlignment(SwingConstants.CENTER);
-        JPanel top = transparent(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        top.add(icon);
-        panel.add(top, BorderLayout.NORTH);
-        JPanel content = transparent(new GridLayout(2, 1));
-        content.add(label(title, 10, MUTED, false));
-        JLabel value = label("—", 30, new Color(166, 0, 44), true);
-        stats.add(value);
-        content.add(value);
-        panel.add(content, BorderLayout.CENTER);
+        panel.setLayout(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
 
+        JPanel content = transparent(new BorderLayout(0, 8));
+        content.add(label(title, 10, MUTED, false), BorderLayout.NORTH);
+        JLabel value = label("—", 32, new Color(170, 0, 45), true);
+        stats.add(value);
+        content.add(value, BorderLayout.CENTER);
+
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.weightx = 1;
+        panel.add(content, constraints);
         return panel;
     }
-
     private JPanel detail(String title, String value) {
         JPanel panel = transparent(new GridLayout(2, 1));
         panel.add(label(title, 10, MUTED, false));

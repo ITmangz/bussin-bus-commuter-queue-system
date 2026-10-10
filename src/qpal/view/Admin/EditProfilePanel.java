@@ -352,7 +352,6 @@ public class EditProfilePanel extends JPanel {
         photoPath = "";
         txtAssignment.setText(account == null ? "—" : account.getRole());
         txtSessionDetails.setText(account == null ? "—" : account.getStatus());
-        txtSessionDetails.setToolTipText(null);
         if (account != null)
             photoPath = account.getProfileImage() == null ? "" : account.getProfileImage();
         if (isEmployee()) {
@@ -372,23 +371,10 @@ public class EditProfilePanel extends JPanel {
                                                     java.time.format.DateTimeFormatter.ofPattern(
                                                             "MMM d, h:mm a",
                                                             java.util.Locale.ENGLISH)));
-                            txtSessionDetails.setToolTipText(
-                                    started == null
-                                            ? null
-                                            : started.format(
-                                                            java.time.format.DateTimeFormatter
-                                                                    .ofPattern(
-                                                                            "MMMM d, yyyy, h:mm a",
-                                                                            java.util.Locale
-                                                                                    .ENGLISH))
-                                                    + " (Asia/Manila)");
                         },
                         ex -> {
                             if (qpal.dao.EmployeeStationDao.current() == session) {
                                 txtSessionDetails.setText("Unavailable");
-                                txtSessionDetails.setToolTipText(
-                                        "Could not load the session start time. Reopen your profile"
-                                            + " to retry.");
                             }
                         });
         }
@@ -509,8 +495,6 @@ public class EditProfilePanel extends JPanel {
                         currentPassword = current;
                         newPassword = password;
                         txtPassword.setText(password);
-                        txtPassword.setToolTipText(
-                                "New password will be applied when you save changes.");
                     });
         }
     }

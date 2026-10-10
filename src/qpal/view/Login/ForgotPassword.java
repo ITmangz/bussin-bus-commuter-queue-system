@@ -12,6 +12,7 @@ public class ForgotPassword {
         fpage.setSize(850, 550);
         fpage.setResizable(false);
         fpage.setLocationRelativeTo(null);
+
         fpage.setLayout(null);
         fpage.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 

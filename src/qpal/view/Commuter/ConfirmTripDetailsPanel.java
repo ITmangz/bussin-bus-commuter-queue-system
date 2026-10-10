@@ -203,7 +203,6 @@ public class ConfirmTripDetailsPanel extends JPanel {
                                 String selectedSeats =
                                         ((SelectSeatsPanel) component).getSelectedSeats();
                                 seats.setText(selectedSeats);
-                                seats.setToolTipText(selectedSeats);
                             }
                         }
                     }
