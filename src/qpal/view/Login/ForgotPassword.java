@@ -162,17 +162,59 @@ public class ForgotPassword {
                                     JOptionPane.WARNING_MESSAGE);
                             return;
                         }
-                        qpal.components.AppDialogs.showMessageDialog(
-                                null,
-                                "Verification code sent successfully.",
-                                "Success!",
-                                JOptionPane.INFORMATION_MESSAGE);
-                        fpage.dispose();
-                        new CodeVerification();
+                        if (!qpal.util.EmailSender.validEmail(email)) {
+                            qpal.components.AppDialogs.showMessageDialog(
+                                    fpage,
+                                    "Enter a valid email address.",
+                                    "Forgot Password",
+                                    JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                        if (!sendcodebtn.isEnabled()) return;
+                        sendcodebtn.setEnabled(false);
+                        emailtxt.setEnabled(false);
+                        sendcodebtn.setText("Sending...");
+                        qpal.util.UiTask.run(
+                                () -> {
+                                    qpal.util.PasswordResetService.send(email);
+                                    return true;
+                                },
+                                sent -> {
+                                    if (!fpage.isDisplayable()) return;
+                                    qpal.components.AppDialogs.showMessageDialog(
+                                            fpage,
+                                            "If this email belongs to an active account, a reset"
+                                                + " code has been sent. Check your inbox and spam"
+                                                + " folder.",
+                                            "Forgot Password",
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                    imageTimer.stop();
+                                    fpage.dispose();
+                                    new CodeVerification(email);
+                                },
+                                ex -> {
+                                    if (!fpage.isDisplayable()) return;
+                                    sendcodebtn.setEnabled(true);
+                                    emailtxt.setEnabled(true);
+                                    sendcodebtn.setText("Send Verification Code");
+                                    qpal.components.AppDialogs.showMessageDialog(
+                                            fpage,
+                                            qpal.util.PasswordResetService.errorMessage(ex),
+                                            "Forgot Password",
+                                            JOptionPane.ERROR_MESSAGE);
+                                });
                     }
                 };
 
         sendcodebtn.addActionListener(btnaction1);
+        emailtxt.addActionListener(btnaction1);
+        fpage.addWindowListener(
+                new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                        imageTimer.stop();
+                    }
+                });
 
         JLabel line1 = new JLabel();
         line1.setBounds(45, 340, 145, 1);

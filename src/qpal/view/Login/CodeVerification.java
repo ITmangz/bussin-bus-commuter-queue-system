@@ -6,7 +6,7 @@ import javax.swing.*;
 
 public class CodeVerification {
 
-    public CodeVerification() { // palitan mo na lang ng "public static void main (String[] args) {"
+    public CodeVerification(String email) {
 
         JFrame cpage = new JFrame();
         cpage.setSize(850, 550);
@@ -39,14 +39,14 @@ public class CodeVerification {
         label1.setForeground(Color.BLACK);
         leftpanel.add(label1);
 
-        JLabel subtext1 = new JLabel("We've sent a 6-digit verification code to your");
+        JLabel subtext1 = new JLabel("Enter the 6-digit verification code sent to your");
         subtext1.setBounds(30, 125, 375, 25);
         subtext1.setHorizontalAlignment(SwingConstants.CENTER);
         subtext1.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         subtext1.setForeground(new Color(100, 100, 100));
         leftpanel.add(subtext1);
 
-        JLabel subtext2 = new JLabel("to your email address.");
+        JLabel subtext2 = new JLabel("registered email address.");
         subtext2.setBounds(30, 145, 375, 25);
         subtext2.setHorizontalAlignment(SwingConstants.CENTER);
         subtext2.setFont(new Font("Segoe UI", Font.PLAIN, 16));
@@ -247,6 +247,75 @@ public class CodeVerification {
         resend.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         leftpanel.add(resend);
 
+        JTextField[] codeFields = {code1txt, code2txt, code3txt, code4txt, code5txt, code6txt};
+        for (JTextField field : codeFields) {
+            ((javax.swing.text.AbstractDocument) field.getDocument())
+                    .setDocumentFilter(
+                            new javax.swing.text.DocumentFilter() {
+                                @Override
+                                public void insertString(
+                                        FilterBypass fb,
+                                        int offset,
+                                        String text,
+                                        javax.swing.text.AttributeSet attrs)
+                                        throws javax.swing.text.BadLocationException {
+                                    replace(fb, offset, 0, text, attrs);
+                                }
+
+                                @Override
+                                public void replace(
+                                        FilterBypass fb,
+                                        int offset,
+                                        int length,
+                                        String text,
+                                        javax.swing.text.AttributeSet attrs)
+                                        throws javax.swing.text.BadLocationException {
+                                    String value =
+                                            fb.getDocument()
+                                                    .getText(0, fb.getDocument().getLength());
+                                    String replacement =
+                                            value.substring(0, offset)
+                                                    + (text == null ? "" : text)
+                                                    + value.substring(offset + length);
+                                    if (replacement.matches("[0-9]?"))
+                                        super.replace(fb, offset, length, text, attrs);
+                                }
+                            });
+            field.addActionListener(e -> confirmbtn.doClick());
+        }
+        confirmbtn.addActionListener(
+                e -> {
+                    if (!confirmbtn.isEnabled()) return;
+                    StringBuilder entered = new StringBuilder();
+                    for (JTextField field : codeFields) entered.append(field.getText().trim());
+                    if (!entered.toString().matches("[0-9]{6}")) {
+                        qpal.components.AppDialogs.showMessageDialog(
+                                cpage,
+                                "Enter the six-digit code.",
+                                "Verify Code",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    confirmbtn.setEnabled(false);
+                    resend.setEnabled(false);
+                    qpal.util.UiTask.run(
+                            () -> qpal.util.PasswordResetService.verify(email, entered.toString()),
+                            token -> {
+                                if (!cpage.isDisplayable()) return;
+                                cpage.dispose();
+                                new ResetPassword(email, token);
+                            },
+                            ex -> {
+                                if (!cpage.isDisplayable()) return;
+                                confirmbtn.setEnabled(true);
+                                resend.setEnabled(true);
+                                qpal.components.AppDialogs.showMessageDialog(
+                                        cpage,
+                                        qpal.util.PasswordResetService.errorMessage(ex),
+                                        "Verify Code",
+                                        JOptionPane.ERROR_MESSAGE);
+                            });
+                });
         resend.addMouseListener(
                 new MouseAdapter() {
                     @Override
@@ -261,11 +330,40 @@ public class CodeVerification {
 
                     @Override
                     public void mouseClicked(MouseEvent e) {
-                        qpal.components.AppDialogs.showMessageDialog(
-                                null,
-                                "Verification code resent successfully.",
-                                "Success!",
-                                JOptionPane.INFORMATION_MESSAGE);
+                        if (!resend.isEnabled()) return;
+                        resend.setEnabled(false);
+                        confirmbtn.setEnabled(false);
+                        resend.setText("Sending...");
+                        qpal.util.UiTask.run(
+                                () -> {
+                                    qpal.util.PasswordResetService.send(email);
+                                    return true;
+                                },
+                                sent -> {
+                                    if (!cpage.isDisplayable()) return;
+                                    resend.setEnabled(true);
+                                    confirmbtn.setEnabled(true);
+                                    resend.setText("Resend code");
+                                    for (JTextField field : codeFields) field.setText("");
+                                    code1txt.requestFocusInWindow();
+                                    qpal.components.AppDialogs.showMessageDialog(
+                                            cpage,
+                                            "If the account is active, a new code has been sent."
+                                                + " Use the latest code within five minutes.",
+                                            "Verify Code",
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                },
+                                ex -> {
+                                    if (!cpage.isDisplayable()) return;
+                                    resend.setEnabled(true);
+                                    confirmbtn.setEnabled(true);
+                                    resend.setText("Resend code");
+                                    qpal.components.AppDialogs.showMessageDialog(
+                                            cpage,
+                                            qpal.util.PasswordResetService.errorMessage(ex),
+                                            "Verify Code",
+                                            JOptionPane.ERROR_MESSAGE);
+                                });
                     }
                 });
 

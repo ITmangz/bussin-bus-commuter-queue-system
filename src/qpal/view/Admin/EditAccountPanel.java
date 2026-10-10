@@ -258,6 +258,14 @@ public class EditAccountPanel {
                         return;
                     }
 
+                    if (!qpal.util.EmailSender.validEmail(email)) {
+                        qpal.components.AppDialogs.showMessageDialog(
+                                txtEmail,
+                                "Enter a valid email address.",
+                                "Invalid Email",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
                     if (email.isEmpty()) {
 
                         qpal.components.AppDialogs.showMessageDialog(
@@ -268,7 +276,19 @@ public class EditAccountPanel {
                         return;
                     }
 
-                    if (!email.equals(account.getEmail()) && accountDao.CheckEmail(email)) {
+                    boolean duplicate;
+                    try {
+                        duplicate = accountDao.emailExists(email, account.getID());
+                    } catch (java.sql.SQLException ex) {
+                        qpal.components.AppDialogs.showMessageDialog(
+                                dialog,
+                                "Unable to check the email. Please check the database connection"
+                                    + " and retry.",
+                                "Manage Accounts",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    if (duplicate) {
 
                         qpal.components.AppDialogs.showMessageDialog(
                                 dialog,

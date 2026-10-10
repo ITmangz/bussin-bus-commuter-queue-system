@@ -6,7 +6,7 @@ import javax.swing.*;
 
 public class ResetPassword {
 
-    public ResetPassword() {
+    public ResetPassword(String email, String token) {
 
         JFrame rpage = new JFrame();
         rpage.setSize(850, 550);
@@ -236,54 +236,53 @@ public class ResetPassword {
         leftpanel.add(changebtn);
 
         ActionListener btnaction1 =
-                new ActionListener() {
-
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-
-                        String newpassword = new String(newpasstxt.getPassword()).trim();
-                        String confirmpassword = new String(confirmpasstxt.getPassword()).trim();
-
-                        if (newpassword.isEmpty() && confirmpassword.isEmpty()) {
-
-                            qpal.components.AppDialogs.showMessageDialog(
-                                    null,
-                                    "New Password and Confirm Password are required.",
-                                    "Warning!",
-                                    JOptionPane.WARNING_MESSAGE);
-                            return;
-
-                        } else if (newpassword.isEmpty()) {
-
-                            qpal.components.AppDialogs.showMessageDialog(
-                                    null,
-                                    "New Password is required.",
-                                    "Warning!",
-                                    JOptionPane.WARNING_MESSAGE);
-                            return;
-
-                        } else if (confirmpassword.isEmpty()) {
-
-                            qpal.components.AppDialogs.showMessageDialog(
-                                    null,
-                                    "Confirm Password is required.",
-                                    "Warning!",
-                                    JOptionPane.WARNING_MESSAGE);
-                            return;
-
-                        } else if (!newpassword.equals(confirmpassword)) {
-
-                            qpal.components.AppDialogs.showMessageDialog(
-                                    null,
-                                    "Passwords do not match.",
-                                    "Warning!",
-                                    JOptionPane.WARNING_MESSAGE);
-                            confirmpasstxt.setText("");
-                            return;
-                        }
+                e -> {
+                    String password = new String(newpasstxt.getPassword()).trim();
+                    String confirmation = new String(confirmpasstxt.getPassword()).trim();
+                    if (password.isBlank() || confirmation.isBlank()) {
+                        qpal.components.AppDialogs.showMessageDialog(
+                                rpage,
+                                "New Password and Confirm Password are required.",
+                                "Reset Password",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
+                    if (!password.equals(confirmation)) {
+                        qpal.components.AppDialogs.showMessageDialog(
+                                rpage,
+                                "Passwords do not match.",
+                                "Reset Password",
+                                JOptionPane.ERROR_MESSAGE);
+                        confirmpasstxt.setText("");
+                        return;
+                    }
+                    if (!changebtn.isEnabled()) return;
+                    changebtn.setEnabled(false);
+                    qpal.util.UiTask.run(
+                            () -> {
+                                qpal.util.PasswordResetService.reset(email, token, password);
+                                return true;
+                            },
+                            saved -> {
+                                if (!rpage.isDisplayable()) return;
+                                qpal.components.AppDialogs.showMessageDialog(
+                                        rpage,
+                                        "Password changed successfully. You can now log in.",
+                                        "Success",
+                                        JOptionPane.INFORMATION_MESSAGE);
+                                rpage.dispose();
+                                new LoginPage();
+                            },
+                            ex -> {
+                                if (!rpage.isDisplayable()) return;
+                                changebtn.setEnabled(true);
+                                qpal.components.AppDialogs.showMessageDialog(
+                                        rpage,
+                                        qpal.util.PasswordResetService.errorMessage(ex),
+                                        "Reset Password",
+                                        JOptionPane.ERROR_MESSAGE);
+                            });
                 };
-
         changebtn.addActionListener(btnaction1);
 
         newpasstxt.addKeyListener(

@@ -122,6 +122,7 @@ public final class EmployeeStationPanel extends JPanel {
                 card.bind(select);
             }
         content.add(cards, BorderLayout.CENTER);
+        
         JPanel footer = new JPanel();
         footer.setOpaque(false);
         footer.setLayout(new BoxLayout(footer, BoxLayout.Y_AXIS));

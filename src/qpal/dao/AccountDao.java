@@ -10,12 +10,25 @@ import qpal.util.DbConnection;
 
 public class AccountDao {
 
+    public boolean emailExists(String email, int excludedId) throws java.sql.SQLException {
+        try (Connection connection = DbConnection.getConnection();
+                PreparedStatement statement =
+                        connection.prepareStatement(
+                                "SELECT id FROM accounts WHERE LOWER(email)=LOWER(?) AND id<>?")) {
+            statement.setString(1, email);
+            statement.setInt(2, excludedId);
+            try (ResultSet result = statement.executeQuery()) {
+                return result.next();
+            }
+        }
+    }
+
     // LOGIN
     public Account Login(String email, String password) {
 
         String sql =
                 "SELECT * FROM accounts WHERE CAST(email AS BINARY) = CAST(? AS BINARY) AND"
-                    + " CAST(password AS BINARY) = CAST(? AS BINARY) AND status = 'Active'";
+                        + " CAST(password AS BINARY) = CAST(? AS BINARY) AND status = 'Active'";
 
         try (Connection connection = DbConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -263,7 +276,7 @@ public class AccountDao {
 
         String sql =
                 "SELECT id FROM accounts WHERE id = ? AND CAST(password AS BINARY) = CAST(? AS"
-                    + " BINARY)";
+                        + " BINARY)";
         try (Connection connection = DbConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
 
@@ -290,7 +303,7 @@ public class AccountDao {
 
         String sql =
                 "UPDATE accounts SET name = ?, email = ?, password = CASE WHEN ? = '' THEN password"
-                    + " ELSE ? END, profile_image = ? WHERE id = ?";
+                        + " ELSE ? END, profile_image = ? WHERE id = ?";
 
         if (!password.isEmpty()) {
             if (currentPassword == null
