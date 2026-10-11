@@ -1,13 +1,15 @@
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.lang.reflect.*;
-import javax.swing.*;
-import javax.imageio.ImageIO;
 import qpal.dao.QueuePaymentDao.Progress;
 import qpal.model.BookingData.*;
 import qpal.view.Admin.QueuePaymentDialog;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.lang.reflect.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
 
 public class QueuePaymentUiTest {
     static Object field(Object target, String name) throws Exception {
@@ -171,15 +173,21 @@ public class QueuePaymentUiTest {
                                         "Cashless amount preset and locked");
                                 JButton pay = (JButton) field(dialog, "pay");
                                 check(!pay.isEnabled(), "Verification required");
-                                ((JCheckBox) field(dialog, "verified")).doClick();
-                                check(pay.isEnabled(), "Verified payment enabled");
+                                Object details = field(dialog, "details");
+                                check(
+                                        !((JTextField) field(details, "referencefield"))
+                                                .isEditable(),
+                                        "Auto reference is read-only");
+                                check(
+                                        field(dialog, "simulation") != null,
+                                        "Simulation embedded beside form");
                             } finally {
                                 dialog.dispose();
                             }
                         }
                         System.out.println(
                                 "PASS: payment dialog states, change, previews and cashless"
-                                    + " verification");
+                                        + " verification");
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }

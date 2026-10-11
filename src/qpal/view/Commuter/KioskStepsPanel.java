@@ -16,6 +16,7 @@ public class KioskStepsPanel {
             "Review Trip",
             "Payment"
         };
+        
         JPanel panel = new JPanel(new GridLayout(1, 6, 1, 0));
         panel.setPreferredSize(new Dimension(1000, 75));
         panel.setBackground(new Color(220, 220, 220));

@@ -123,7 +123,7 @@ public class PaymentDao {
                 || amount.compareTo(new BigDecimal("99999999.99")) > 0
                 || amount.stripTrailingZeros().scale() > 2
                 || method == null
-                || !Set.of("Cash", "GCash", "Card").contains(method)
+                || !Set.of("Cash", "GCash", "Card", "Maya", "MariBank", "PayPal").contains(method)
                 || status == null
                 || !Set.of("Pending", "Paid", "Cancelled").contains(status))
             throw new SQLException(

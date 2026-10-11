@@ -7,7 +7,11 @@ import qpal.util.DbConnection;
 
 public class DashboardDao {
     public record BoardingTrip(
-            String bus, String route, String departure, int occupied, int capacity) {}
+            String bus, String route, String departure, int expected, int capacity, int boarded) {
+        public BoardingTrip(String bus, String route, String departure, int expected, int capacity) {
+            this(bus, route, departure, expected, capacity, 0);
+        }
+    }
 
     public record Station(String name, qpal.model.BookingData.QueueRow queue, String trip) {
         public Station(String name, qpal.model.BookingData.QueueRow queue) {
@@ -84,9 +88,12 @@ public class DashboardDao {
                             connection.prepareStatement(
                                     "SELECT"
                                         + " b.bus_number,r.origin,r.destination,t.departure_date,t.departure_time,TIMESTAMP(t.departure_date,t.departure_time)<=NOW()"
-                                        + " AS is_delayed,b.seat_capacity,t.available_seats FROM"
+                                        + " AS is_delayed,b.seat_capacity,COALESCE(counts.expected,0) AS expected,COALESCE(counts.boarded,0) AS boarded FROM"
                                         + " trips t JOIN buses b ON b.bus_id=t.bus_id JOIN routes r"
-                                        + " ON r.route_id=t.route_id WHERE t.status='Boarding' AND"
+                                        + " ON r.route_id=t.route_id LEFT JOIN (SELECT bk.trip_id,COUNT(*) AS expected,SUM(CASE WHEN qb.queue_entry_id IS NOT NULL THEN 1 ELSE 0 END) AS boarded"
+                                        + " FROM bookings bk JOIN booking_passengers bp ON bp.booking_id=bk.booking_id JOIN queue_entries q ON q.booking_id=bk.booking_id"
+                                        + " LEFT JOIN queue_boarding qb ON qb.queue_entry_id=q.queue_entry_id WHERE bk.status NOT IN ('Cancelled','Expired','No-show')"
+                                        + " AND q.status NOT IN ('Cancelled','Expired','No-show') GROUP BY bk.trip_id) counts ON counts.trip_id=t.trip_id WHERE t.status='Boarding' AND"
                                         + " EXISTS(SELECT 1 FROM boarding_gates g WHERE"
                                         + " g.trip_id=t.trip_id) ORDER BY"
                                         + " t.departure_date,t.departure_time");
@@ -110,12 +117,9 @@ public class DashboardDao {
                                                                             java.util.Locale
                                                                                     .ENGLISH))
                                             + (rows.getBoolean("is_delayed") ? " • Delayed" : ""),
-                                    Math.max(
-                                            0,
-                                            Math.min(
-                                                    capacity,
-                                                    capacity - rows.getInt("available_seats"))),
-                                    capacity));
+                                    rows.getInt("expected"),
+                                    capacity,
+                                    rows.getInt("boarded")));
                 }
             }
             try (PreparedStatement statement =

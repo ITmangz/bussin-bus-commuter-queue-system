@@ -438,7 +438,7 @@ CREATE TABLE `payments` (
   `trip_id` int(11) NOT NULL,
   `commuter_name` varchar(100) NOT NULL,
   `amount` decimal(10,2) NOT NULL,
-  `payment_method` enum('Cash','GCash','Card') DEFAULT NULL,
+  `payment_method` enum('Cash','GCash','Card','E-Wallet','Maya','MariBank','PayPal') DEFAULT NULL,
   `status` enum('Pending','Paid','Cancelled') NOT NULL DEFAULT 'Pending',
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `paid_at` datetime DEFAULT NULL,

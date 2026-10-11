@@ -1,10 +1,11 @@
 package qpal.view.Commuter;
 
 import java.awt.*;
+
 import javax.swing.*;
 import javax.swing.text.*;
 
-/** Payment reference entry only; payment confirmation remains at the counter. */
+/** Payment details form; counter mode receives a read-only reference from the simulation. */
 public class PaymentDetailsPanel extends JPanel {
     private final boolean wallet;
     private final JComboBox<String> providerbox;
@@ -14,6 +15,8 @@ public class PaymentDetailsPanel extends JPanel {
     private final JLabel numbererror = new JLabel();
     private final JLabel referenceerror = new JLabel();
     private final JLabel paymentImageLabel = new JLabel();
+    private boolean automaticReference;
+    private JLabel numberlabel;
 
     public PaymentDetailsPanel(boolean wallet) {
         this.wallet = wallet;
@@ -35,7 +38,7 @@ public class PaymentDetailsPanel extends JPanel {
         providerbox =
                 new JComboBox<>(
                         wallet
-                                ? new String[] {"Select e-wallet provider", "GCash"}
+                                ? new String[] {"Select e-wallet provider", "GCash", "Maya", "MariBank", "PayPal"}
                                 : new String[] {"Select card type", "Visa", "Mastercard", "Other"});
         providerbox.setBounds(0, 26, 480, 40);
         qpal.components.FormInputStyle.styleCombo(providerbox);
@@ -43,7 +46,7 @@ public class PaymentDetailsPanel extends JPanel {
         formpanel.add(providerbox);
         styleError(providererror, formpanel, 68);
 
-        JLabel numberlabel = new JLabel(wallet ? "Mobile Number *" : "Last Four Card Digits *");
+        numberlabel = new JLabel(wallet ? "Mobile Number *" : "Last Four Card Digits *");
         numberlabel.setBounds(0, 88, 480, 22);
         numberlabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         formpanel.add(numberlabel);
@@ -86,10 +89,17 @@ public class PaymentDetailsPanel extends JPanel {
         imagecaption.setForeground(new Color(85, 94, 108));
         add(imagecaption);
         resetInputs();
+        if (wallet) providerbox.addActionListener(e -> {
+            boolean paypal = "PayPal".equals(providerbox.getSelectedItem());
+            numberlabel.setText(paypal ? "PayPal Email *" : "Mobile Number *");
+            numberfield.setText("");
+            limitInput(numberfield, paypal ? 254 : 11, paypal ? "[^\\s]*" : "[0-9]*");
+        });
     }
 
     @Override
     protected void paintComponent(Graphics graphics) {
+        if (automaticReference) return;
         Graphics2D g = (Graphics2D) graphics.create();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(Color.WHITE);
@@ -97,6 +107,20 @@ public class PaymentDetailsPanel extends JPanel {
         g.setColor(new Color(224, 229, 236));
         g.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 18, 18);
         g.dispose();
+    }
+
+    @Override
+    public void doLayout() {
+        super.doLayout();
+        if (automaticReference) {
+            JPanel form = (JPanel) getComponent(0);
+            int width = Math.max(1, getWidth() - 30);
+            form.setBounds(15, 14, width, 270);
+            for (Component component : form.getComponents()) {
+                Rectangle bounds = component.getBounds();
+                component.setBounds(bounds.x, bounds.y, width, bounds.height);
+            }
+        }
     }
 
     private static void styleError(JLabel label, JPanel panel, int y) {
@@ -110,12 +134,73 @@ public class PaymentDetailsPanel extends JPanel {
         return paymentImageLabel;
     }
 
+    /** Reuse the kiosk form beside the staff simulation, without its image placeholder. */
+    public void configureForCounter(Runnable detailsChanged) {
+        automaticReference = true;
+        setPreferredSize(new Dimension(350, 290));
+        JPanel form = (JPanel) getComponent(0);
+        form.setBounds(15, 14, 320, 270);
+        for (Component component : form.getComponents()) {
+            Rectangle bounds = component.getBounds();
+            component.setBounds(bounds.x, bounds.y, 320, bounds.height);
+        }
+        paymentImageLabel.setVisible(false);
+        getComponent(2).setVisible(false);
+        referencefield.setEditable(false);
+        referencefield.setToolTipText("Filled automatically after a successful scan or tap.");
+        providerbox.addActionListener(e -> detailsChanged.run());
+        numberfield
+                .getDocument()
+                .addDocumentListener(
+                        new javax.swing.event.DocumentListener() {
+                            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                                detailsChanged.run();
+                            }
+
+                            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                                detailsChanged.run();
+                            }
+
+                            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                                detailsChanged.run();
+                            }
+                        });
+    }
+
+    public void setTransactionReference(String reference) {
+        referencefield.setText(reference == null ? "" : reference);
+        referenceerror.setText("");
+        mark(referencefield, true);
+    }
+
+    public void setInputsEnabled(boolean enabled) {
+        providerbox.setEnabled(enabled);
+        numberfield.setEnabled(enabled);
+    }
+
+    public String selectedProvider() {
+        return providerbox.getSelectedIndex() > 0 ? (String) providerbox.getSelectedItem() : "Card";
+    }
+
+    public String paymentNumber() {
+        return numberfield.getText();
+    }
+
+    public boolean validatePaymentDetails() {
+        return validateInputs(false);
+    }
+
     public boolean validateInputs() {
+        return validateInputs(true);
+    }
+
+    private boolean validateInputs(boolean requireReference) {
         String number = numberfield.getText();
         boolean providerValid = providerbox.getSelectedIndex() > 0;
-        boolean numberValid = wallet ? number.matches("09[0-9]{9}") : number.matches("[0-9]{4}");
+        boolean paypal = wallet && "PayPal".equals(providerbox.getSelectedItem());
+        boolean numberValid = paypal ? number.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+") : wallet ? number.matches("09[0-9]{9}") : number.matches("[0-9]{4}");
         String reference = referencefield.getText();
-        boolean referenceValid = reference.matches("[A-Za-z0-9]{1,20}");
+        boolean referenceValid = !requireReference || reference.matches("[A-Za-z0-9]{1,20}");
         providererror.setText(
                 providerValid
                         ? ""
@@ -131,10 +216,13 @@ public class PaymentDetailsPanel extends JPanel {
                                     ? "Mobile number must contain 11 digits."
                                     : "Please enter a valid mobile number starting with 09.";
         }
+        if (paypal) numberMessage = "Please enter a valid PayPal email address.";
         numbererror.setText(numberValid ? "" : numberMessage);
         String referenceMessage =
                 reference.isEmpty()
-                        ? "Please enter a reference number."
+                        ? (automaticReference
+                                ? "Complete a successful scan or tap first."
+                                : "Please enter a reference number.")
                         : reference.length() > 20
                                 ? "Reference number must not exceed 20 characters."
                                 : "Reference number must contain only letters and numbers.";

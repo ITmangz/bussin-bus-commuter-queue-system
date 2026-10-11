@@ -1,15 +1,17 @@
 package qpal.view.Admin;
 
-import java.awt.*;
-import java.math.BigDecimal;
-import java.util.List;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import qpal.dao.*;
 import qpal.model.BookingData.*;
 import qpal.model.BookingData.QueueRow;
 import qpal.model.BookingData.Receipt;
 import qpal.util.UiTask;
+
+import java.awt.*;
+import java.math.BigDecimal;
+import java.util.List;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 /** Payment, receipt collection, and one boarding pass per reserved seat. */
 public final class QueuePaymentDialog extends JDialog {
@@ -22,10 +24,16 @@ public final class QueuePaymentDialog extends JDialog {
     private final JLabel status = new JLabel(" ");
     private final JButton pay = new JButton("Mark as Paid");
     private boolean simulationApproved;
+    private final JComboBox<String> paymentMethod =
+            new JComboBox<>(new String[] {"Cash", "GCash", "Card"});
+    private qpal.view.Commuter.PaymentDetailsPanel details;
+    private CashlessSimulationPanel simulation;
+    private final JPanel paymentBody = new JPanel(new BorderLayout(18, 0));
+    private final JPanel paymentHeading = new JPanel(new GridLayout(0, 1, 0, 4));
     private final JTextField transactionReference = new JTextField();
 
     private boolean cashless() {
-        return !"Cash".equals(receipt.method());
+        return !"Cash".equals(paymentMethod.getSelectedItem());
     }
 
     private boolean busy;
@@ -74,17 +82,6 @@ public final class QueuePaymentDialog extends JDialog {
                                     closed.run();
                                 }
                             });
-                    if (dialog.cashless() && !"Paid".equals(dialog.receipt.paymentStatus())) {
-                        String reference = CashlessSimulationDialog.show(
-                                dialog.getOwner(), dialog.receipt.method(), dialog.receipt.total());
-                        if (reference == null) {
-                            dialog.dispose();
-                            return;
-                        }
-                        dialog.transactionReference.setText(reference);
-                        dialog.simulationApproved = true;
-                        dialog.updateButtons();
-                    }
                     dialog.setVisible(true);
                 },
                 ex -> {
@@ -151,32 +148,173 @@ public final class QueuePaymentDialog extends JDialog {
                     }
                 });
         setUndecorated(true);
-        JPanel content = new JPanel();
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        paymentMethod.setSelectedItem(java.util.Set.of("E-Wallet", "Maya", "MariBank", "PayPal").contains(receipt.method()) ? "GCash" : receipt.method());
+        JPanel content = new JPanel(new BorderLayout(12, 12));
         content.setBackground(Color.WHITE);
-        content.setBorder(new EmptyBorder(25, 30, 25, 30));
-        JLabel title = new JLabel("Payment");
-        title.setFont(new Font("SansSerif", Font.BOLD, 18));
+        content.setBorder(new EmptyBorder(16, 24, 16, 24));
+        JPanel heading = paymentHeading;
+        heading.setOpaque(false);
+        JLabel title = new JLabel("Payment  /  " + String.format("P%03d", row.number()));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 32));
         title.setForeground(new Color(225, 29, 72));
-        title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(title);
-        content.add(Box.createVerticalStrut(7));
-        JLabel subtitle = new JLabel("Review the amount and confirm payment.");
-        subtitle.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        subtitle.setForeground(new Color(100, 100, 100));
-        subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(subtitle);
-        content.add(Box.createVerticalStrut(20));
-        addField(content, "Queue Number", String.format("P%03d", row.number()));
-        addField(content, "Total Fare (PHP)", qpal.model.FarePolicy.format(receipt.total()));
-        addField(content, "Payment Method", receipt.method());
-        addInput(
-                content, cashless() ? "Amount to Verify (PHP)" : "Amount Received (PHP)", received);
-        if (progress.received() != null) received.setText(progress.received().toPlainString());
-        else if (cashless()) received.setText(receipt.total().toPlainString());
-        if (cashless()) {
-            addInput(content, "Transaction Reference", transactionReference);
+        heading.add(title);
+        heading.add(new JLabel("Total: PHP " + receipt.total().toPlainString()));
+        content.add(heading, BorderLayout.NORTH);
+        paymentBody.setOpaque(false);
+        content.add(paymentBody, BorderLayout.CENTER);
+        JPanel footer = new JPanel(new BorderLayout(0, 12));
+        footer.setOpaque(false);
+        status.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        footer.add(status, BorderLayout.NORTH);
+        JPanel buttons = new JPanel(new GridLayout(1, 2, 12, 0));
+        buttons.putClientProperty("fullWidthActions", true);
+        buttons.setOpaque(false);
+        buttons.setPreferredSize(new Dimension(420, 40));
+        JButton close = new JButton("Close");
+        close.addActionListener(
+                e -> {
+                    if (!busy) dispose();
+                });
+        for (JButton button : new JButton[] {pay, close}) {
+            button.setBackground(button == pay ? new Color(225, 29, 72) : new Color(235, 238, 243));
+            button.setForeground(button == pay ? Color.WHITE : new Color(40, 50, 65));
+            button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            buttons.add(button);
         }
+        footer.add(buttons, BorderLayout.SOUTH);
+        content.add(footer, BorderLayout.SOUTH);
+        JScrollPane scroll = new JScrollPane(AdminFormStyle.frame(content));
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        setContentPane(scroll);
+        addWindowListener(
+                new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowOpened(java.awt.event.WindowEvent e) {
+                        if ("Paid".equals(QueuePaymentDialog.this.receipt.paymentStatus())
+                                && !QueuePaymentDialog.this.progress.receiptPrinted())
+                            SwingUtilities.invokeLater(() -> printAnimated(false));
+                    }
+                });
+        installAmountFilter();
+        received.getDocument()
+                .addDocumentListener(
+                        new javax.swing.event.DocumentListener() {
+                            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                                updateChange();
+                            }
+
+                            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                                updateChange();
+                            }
+
+                            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                                updateChange();
+                            }
+                        });
+        paymentMethod.addActionListener(e -> showMethod());
+        pay.addActionListener(e -> pay());
+        showMethod();
+    }
+
+    private void showMethod() {
+        paymentHeading.setPreferredSize(new Dimension(cashless() ? 700 : 440, 78));
+        if (simulation != null) simulation.reset();
+        simulationApproved = false;
+        transactionReference.setText("");
+        paymentBody.removeAll();
+        details = null;
+        simulation = null;
+        if (cashless()) {
+            setReceived(receipt.total().toPlainString());
+            details =
+                    new qpal.view.Commuter.PaymentDetailsPanel(
+                            "GCash".equals(paymentMethod.getSelectedItem()));
+            details.configureForCounter(
+                    () -> {
+                        simulationApproved = false;
+                        transactionReference.setText("");
+                        details.setTransactionReference(null);
+                        if (simulation != null) {
+                            simulation.reset();
+                            simulation.setCardDetails(
+                                    details.selectedProvider(), details.paymentNumber());
+                            simulation.setWalletProvider(details.selectedProvider());
+                        }
+                        updateButtons();
+                    });
+            paymentBody.setLayout(new GridLayout(1, 2, 16, 0));
+            JPanel form = new JPanel();
+            form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+            form.setBackground(Color.WHITE);
+            form.setBorder(BorderFactory.createLineBorder(new Color(224, 229, 236)));
+            form.add(methodSelector());
+            details.setAlignmentX(Component.LEFT_ALIGNMENT);
+            details.setMaximumSize(new Dimension(Integer.MAX_VALUE, 290));
+            form.add(details);
+            paymentBody.add(form);
+            simulation =
+                    new CashlessSimulationPanel(
+                            (String) paymentMethod.getSelectedItem(),
+                            receipt.total(),
+                            () ->
+                                    !busy
+                                            && !"Paid".equals(receipt.paymentStatus())
+                                            && details.validatePaymentDetails(),
+                            reference -> {
+                                simulationApproved = reference != null;
+                                transactionReference.setText(reference == null ? "" : reference);
+                                details.setTransactionReference(reference);
+                                updateButtons();
+                            });
+            if ("GCash".equals(paymentMethod.getSelectedItem())) simulation.setWalletProvider(details.selectedProvider());
+            paymentBody.add(simulation);
+        } else {
+            JPanel cash = new JPanel();
+            cash.setOpaque(false);
+            cash.setLayout(new BoxLayout(cash, BoxLayout.Y_AXIS));
+            cash.add(methodSelector());
+            addInput(cash, "Amount received (PHP)", received);
+            received.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
+            cash.add(change);
+            setReceived(progress.received() == null ? "" : progress.received().toPlainString());
+            paymentBody.add(cash, BorderLayout.CENTER);
+        }
+        updateChange();
+        updateButtons();
+        paymentBody.revalidate();
+        paymentBody.repaint();
+        pack();
+        Rectangle screen = getGraphicsConfiguration().getBounds();
+        Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration());
+        setSize(
+                Math.min(getWidth() + 4, screen.width - 40),
+                Math.min(getHeight(), screen.height - insets.top - insets.bottom - 40));
+        setLocationRelativeTo(getOwner());
+    }
+
+    private JPanel methodSelector() {
+        paymentMethod.setRenderer(new DefaultListCellRenderer() {
+            @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus) {
+                return super.getListCellRendererComponent(list, "GCash".equals(value) ? "E-Wallet" : value, index, selected, focus);
+            }
+        });
+        paymentMethod.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        qpal.components.FormInputStyle.styleCombo(paymentMethod);
+        JPanel selector = new JPanel(new BorderLayout(0, 8));
+        selector.setOpaque(false);
+        selector.setAlignmentX(Component.LEFT_ALIGNMENT);
+        selector.setBorder(new EmptyBorder(14, cashless() ? 15 : 0, 8, cashless() ? 15 : 0));
+        JLabel label = new JLabel("Payment method");
+        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.setLabelFor(paymentMethod);
+        selector.add(label, BorderLayout.NORTH);
+        selector.add(paymentMethod, BorderLayout.CENTER);
+        selector.setPreferredSize(new Dimension(350, 82));
+        selector.setMaximumSize(new Dimension(Integer.MAX_VALUE, 82));
+        return selector;
+    }
+    private void installAmountFilter() {
         ((javax.swing.text.AbstractDocument) received.getDocument())
                 .setDocumentFilter(
                         new javax.swing.text.DocumentFilter() {
@@ -222,82 +360,17 @@ public final class QueuePaymentDialog extends JDialog {
                                 else Toolkit.getDefaultToolkit().beep();
                             }
                         });
-        change.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        change.setAlignmentX(Component.LEFT_ALIGNMENT);
-        status.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        status.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(change);
-        content.add(Box.createVerticalStrut(8));
-        content.add(status);
-        content.add(Box.createVerticalStrut(20));
-        JPanel buttons = new JPanel(new GridLayout(1, 2, 12, 0));
-        buttons.setOpaque(false);
-        JButton close = new JButton("Close");
-        close.addActionListener(
-                e -> {
-                    if (!busy) dispose();
-                });
-        for (JButton button : new JButton[] {pay, close}) {
-            button.setBackground(button == pay ? new Color(0, 190, 100) : new Color(240, 0, 55));
-            button.setForeground(Color.WHITE);
-            button.setFont(new Font("SansSerif", Font.BOLD, 13));
-            button.setFocusPainted(false);
-            button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            buttons.add(button);
+    }
+
+    private void setReceived(String value) {
+        var document = (javax.swing.text.AbstractDocument) received.getDocument();
+        var filter = document.getDocumentFilter();
+        document.setDocumentFilter(null);
+        try {
+            received.setText(value);
+        } finally {
+            document.setDocumentFilter(filter);
         }
-        content.add(buttons);
-        for (Component component : content.getComponents()) {
-            if (component instanceof JLabel label) {
-                int height = label == title ? 28 : 20;
-                label.setPreferredSize(new Dimension(300, height));
-                label.setMinimumSize(new Dimension(300, height));
-                label.setMaximumSize(new Dimension(300, height));
-            }
-        }
-        setContentPane(AdminFormStyle.frame(content));
-        addWindowListener(
-                new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowOpened(java.awt.event.WindowEvent e) {
-                        if ("Paid".equals(QueuePaymentDialog.this.receipt.paymentStatus())
-                                && !QueuePaymentDialog.this.progress.receiptPrinted())
-                            SwingUtilities.invokeLater(() -> printAnimated(false));
-                    }
-                });
-        received.getDocument()
-                .addDocumentListener(
-                        new javax.swing.event.DocumentListener() {
-                            public void insertUpdate(javax.swing.event.DocumentEvent e) {
-                                updateChange();
-                            }
-
-                            public void removeUpdate(javax.swing.event.DocumentEvent e) {
-                                updateChange();
-                            }
-
-                            public void changedUpdate(javax.swing.event.DocumentEvent e) {
-                                updateChange();
-                            }
-                        });
-        pay.addActionListener(e -> pay());
-
-        updateChange();
-        updateButtons();
-        pack();
-        Rectangle screen = getGraphicsConfiguration().getBounds();
-        Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration());
-        int maximumHeight = screen.height - insets.top - insets.bottom - 40;
-        if (getHeight() > maximumHeight) {
-            Container form = getContentPane();
-            JScrollPane scroll = new JScrollPane(form);
-            scroll.setBorder(BorderFactory.createEmptyBorder());
-            scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-            qpal.components.ScrollBarStyle.apply(scroll, Color.WHITE);
-            setContentPane(scroll);
-            setSize(getWidth() + 12, maximumHeight);
-        }
-        setLocationRelativeTo(getOwner());
-
     }
 
     private static void addField(JPanel content, String label, String value) {
@@ -348,8 +421,11 @@ public final class QueuePaymentDialog extends JDialog {
         received.setEditable(!cashless() && !paid && !busy);
 
         transactionReference.setEditable(false);
-        pay.setEnabled(!paid && !busy);
-        pay.setText(cashless() && !simulationApproved ? "Simulate Payment" : "Mark as Paid");
+        paymentMethod.setEnabled(!paid && !busy);
+        if (details != null) details.setInputsEnabled(!paid && !busy);
+        if (simulation != null) simulation.setLocked(paid || busy);
+        pay.setEnabled(!paid && !busy && (!cashless() || simulationApproved));
+        pay.setText("Mark as Paid");
 
         status.setText(
                 progress.ticketsPrinted()
@@ -358,19 +434,17 @@ public final class QueuePaymentDialog extends JDialog {
                                 ? "Receipt collected. Use Print Ticket in the queue."
                                 : paid
                                         ? "Paid. Print the payment receipt next."
-                                        : "Enter payment to continue.");
+                                        : cashless()
+                                                ? (simulationApproved
+                                                        ? "Approved. Review the reference,"
+                                                              + " then mark as paid."
+                                                        : "Complete the details, then scan or tap"
+                                                              + " to simulate payment.")
+                                                : "Enter payment to continue.");
     }
 
     private void pay() {
-        if (cashless() && !simulationApproved) {
-            String reference =
-                    CashlessSimulationDialog.show(this, receipt.method(), receipt.total());
-            if (reference == null) return;
-            transactionReference.setText(reference);
-            simulationApproved = true;
-            pay();
-            return;
-        }
+        if (busy || (cashless() && !simulationApproved)) return;
         final BigDecimal amount;
         try {
             amount = QueuePaymentDao.validateReceived(received.getText(), receipt.total());
@@ -380,6 +454,7 @@ public final class QueuePaymentDialog extends JDialog {
         }
         final String reference = transactionReference.getText().trim();
         final boolean paymentVerified = simulationApproved;
+        final String method = "GCash".equals(paymentMethod.getSelectedItem()) ? details.selectedProvider() : (String) paymentMethod.getSelectedItem();
         if (cashless() && !reference.matches("[A-Za-z0-9-]{1,64}")) {
             error(
                     new IllegalArgumentException(
@@ -392,7 +467,7 @@ public final class QueuePaymentDialog extends JDialog {
         UiTask.run(
                 () -> {
                     new QueuePaymentDao()
-                            .pay(row.id(), station, amount, reference, paymentVerified);
+                            .pay(row.id(), station, amount, reference, paymentVerified, method);
                     return new Object[] {
                         new BookingDao().receipt(row.bookingId()),
                         new QueuePaymentDao().progress(row.id())

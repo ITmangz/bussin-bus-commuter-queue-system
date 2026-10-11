@@ -179,20 +179,21 @@ public class AdminDashboardPanel extends JPanel {
         seats.setOpaque(false);
         seats.add(
                 label(
-                        "Booked seats: " + trip.occupied() + " / " + trip.capacity(),
+                        "Passengers boarded: " + trip.boarded() + " / " + trip.expected(),
                         12,
                         new Color(55, 55, 55),
                         true),
                 BorderLayout.NORTH);
-        JProgressBar tracker = new JProgressBar(0, Math.max(1, trip.capacity()));
-        tracker.setValue(trip.occupied());
+        JProgressBar tracker = new JProgressBar(0, Math.max(1, trip.expected()));
+        tracker.setValue(trip.boarded());
         tracker.setUI(new javax.swing.plaf.basic.BasicProgressBarUI());
         tracker.setForeground(new Color(39, 139, 196));
         tracker.setBackground(new Color(232, 236, 242));
         tracker.setBorderPainted(false);
         tracker.setPreferredSize(new Dimension(0, 7));
         tracker.getAccessibleContext()
-                .setAccessibleName("Booked seats " + trip.occupied() + " of " + trip.capacity());
+                .setAccessibleName("Passengers boarded " + trip.boarded() + " of " + trip.expected());
+        tracker.setToolTipText("Capacity: " + trip.capacity());
         seats.add(tracker, BorderLayout.CENTER);
         panel.add(seats, BorderLayout.SOUTH);
         return panel;

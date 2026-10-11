@@ -1,7 +1,9 @@
+import qpal.view.Commuter.PaymentDetailsPanel;
+
 import java.awt.*;
 import java.lang.reflect.*;
+
 import javax.swing.*;
-import qpal.view.Commuter.PaymentDetailsPanel;
 
 public class PaymentDetailsTest {
     static class TestPanel extends PaymentDetailsPanel {
@@ -85,7 +87,7 @@ public class PaymentDetailsTest {
                                             wallet
                                                     ? "Mobile number must contain 11 digits."
                                                     : "Card number must contain exactly 4"
-                                                          + " digits."));
+                                                            + " digits."));
                             if (wallet) {
                                 number.setText("08123456789");
                                 check(!p.validateInputs());
@@ -112,32 +114,27 @@ public class PaymentDetailsTest {
                             check(!p.validateInputs());
                         }
                         var screen = new qpal.view.Commuter.PaymentPanel(null, null);
-                        Field method = screen.getClass().getDeclaredField("selectedPayment");
-                        method.setAccessible(true);
-                        Method show = screen.getClass().getDeclaredMethod("showPaymentDetails");
-                        show.setAccessible(true);
-                        Method back = screen.getClass().getDeclaredMethod("showPaymentChoices");
-                        back.setAccessible(true);
-                        for (String type : new String[] {"E-Wallet", "Card"}) {
-                            method.set(screen, type);
-                            show.invoke(screen);
-                            check(
-                                    ((JPanel)
-                                                    field(
-                                                            screen,
-                                                            type.equals("Card")
-                                                                    ? "cardDetails"
-                                                                    : "ewalletDetails"))
-                                            .isVisible());
-                            check(!((JPanel) field(screen, "cashCard")).isVisible());
-                            back.invoke(screen);
-                            check(((JPanel) field(screen, "cashCard")).isVisible());
-                        }
                         screen.resetInputs();
-                        check(!(boolean) field(screen, "enteringDetails"));
+                        check(((JPanel) field(screen, "cashCard")).isVisible());
+                        check(((JPanel) field(screen, "ewalletCard")).isVisible());
+                        check(((JPanel) field(screen, "cardCard")).isVisible());
+                        for (boolean wallet : new boolean[] {true, false}) {
+                            TestPanel counter = new TestPanel(wallet);
+                            int[] changes = {0};
+                            counter.configureForCounter(() -> changes[0]++);
+                            ((JComboBox<?>) field(counter, "providerbox")).setSelectedIndex(1);
+                            ((JTextField) field(counter, "numberfield"))
+                                    .setText(wallet ? "09123456789" : "1234");
+                            check(changes[0] > 0);
+                            check(counter.validatePaymentDetails());
+                            check(!counter.validateInputs());
+                            check(!((JTextField) field(counter, "referencefield")).isEditable());
+                            counter.setTransactionReference("1234567890123456");
+                            check(counter.validateInputs());
+                        }
                         System.out.println(
                                 "PASS: wallet/card required fields, number validation, blank image"
-                                    + " labels and reset");
+                                        + " labels and reset");
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }

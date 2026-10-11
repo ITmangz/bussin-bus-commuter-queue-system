@@ -215,8 +215,9 @@ public class EmployeeIntegrationTest {
                                         t ->
                                                 t.bus().equals("TEST")
                                                         && t.capacity() == 20
-                                                        && t.occupied() == 3),
-                        "Shared boarding cards receive real seat totals");
+                                                        && t.expected() == 3
+                                                        && t.boarded() == 0),
+                        "Bookings and payment alone do not count as boarded");
                 check(
                         gateSummary.stationTrip() != null
                                 && gateSummary.stationTrip().contains("TEST"),
@@ -240,6 +241,9 @@ public class EmployeeIntegrationTest {
                 rejects(() -> queues.recallBoarding(queue, 1));
                 rejects(() -> queues.completeBoarding(queue));
                 var boarded = new EmployeeDashboardDao().load(gate);
+                check(boarded.activeBoarding().stream().anyMatch(t -> t.bus().equals("TEST")
+                                && t.boarded() == 2 && t.expected() == 3),
+                        "Gate confirmation counts both passengers in the booking exactly once");
                 check(
                         boarded.commuters() == 2
                                 && boarded.collected().signum() == 0

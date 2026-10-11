@@ -16,7 +16,7 @@ The selected station is fixed for the session. Log out and log in to select a di
 - Bus and route/schedule pages retain the admin tables, summaries, searches, filters, and pagination. Employee versions omit Add, Edit, Print, and Delete.
 - Activity Log uses the existing account-filtered query and shows only the signed-in employee's records.
 
-The employee dashboard shares the admin dashboard's statistic, boarding-bus, and queue-status card builders. Active Boarding shows all boarding buses to employees at both counters and gates, including departure information and booked-seat progress. Queue Status shows only the employee's assigned station. View schedules and Manage queues open the corresponding employee pages.
+The employee dashboard shares the admin dashboard's statistic, boarding-bus, and queue-status card builders. Active Boarding shows all boarding buses to employees at both counters and gates, including departure information and gate-confirmed passengers boarded / expected passenger progress. Queue Status shows only the employee's assigned station. View schedules and Manage queues open the corresponding employee pages.
 
 Station artwork is left blank in `EmployeeStationPanel`: `lblCounter1Image`, `lblCounter2Image`, `lblGate1Image`, and `lblGate2Image` are 90 × 76 image JLabels ready for ImageIcons. Station buttons have hover feedback; clicking a selected station again clears the selection and disables Confirm.
 

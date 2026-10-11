@@ -2,6 +2,7 @@ package qpal.view.Commuter;
 
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 public class PaymentPanel extends JPanel {
@@ -10,42 +11,14 @@ public class PaymentPanel extends JPanel {
     private JPanel ewalletCard;
     private JPanel cardCard;
 
-    private final PaymentDetailsPanel ewalletDetails = new PaymentDetailsPanel(true);
-    private final PaymentDetailsPanel cardDetails = new PaymentDetailsPanel(false);
-
-    public JLabel getEwalletQrLabel() {
-        return ewalletDetails.getPaymentImageLabel();
-    }
-
-    public JLabel getCardImageLabel() {
-        return cardDetails.getPaymentImageLabel();
-    }
-
-    private boolean enteringDetails;
     private JLabel paymentTitle, paymentSubtitle;
 
     private void showPaymentChoices() {
-        enteringDetails = false;
-        ewalletDetails.setVisible(false);
-        cardDetails.setVisible(false);
         cashCard.setVisible(true);
         ewalletCard.setVisible(true);
         cardCard.setVisible(true);
         paymentTitle.setText("Select Payment");
-        paymentSubtitle.setText("Select your preferred payment method.");
-    }
-
-    private void showPaymentDetails() {
-        enteringDetails = true;
-        cashCard.setVisible(false);
-        ewalletCard.setVisible(false);
-        cardCard.setVisible(false);
-        boolean wallet = selectedPayment.equals("E-Wallet");
-        ewalletDetails.setVisible(wallet);
-        cardDetails.setVisible(!wallet);
-        paymentTitle.setText(wallet ? "E-Wallet Payment" : "Card Payment");
-        paymentSubtitle.setText(
-                "Enter your payment reference. Staff will confirm payment at the counter.");
+        paymentSubtitle.setText("Choose a payment method. Proceed to the counter to pay.");
     }
 
     private String selectedPayment = "";
@@ -110,7 +83,7 @@ public class PaymentPanel extends JPanel {
         paymentpanel.add(title);
         paymentTitle = title;
 
-        JLabel subtext = new JLabel("Select your preferred payment method.");
+        JLabel subtext = new JLabel("Choose a payment method. Proceed to the counter to pay.");
         subtext.setBounds(70, 238, 860, 25);
         subtext.setHorizontalAlignment(SwingConstants.CENTER);
         subtext.setFont(new Font("Segoe UI", Font.PLAIN, 15));
@@ -120,23 +93,24 @@ public class PaymentPanel extends JPanel {
 
         // ================ PAYMENT CARDS =================//
 
-        cashCard = createPaymentCard("Cash", "Pay at the counter", "resources/icons/cashpaymentic.png", 135);
+        cashCard =
+                createPaymentCard(
+                        "Cash", "Pay at the counter", "resources/icons/cashpaymentic.png", 135);
 
         ewalletCard =
                 createPaymentCard(
-                        "E-Wallet", "Pay at the counter", "resources/icons/e-cashpaymentic.png", 387);
+                        "E-Wallet",
+                        "Pay at the counter",
+                        "resources/icons/e-cashpaymentic.png",
+                        387);
 
-        cardCard = createPaymentCard("Card", "Pay at the counter", "resources/icons/cardpaymentic.png", 639);
+        cardCard =
+                createPaymentCard(
+                        "Card", "Pay at the counter", "resources/icons/cardpaymentic.png", 639);
 
         paymentpanel.add(cashCard);
         paymentpanel.add(ewalletCard);
         paymentpanel.add(cardCard);
-        ewalletDetails.setBounds(70, 282, 860, 290);
-        cardDetails.setBounds(70, 282, 860, 290);
-        paymentpanel.add(ewalletDetails);
-        paymentpanel.add(cardDetails);
-        ewalletDetails.setVisible(false);
-        cardDetails.setVisible(false);
 
         // ================ BOTTOM =================//
 
@@ -164,10 +138,7 @@ public class PaymentPanel extends JPanel {
         backbtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         backbtn.addActionListener(
                 e -> {
-                    if (enteringDetails) showPaymentChoices();
-                    else
-                        ((CardLayout) getParent().getLayout())
-                                .show(getParent(), "ConfirmTripDetails");
+                    ((CardLayout) getParent().getLayout()).show(getParent(), "ConfirmTripDetails");
                 });
         bottompanel.add(backbtn);
 
@@ -365,8 +336,7 @@ public class PaymentPanel extends JPanel {
     public void resetInputs() {
         bookingReference = newReference();
         selectedPayment = "";
-        ewalletDetails.resetInputs();
-        cardDetails.resetInputs();
+
         showPaymentChoices();
         resetCards();
     }

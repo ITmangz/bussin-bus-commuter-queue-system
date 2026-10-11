@@ -1,11 +1,12 @@
-import java.math.BigDecimal;
-import java.sql.*;
-import java.time.LocalDate;
-import java.util.*;
 import qpal.dao.*;
 import qpal.model.BookingData.*;
 import qpal.util.DbConnection;
 import qpal.view.Admin.QueuePaymentDialog;
+
+import java.math.BigDecimal;
+import java.sql.*;
+import java.time.LocalDate;
+import java.util.*;
 
 public class QueuePaymentTest {
     static void check(boolean value, String message) {
@@ -99,7 +100,7 @@ public class QueuePaymentTest {
                                 + " VALUES(1,'TEST',20,20,'Available')");
                     seed.executeUpdate(
                             "INSERT INTO routes(route_id,origin,destination,fare,status)"
-                                + " VALUES(1,'A','B',50,'Active')");
+                                    + " VALUES(1,'A','B',50,'Active')");
                     seed.executeUpdate(
                             "INSERT INTO"
                                 + " trips(trip_id,bus_id,route_id,departure_date,departure_time,available_seats,status)"
@@ -196,10 +197,81 @@ public class QueuePaymentTest {
                 check(
                         bookings.receipt(duplicate.bookingId()).paymentStatus().equals("Pending"),
                         "Duplicate reference rolls back");
+                rejects(
+                        () ->
+                                payments.pay(
+                                        duplicateQueue,
+                                        1,
+                                        new BigDecimal("50"),
+                                        "REF-1",
+                                        true,
+                                        "Card"));
+                check(
+                        bookings.receipt(duplicate.bookingId()).method().equals("GCash"),
+                        "Failed method switch rolls back");
+                payments.pay(duplicateQueue, 1, new BigDecimal("100"), null, false, "Cash");
+                var switched = bookings.receipt(duplicate.bookingId());
+                check(switched.method().equals("Cash"), "Actual counter method is recorded");
+                check(
+                        switched.queueNumber() == duplicate.queueNumber(),
+                        "Method switch keeps queue number");
+                rejects(
+                        () ->
+                                payments.pay(
+                                        duplicateQueue,
+                                        1,
+                                        new BigDecimal("50"),
+                                        "REF-NEW",
+                                        true,
+                                        "Card"));
+                payments.printed(duplicateQueue, false);
+                payments.printed(duplicateQueue, true);
+                queues.act(duplicateQueue, "Complete", 1);
+                var cardSwitch =
+                        bookings.book(
+                                "CASH-TO-CARD",
+                                bookings.availableTrips().get(0),
+                                List.of(new Passenger("Card switch", "Regular", 14)),
+                                "Cash");
+                int cardQueue =
+                        queues.today().stream()
+                                .filter(r -> r.bookingId() == cardSwitch.bookingId())
+                                .findFirst()
+                                .get()
+                                .id();
+                queues.act(0, "Call Next Queue", 1);
+                rejects(
+                        () ->
+                                payments.pay(
+                                        cardQueue,
+                                        1,
+                                        new BigDecimal("50"),
+                                        "REF-NEW",
+                                        false,
+                                        "Card"));
+                payments.pay(cardQueue, 1, new BigDecimal("50"), "REF-NEW", true, "Card");
+                check(
+                        bookings.receipt(cardSwitch.bookingId()).method().equals("Card"),
+                        "Cash booking accepts approved card payment");
+                payments.printed(cardQueue, false);
+                payments.printed(cardQueue, true);
+                queues.act(cardQueue, "Complete", 1);
+                int walletSeat = 15;
+                for (String provider : List.of("Maya", "MariBank", "PayPal")) {
+                    var wallet = bookings.book("WALLET-" + provider, bookings.availableTrips().get(0),
+                            List.of(new Passenger("Wallet", "Regular", walletSeat++)), "GCash");
+                    int walletQueue = queues.today().stream().filter(r -> r.bookingId() == wallet.bookingId()).findFirst().get().id();
+                    queues.act(0, "Call Next Queue", 1);
+                    payments.pay(walletQueue, 1, new BigDecimal("50"), "REF-" + provider, true, provider);
+                    check(bookings.receipt(wallet.bookingId()).method().equals(provider), "Actual wallet provider survives reload");
+                    payments.printed(walletQueue, false);
+                    payments.printed(walletQueue, true);
+                    queues.act(walletQueue, "Complete", 1);
+                }
                 ActivityLogDao.setCurrentAccount(null);
                 System.out.println(
                         "PASS: cash payment, cashless verification, exact amount, duplicate"
-                            + " reference protection, printing and completion");
+                                + " reference protection, printing and completion");
             } finally {
                 System.clearProperty("qpal.db.url");
                 s.executeUpdate("DROP DATABASE " + schema);

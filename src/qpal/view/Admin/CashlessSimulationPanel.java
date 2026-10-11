@@ -7,9 +7,11 @@ import java.math.BigDecimal;
 import javax.swing.*;
 
 /** Interactive demo only; no payment provider is contacted. */
-final class CashlessSimulationDialog extends JDialog {
+final class CashlessSimulationPanel extends JPanel {
+    private String cardType = "Card";
+    private String lastFour = "----";
     // Put your QR image at this path. The label is 200 x 200 pixels.
-    private final JLabel qrLabel = new JLabel("Click to simulate a QR scan", SwingConstants.CENTER);
+    private final JLabel qrLabel = new JLabel("Click to scan QR", SwingConstants.CENTER);
     private final JLabel feedback = new JLabel(" ", SwingConstants.CENTER);
     private final JPanel scene = new JPanel(null);
     private final JButton action = new JButton();
@@ -45,12 +47,12 @@ final class CashlessSimulationDialog extends JDialog {
                     g.drawLine(39, 42, 39, 66);
                     g.setColor(Color.WHITE);
                     g.setFont(new Font("Monospaced", Font.PLAIN, 15));
-                    g.drawString("•••• •••• •••• 2026", 17, 88);
+                    g.drawString("•••• •••• •••• " + lastFour, 17, 88);
                     g.setFont(new Font("Segoe UI", Font.PLAIN, 9));
                     g.drawString("CARDHOLDER", 17, 108);
                     g.setFont(new Font("Segoe UI", Font.BOLD, 11));
                     g.drawString("BUSSIN PASSENGER", 17, 122);
-                    g.drawString("CARD", 171, 120);
+                    g.drawString(cardType, 140, 120);
                     g.dispose();
                 }
             };
@@ -61,41 +63,42 @@ final class CashlessSimulationDialog extends JDialog {
     private boolean scanned;
     private String reference;
 
-    static String show(Window owner, String method, BigDecimal amount) {
-        CashlessSimulationDialog dialog = new CashlessSimulationDialog(owner, method, amount);
-        dialog.setVisible(true);
-        return dialog.reference;
-    }
+    private final java.util.function.BooleanSupplier ready;
+    private final java.util.function.Consumer<String> completed;
+    private boolean locked;
+    private final JLabel title = new JLabel();
 
-    private CashlessSimulationDialog(Window owner, String method, BigDecimal amount) {
-        super(owner, "Cashless Payment Simulation", ModalityType.APPLICATION_MODAL);
+    CashlessSimulationPanel(
+            String method,
+            BigDecimal amount,
+            java.util.function.BooleanSupplier ready,
+            java.util.function.Consumer<String> completed) {
+        super(new BorderLayout());
+        this.ready = ready;
+        this.completed = completed;
         wallet =
                 method.toLowerCase(java.util.Locale.ROOT).contains("gcash")
                         || method.toLowerCase(java.util.Locale.ROOT).contains("wallet");
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setUndecorated(true);
-        JPanel content = new JPanel(new BorderLayout(16, 20));
+
+        JPanel content = new JPanel(new BorderLayout(10, 10));
         content.setBackground(Color.WHITE);
         content.setBorder(
                 BorderFactory.createCompoundBorder(
                         BorderFactory.createLineBorder(new Color(224, 229, 236)),
-                        BorderFactory.createEmptyBorder(28, 28, 28, 28)));
-        JPanel heading = new JPanel(new GridLayout(2, 1, 0, 8));
+                        BorderFactory.createEmptyBorder(12, 12, 12, 12)));
+        JPanel heading = new JPanel(new GridLayout(1, 1));
         heading.setOpaque(false);
-        JLabel title = new JLabel(wallet ? "GCash" : "Tap to Pay", SwingConstants.CENTER);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        title.setText(wallet ? "E-Wallet" : "Tap to Pay");
+        title.setHorizontalAlignment(SwingConstants.CENTER);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
         title.setForeground(new Color(0, 91, 220));
         heading.add(title);
-        JLabel total = new JLabel("PHP " + amount.toPlainString(), SwingConstants.CENTER);
-        total.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        total.setForeground(new Color(30, 41, 59));
-        heading.add(total);
         content.add(heading, BorderLayout.NORTH);
-        scene.setPreferredSize(new Dimension(390, wallet ? 310 : 350));
+        scene.setPreferredSize(new Dimension(wallet ? 320 : 390, wallet ? 190 : 300));
         scene.setBackground(new Color(247, 249, 252));
         scene.setBorder(BorderFactory.createLineBorder(new Color(230, 234, 240)));
         if (wallet) {
-            qrLabel.setBounds(95, 15, 200, 200);
+            qrLabel.setBounds(12, 15, 160, 160);
             qrLabel.setBorder(BorderFactory.createLineBorder(new Color(218, 226, 238)));
             qrLabel.setOpaque(true);
             qrLabel.setBackground(Color.WHITE);
@@ -106,7 +109,7 @@ final class CashlessSimulationDialog extends JDialog {
                 qrLabel.setText("");
                 qrLabel.setIcon(
                         new ImageIcon(
-                                qr.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH)));
+                                qr.getImage().getScaledInstance(160, 160, Image.SCALE_SMOOTH)));
             }
             qrLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             qrLabel.addMouseListener(
@@ -118,21 +121,21 @@ final class CashlessSimulationDialog extends JDialog {
                     });
             scan.setOpaque(true);
             scan.setBackground(new Color(0, 160, 240));
-            scan.setBounds(95, 15, 200, 3);
+            scan.setBounds(12, 15, 160, 3);
             scan.setVisible(false);
             scene.add(scan);
             scene.add(qrLabel);
             JLabel name = new JLabel("Bussin", SwingConstants.CENTER);
-            name.setBounds(20, 230, 350, 24);
+            name.setBounds(182, 65, 130, 24);
             name.setFont(new Font("Segoe UI", Font.BOLD, 15));
             name.setForeground(new Color(30, 41, 59));
             scene.add(name);
-            JLabel number = new JLabel("09154056457", SwingConstants.CENTER);
-            number.setBounds(20, 258, 350, 24);
+            JLabel number = new JLabel("Scan to pay", SwingConstants.CENTER);
+            number.setBounds(182, 92, 130, 24);
             number.setFont(new Font("Segoe UI", Font.PLAIN, 13));
             number.setForeground(new Color(100, 110, 125));
             scene.add(number);
-            action.setText("Simulate QR Scan");
+            action.setText("Scan QR");
         } else {
             JLabel terminal =
                     new JLabel() {
@@ -179,7 +182,7 @@ final class CashlessSimulationDialog extends JDialog {
                         }
                     };
             terminal.setBounds(185, 12, 186, 286);
-            card.setBounds(18, 202, 220, 132);
+            card.setBounds(18, 162, 220, 132);
             card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             card.addMouseListener(
                     new MouseAdapter() {
@@ -195,11 +198,12 @@ final class CashlessSimulationDialog extends JDialog {
         content.add(scene, BorderLayout.CENTER);
         JPanel footer = new JPanel(new BorderLayout(8, 12));
         footer.setOpaque(false);
-        feedback.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        feedback.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        feedback.setPreferredSize(new Dimension(wallet ? 320 : 390, 18));
         feedback.setForeground(new Color(100, 110, 125));
         feedback.setText(
                 wallet
-                        ? "Click the QR area to simulate scanning."
+                        ? "Click the QR area to scan."
                         : "Click the card to tap the terminal.");
         footer.add(feedback, BorderLayout.NORTH);
         JPanel buttons = new JPanel(new GridLayout(1, 2, 10, 0));
@@ -211,22 +215,17 @@ final class CashlessSimulationDialog extends JDialog {
                     if (scanned) finish();
                     else startAnimation();
                 });
-        close.addActionListener(e -> dispose());
+        close.setText("Cancel attempt");
+        close.addActionListener(
+                e -> {
+                    reset();
+                    completed.accept(null);
+                });
         buttons.add(close);
         buttons.add(action);
         footer.add(buttons, BorderLayout.SOUTH);
         content.add(footer, BorderLayout.SOUTH);
-        setContentPane(content);
-        addWindowListener(
-                new WindowAdapter() {
-                    @Override
-                    public void windowClosed(WindowEvent e) {
-                        if (animation != null) animation.stop();
-                    }
-                });
-        pack();
-        setResizable(false);
-        setLocationRelativeTo(owner);
+        add(content, BorderLayout.CENTER);
     }
 
     private void styleButton(JButton button, Color background, Color foreground) {
@@ -239,36 +238,34 @@ final class CashlessSimulationDialog extends JDialog {
         button.setBorderPainted(false);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(180, 42));
+        button.setPreferredSize(new Dimension(wallet ? 150 : 180, 36));
     }
 
     private void startAnimation() {
-        if (scanned || (animation != null && animation.isRunning())) return;
+        if (locked
+                || scanned
+                || (animation != null && animation.isRunning())
+                || !ready.getAsBoolean()) return;
+        completed.accept(null);
         frame = 0;
         action.setEnabled(false);
-        feedback.setText(wallet ? "Scanning demo QR…" : "Reading card…");
+        feedback.setText(wallet ? "Scanning QR…" : "Reading card…");
         scan.setVisible(wallet);
         animation =
                 new Timer(
                         30,
                         e -> {
                             frame++;
-                            if (wallet) scan.setLocation(95, 15 + Math.min(frame, 40) * 5);
+                            if (wallet) scan.setLocation(12, 15 + Math.min(frame, 40) * 4);
                             else
                                 card.setLocation(
                                         18 + Math.min(frame, 40) * 2,
-                                        202 - Math.min(frame, 40) * 2);
-                            if (frame == 40) feedback.setText("Processing demo payment…");
+                                        162 - Math.min(frame, 40) * 2);
+                            if (frame == 40) feedback.setText("Processing payment…");
                             if (frame >= 65) {
                                 animation.stop();
                                 scan.setVisible(false);
-                                if (wallet) {
-                                    scanned = true;
-                                    feedback.setText(
-                                            "Demo scan complete. Confirm payment to Bussin.");
-                                    action.setText("Confirm Payment");
-                                    action.setEnabled(true);
-                                } else finish();
+                                finish();
                             }
                         });
         animation.start();
@@ -281,11 +278,54 @@ final class CashlessSimulationDialog extends JDialog {
                         "%016d",
                         new java.security.SecureRandom()
                                 .nextLong(1_000_000_000_000_000L, 10_000_000_000_000_000L));
-        qpal.components.AppDialogs.showMessageDialog(
-                this,
-                "Payment approved.\nTransaction Reference: " + reference,
-                "Payment Complete",
-                JOptionPane.INFORMATION_MESSAGE);
-        dispose();
+        scanned = true;
+        action.setEnabled(false);
+        feedback.setText("Approved. Reference filled automatically.");
+        completed.accept(reference);
+    }
+
+    void setLocked(boolean value) {
+        locked = value;
+        action.setEnabled(!value && !scanned && (animation == null || !animation.isRunning()));
+        close.setEnabled(!value);
+    }
+
+    void setCardDetails(String type, String number) {
+        cardType = type;
+        lastFour = number.matches("[0-9]{4}") ? number : "----";
+        card.repaint();
+    }
+
+    void setWalletProvider(String provider) {
+        if (!wallet) return;
+        title.setText("Card".equals(provider) ? "E-Wallet" : provider);
+        qrLabel.setIcon(null);
+        qrLabel.setText("Click to scan QR");
+        if ("GCash".equals(provider)) {
+            ImageIcon qr = new ImageIcon("resources/icons/gcashqr.png");
+            if (qr.getIconWidth() > 0) {
+                qrLabel.setText("");
+                qrLabel.setIcon(new ImageIcon(qr.getImage().getScaledInstance(160, 160, Image.SCALE_SMOOTH)));
+            }
+        }
+    }
+
+    void reset() {
+        if (animation != null) animation.stop();
+        scanned = false;
+        reference = null;
+        scan.setVisible(false);
+        card.setLocation(18, 162);
+        feedback.setText(
+                wallet
+                        ? "Click the QR area to scan."
+                        : "Click the card to tap the terminal.");
+        action.setEnabled(!locked);
+    }
+
+    @Override
+    public void removeNotify() {
+        reset();
+        super.removeNotify();
     }
 }

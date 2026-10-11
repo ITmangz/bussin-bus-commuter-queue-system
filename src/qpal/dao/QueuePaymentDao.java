@@ -1,15 +1,18 @@
 package qpal.dao;
 
+import static qpal.dao.BookingDao.*;
+
+import qpal.util.DbConnection;
+
 import java.math.BigDecimal;
 import java.sql.*;
-import qpal.util.DbConnection;
-import static qpal.dao.BookingDao.*;
 
 /** Durable counter payment and document progress, independent of the open dialog. */
 public class QueuePaymentDao {
     public record Progress(BigDecimal received, boolean receiptPrinted, boolean ticketsPrinted) {}
 
     public static void ensureTable(Connection c) throws SQLException {
+        ensureWalletMethods(c);
         EmployeeStationDao.ensure(c);
         try (Statement s = c.createStatement()) {
             s.executeUpdate(
@@ -28,6 +31,42 @@ public class QueuePaymentDao {
         }
     }
 
+    /** Extend the existing enum; never remove historical values or reorder their indexes. */
+    static synchronized void ensureWalletMethods(Connection c) throws SQLException {
+        String type, nullable, defaultValue, collation, comment;
+        try (Statement s = c.createStatement();
+                ResultSet r = s.executeQuery("SHOW FULL COLUMNS FROM payments LIKE 'payment_method'")) {
+            if (!r.next()) throw new SQLException("The payments.payment_method column is missing.");
+            type = r.getString("Type");
+            nullable = r.getString("Null");
+            defaultValue = r.getString("Default");
+            collation = r.getString("Collation");
+            comment = r.getString("Comment");
+        }
+        // Text columns already accept these values and must not be narrowed to an enum.
+        if (!type.startsWith("enum(")) return;
+        StringBuilder additions = new StringBuilder();
+        for (String method : java.util.List.of("Cash", "GCash", "Card", "Maya", "MariBank", "PayPal")) {
+            if (!type.contains("'" + method + "'")) additions.append(",'").append(method).append("'");
+        }
+        if (additions.isEmpty()) return;
+        String definition = type.substring(0, type.length() - 1) + additions + ")";
+        if (collation != null && collation.matches("[A-Za-z0-9_]+")) definition += " COLLATE " + collation;
+        definition += "YES".equals(nullable) ? " NULL" : " NOT NULL";
+        if (defaultValue != null) definition += " DEFAULT " + quoted(c, defaultValue);
+        else if ("YES".equals(nullable)) definition += " DEFAULT NULL";
+        if (comment != null && !comment.isEmpty()) definition += " COMMENT " + quoted(c, comment);
+        try (Statement s = c.createStatement()) {
+            s.executeUpdate("ALTER TABLE payments MODIFY payment_method " + definition);
+        }
+    }
+
+    private static String quoted(Connection c, String value) throws SQLException {
+        try (PreparedStatement p = c.prepareStatement("SELECT QUOTE(?)")) {
+            p.setString(1, value);
+            try (ResultSet r = p.executeQuery()) { r.next(); return r.getString(1); }
+        }
+    }
     public Progress progress(int queue) throws SQLException {
         try (Connection c = DbConnection.getConnection()) {
             ensureTable(c);
@@ -35,7 +74,7 @@ public class QueuePaymentDao {
                             statement(
                                     c,
                                     "SELECT received,receipt_printed,tickets_printed FROM"
-                                        + " queue_payment_progress WHERE queue_entry_id=?",
+                                            + " queue_payment_progress WHERE queue_entry_id=?",
                                     queue);
                     ResultSet r = p.executeQuery()) {
                 return r.next()
@@ -85,7 +124,7 @@ public class QueuePaymentDao {
                         || !"Paid".equals(r.getString(3)))
                     throw new SQLException(
                             "Finish Payment and collect the payment receipt before printing"
-                                + " boarding tickets.");
+                                    + " boarding tickets.");
             }
         }
     }
@@ -96,6 +135,20 @@ public class QueuePaymentDao {
 
     public void pay(int queue, int station, BigDecimal received, String reference, boolean verified)
             throws SQLException {
+        pay(queue, station, received, reference, verified, null);
+    }
+
+    public void pay(
+            int queue,
+            int station,
+            BigDecimal received,
+            String reference,
+            boolean verified,
+            String selectedMethod)
+            throws SQLException {
+        if (selectedMethod != null
+                && !java.util.Set.of("Cash", "GCash", "Card", "Maya", "MariBank", "PayPal").contains(selectedMethod))
+            throw new IllegalArgumentException("Select a supported payment method.");
         try (Connection c = DbConnection.getConnection()) {
             ensureTable(c);
             c.setAutoCommit(false);
@@ -125,24 +178,24 @@ public class QueuePaymentDao {
                                 statement(
                                         c,
                                         "SELECT payment_id,amount,status,payment_method FROM"
-                                            + " payments WHERE booking_id=? ORDER BY payment_id"
-                                            + " DESC LIMIT 1 FOR UPDATE",
+                                                + " payments WHERE booking_id=? ORDER BY payment_id"
+                                                + " DESC LIMIT 1 FOR UPDATE",
                                         booking);
                         ResultSet r = p.executeQuery()) {
                     if (!r.next() || !"Pending".equals(r.getString(3)))
                         throw new SQLException("Payment is no longer pending. Reopen Payment.");
                     payment = r.getInt(1);
+                    String method = selectedMethod == null ? r.getString(4) : selectedMethod;
                     validateReceived(received.toPlainString(), r.getBigDecimal(2));
-                    if (!"Cash".equals(r.getString(4))
-                            && received.compareTo(r.getBigDecimal(2)) != 0)
+                    if (!"Cash".equals(method) && received.compareTo(r.getBigDecimal(2)) != 0)
                         throw new SQLException("Cashless payment must equal the exact fare.");
-                    if (!"Cash".equals(r.getString(4))) {
+                    if (!"Cash".equals(method)) {
                         if (!verified
                                 || reference == null
                                 || !reference.trim().matches("[A-Za-z0-9-]{1,64}"))
                             throw new SQLException(
                                     "Verify the merchant record or terminal approval and enter its"
-                                        + " transaction reference.");
+                                            + " transaction reference.");
                         var account = ActivityLogDao.getCurrentAccount();
                         if (account == null)
                             throw new SQLException("Sign in before verifying payment.");
@@ -152,10 +205,15 @@ public class QueuePaymentDao {
                                     + " cashless_verifications(payment_id,payment_method,transaction_reference,verified_by)"
                                     + " VALUES(?,?,?,?)",
                                 payment,
-                                r.getString(4),
+                                method,
                                 reference.trim().toUpperCase(java.util.Locale.ROOT),
                                 account.getID());
                     }
+                    update(
+                            c,
+                            "UPDATE payments SET payment_method=? WHERE payment_id=?",
+                            method,
+                            payment);
                 }
                 PaymentDeadlineDao.requireOpen(c, queue);
                 update(
@@ -209,7 +267,7 @@ public class QueuePaymentDao {
                     if (update(
                                     c,
                                     "UPDATE queue_payment_progress SET tickets_printed=TRUE WHERE"
-                                        + " queue_entry_id=? AND receipt_printed=TRUE",
+                                            + " queue_entry_id=? AND receipt_printed=TRUE",
                                     queue)
                             == 0)
                         throw new SQLException("Print and collect the payment receipt first.");
@@ -217,7 +275,7 @@ public class QueuePaymentDao {
                     update(
                             c,
                             "UPDATE queue_payment_progress SET receipt_printed=TRUE WHERE"
-                                + " queue_entry_id=?",
+                                    + " queue_entry_id=?",
                             queue);
                 int ticketCount = 0;
                 if (tickets) {
@@ -259,13 +317,13 @@ public class QueuePaymentDao {
                         statement(
                                 c,
                                 "SELECT tickets_printed FROM queue_payment_progress WHERE"
-                                    + " queue_entry_id=?",
+                                        + " queue_entry_id=?",
                                 queue);
                 ResultSet r = p.executeQuery()) {
             if (!r.next() || !r.getBoolean(1))
                 throw new SQLException(
                         "Open Payment and print the receipt and all boarding tickets before"
-                            + " completing this queue.");
+                                + " completing this queue.");
         }
     }
 }
