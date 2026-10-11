@@ -514,7 +514,9 @@ public class PassengerDetailsPanel extends JPanel {
                     message = "Student ID Number is required.";
                 } else if (!number.matches("[0-9]{4}-[0-9]{5}-[A-Z]{2}-[0-9]")
                         && !number.matches("[0-9]{4}-[0-9]{7}")
-                        && !number.matches("[0-9]{4}-[0-9]{6}")) {
+                        && !number.matches("[0-9]{4}-[0-9]{6}")
+                        && !number.matches("[0-9]{9}") // FEU Tech
+                        && !number.matches("[0-9]{12}")) { // Kalayaan HS
                     message = "Invalid Student ID format";
                 }
             } else if (type.equals("Senior") || type.equals("Senior Citizen")) {

@@ -284,11 +284,17 @@ public class PaymentDetailsPanel extends JPanel {
     }
 
     private static void mark(JComponent field, boolean valid) {
+        var outline = BorderFactory.createLineBorder(
+                valid ? new Color(220, 225, 232) : new Color(225, 0, 45));
+        // Combo renderers already supply 10px of horizontal padding.
+        if (field instanceof JComboBox<?>) {
+            field.setBorder(outline);
+            return;
+        }
         field.setBorder(
                 BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(
-                                valid ? new Color(220, 225, 232) : new Color(225, 0, 45)),
-                        BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+                        outline,
+                        BorderFactory.createEmptyBorder(4, 10, 4, 10)));
     }
 
     public void resetInputs() {

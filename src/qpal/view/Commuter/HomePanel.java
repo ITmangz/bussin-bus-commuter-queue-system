@@ -111,12 +111,9 @@ public class HomePanel extends JPanel {
 
         startbtn.addActionListener(btnaction1);
 
-        JLabel homeimage = new JLabel();
-        homeimage.setBounds(625, 145, 300, 270);
-        ImageIcon imagepic = new ImageIcon("resources/icons/homeimage.png");
-        Image imageimg = imagepic.getImage().getScaledInstance(300, 270, Image.SCALE_SMOOTH);
-        homeimage.setIcon(new ImageIcon(imageimg));
-        homepanel.add(homeimage);
+        HomeCarousel carousel = new HomeCarousel();
+        carousel.setBounds(550, 145, 400, 406);
+        homepanel.add(carousel);
 
         Timer timeTimer =
                 new Timer(
@@ -140,7 +137,10 @@ public class HomePanel extends JPanel {
                             }
                         });
 
-        timeTimer.start();
+        addHierarchyListener(e -> {
+            if (isShowing()) timeTimer.start();
+            else timeTimer.stop();
+        });
 
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
 

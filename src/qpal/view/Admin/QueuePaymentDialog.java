@@ -294,6 +294,8 @@ public final class QueuePaymentDialog extends JDialog {
     }
 
     private JPanel methodSelector() {
+        // Keep the shared padded renderer when the same combo is reparented on method changes.
+        if (!Boolean.TRUE.equals(paymentMethod.getClientProperty("adminStyled"))) {
         paymentMethod.setRenderer(new DefaultListCellRenderer() {
             @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus) {
                 return super.getListCellRendererComponent(list, "GCash".equals(value) ? "E-Wallet" : value, index, selected, focus);
@@ -301,6 +303,7 @@ public final class QueuePaymentDialog extends JDialog {
         });
         paymentMethod.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         qpal.components.FormInputStyle.styleCombo(paymentMethod);
+        }
         JPanel selector = new JPanel(new BorderLayout(0, 8));
         selector.setOpaque(false);
         selector.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -310,8 +313,8 @@ public final class QueuePaymentDialog extends JDialog {
         label.setLabelFor(paymentMethod);
         selector.add(label, BorderLayout.NORTH);
         selector.add(paymentMethod, BorderLayout.CENTER);
-        selector.setPreferredSize(new Dimension(350, 82));
-        selector.setMaximumSize(new Dimension(Integer.MAX_VALUE, 82));
+        selector.setPreferredSize(new Dimension(350, 90));
+        selector.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
         return selector;
     }
     private void installAmountFilter() {

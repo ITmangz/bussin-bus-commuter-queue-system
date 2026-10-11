@@ -10,7 +10,10 @@ import javax.swing.*;
 final class CashlessSimulationPanel extends JPanel {
     private String cardType = "Card";
     private String lastFour = "----";
-    // Put your QR image at this path. The label is 200 x 200 pixels.
+    private final String cardholder = java.util.List.of(
+            "Kevin Lachica", "Enzo Carlos", "Prince Abawan", "John Isorena")
+            .get(java.util.concurrent.ThreadLocalRandom.current().nextInt(4));
+    // The QR image is displayed at 160 x 160 pixels.
     private final JLabel qrLabel = new JLabel("Click to scan QR", SwingConstants.CENTER);
     private final JLabel feedback = new JLabel(" ", SwingConstants.CENTER);
     private final JPanel scene = new JPanel(null);
@@ -37,8 +40,6 @@ final class CashlessSimulationPanel extends JPanel {
                     g.setColor(Color.WHITE);
                     g.setFont(new Font("Segoe UI", Font.BOLD, 15));
                     g.drawString("Bussin", 17, 27);
-                    g.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-                    g.drawString("CONTACTLESS", 126, 26);
                     g.setColor(new Color(232, 204, 139));
                     g.fillRoundRect(18, 42, 32, 24, 5, 5);
                     g.setColor(new Color(147, 123, 77));
@@ -51,7 +52,7 @@ final class CashlessSimulationPanel extends JPanel {
                     g.setFont(new Font("Segoe UI", Font.PLAIN, 9));
                     g.drawString("CARDHOLDER", 17, 108);
                     g.setFont(new Font("Segoe UI", Font.BOLD, 11));
-                    g.drawString("BUSSIN PASSENGER", 17, 122);
+                    g.drawString(cardholder, 17, 122);
                     g.drawString(cardType, 140, 120);
                     g.dispose();
                 }
@@ -104,7 +105,7 @@ final class CashlessSimulationPanel extends JPanel {
             qrLabel.setBackground(Color.WHITE);
             qrLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
             qrLabel.setForeground(new Color(100, 110, 125));
-            ImageIcon qr = new ImageIcon("resources/icons/gcashqr.png");
+            ImageIcon qr = new ImageIcon("resources/icons/qrscanic.png");
             if (qr.getIconWidth() > 0) {
                 qrLabel.setText("");
                 qrLabel.setIcon(
@@ -301,12 +302,10 @@ final class CashlessSimulationPanel extends JPanel {
         title.setText("Card".equals(provider) ? "E-Wallet" : provider);
         qrLabel.setIcon(null);
         qrLabel.setText("Click to scan QR");
-        if ("GCash".equals(provider)) {
-            ImageIcon qr = new ImageIcon("resources/icons/gcashqr.png");
-            if (qr.getIconWidth() > 0) {
-                qrLabel.setText("");
-                qrLabel.setIcon(new ImageIcon(qr.getImage().getScaledInstance(160, 160, Image.SCALE_SMOOTH)));
-            }
+        ImageIcon qr = new ImageIcon("resources/icons/qrscanic.png");
+        if (qr.getIconWidth() > 0) {
+            qrLabel.setText("");
+            qrLabel.setIcon(new ImageIcon(qr.getImage().getScaledInstance(160, 160, Image.SCALE_SMOOTH)));
         }
     }
 

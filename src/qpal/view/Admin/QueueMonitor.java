@@ -46,7 +46,8 @@ public final class QueueMonitor extends JPanel {
         cards.setOpaque(false);
         body.add(cards, BorderLayout.CENTER);
         upcoming.setLayout(new BorderLayout(0, 16));
-        upcoming.setPreferredSize(new Dimension(0, 135));
+        // Let the queue numbers, Next/Last captions and card padding determine height.
+        // A fixed 135px clipped the first and last text rows at common display scales.
         body.add(upcoming, BorderLayout.SOUTH);
         add(body, BorderLayout.CENTER);
         add(status, BorderLayout.SOUTH);
