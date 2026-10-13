@@ -117,6 +117,9 @@ public class EditBusPanel {
         cmbStatus.setSelectedItem(bus.getBusStatus());
 
         panel.add(cmbStatus);
+        qpal.components.StatusReasonField statusReason = new qpal.components.StatusReasonField(cmbStatus, bus.getStatusReason());
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(statusReason);
         panel.add(Box.createVerticalStrut(25));
 
         JButton btnSave = new JButton("Save Changes");
@@ -199,7 +202,9 @@ public class EditBusPanel {
                             seatCapacity == bus.getSeatCapacity()
                                     ? bus.getAvailableSeats()
                                     : seatCapacity);
+                    if (!statusReason.validateInput(dialog)) return;
                     updated.setBusStatus(status);
+                    updated.setStatusReason(statusReason.reason());
 
                     boolean success;
                     try {

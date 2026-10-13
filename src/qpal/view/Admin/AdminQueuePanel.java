@@ -2,10 +2,10 @@ package qpal.view.Admin;
 
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableRowSorter;
 
 public class AdminQueuePanel extends JPanel {
@@ -341,7 +341,7 @@ public class AdminQueuePanel extends JPanel {
         printButton.setBorder(BorderFactory.createEmptyBorder());
         printButton.addActionListener(e -> QueueMonitor.open(this, isBoarding()));
         filters.add(printButton);
-        toolbar.add(filters, BorderLayout.EAST);
+        qpal.components.TableStyle.toolbar(toolbar, toolbar.getComponent(0), filters);
         waiting.add(toolbar, BorderLayout.NORTH);
 
         table = queueTable();
@@ -368,6 +368,7 @@ public class AdminQueuePanel extends JPanel {
                 });
         AdminFormStyle.searchOnEnter(search, searchButton);
         trips.addActionListener(e -> applySearch.run());
+        qpal.components.TableStyle.apply(table);
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(Color.WHITE);
@@ -471,7 +472,7 @@ public class AdminQueuePanel extends JPanel {
         printButton.setBorder(BorderFactory.createEmptyBorder());
         printButton.addActionListener(e -> QueueMonitor.open(this, isBoarding()));
         filters.add(printButton);
-        toolbar.add(filters, BorderLayout.EAST);
+        qpal.components.TableStyle.toolbar(toolbar, toolbar.getComponent(0), filters);
         boarding.add(toolbar, BorderLayout.NORTH);
 
         boardingTable = queueTable(boardingModel);
@@ -933,7 +934,7 @@ public class AdminQueuePanel extends JPanel {
                                         this,
                                         "Assign Gate " + selectedGate,
                                         "Earliest departure is suggested. Confirm the bus is"
-                                            + " ready.",
+                                                + " ready.",
                                         choices,
                                         "Assign Gate",
                                         "Cancel")
@@ -977,9 +978,9 @@ public class AdminQueuePanel extends JPanel {
                         (departure ? "Depart from Gate " : "Release Gate ") + selectedGate,
                         departure
                                 ? "Confirm actual departure. No-show payments will remain paid; no"
-                                      + " refund is issued."
+                                        + " refund is issued."
                                 : "Return this trip to Awaiting Gate? Boarded passengers remain"
-                                      + " recorded.",
+                                        + " recorded.",
                         null,
                         options);
         if (choice < 0 || choice == options.length - 1) return;
@@ -1200,6 +1201,7 @@ public class AdminQueuePanel extends JPanel {
         panel.add(content, constraints);
         return panel;
     }
+
     private JPanel detail(String title, String value) {
         JPanel panel = transparent(new GridLayout(2, 1));
         panel.add(label(title, 10, MUTED, false));
@@ -1237,9 +1239,8 @@ public class AdminQueuePanel extends JPanel {
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 11));
         table.getTableHeader().setBackground(new Color(237, 240, 245));
         table.getTableHeader().setPreferredSize(new Dimension(0, 30));
-        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
-        center.setHorizontalAlignment(SwingConstants.CENTER);
-        table.setDefaultRenderer(Object.class, center);
+        table.setDefaultRenderer(Object.class, new qpal.components.ModernTableCellRenderer());
+        qpal.components.TableStyle.apply(table);
         return table;
     }
 

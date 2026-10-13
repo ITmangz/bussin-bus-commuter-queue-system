@@ -255,6 +255,15 @@ public class AddAccountPanel {
                         return;
                     }
 
+                    if (password.length() < 8) {
+                        qpal.components.AppDialogs.showMessageDialog(
+                                dialog,
+                                "Password must be at least 8 characters.",
+                                "Invalid Password",
+                                JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+
                     boolean duplicate;
                     try {
                         duplicate = accountDao.emailExists(email, 0);

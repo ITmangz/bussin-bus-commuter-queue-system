@@ -1,17 +1,21 @@
 package qpal.view.Admin;
 
+import qpal.components.ModernTableCellRenderer;
+import qpal.components.StatusRenderer;
+import qpal.components.TableActions;
+import qpal.components.TableStyle;
+import qpal.dao.AccountDao;
+import qpal.model.Account;
+
 import java.awt.*;
 import java.awt.print.PrinterException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-import qpal.components.ModernTableCellRenderer;
-import qpal.components.StatusRenderer;
-import qpal.dao.AccountDao;
-import qpal.model.Account;
 
 public class AdminManageAccountsPanel extends JPanel {
 
@@ -73,7 +77,7 @@ public class AdminManageAccountsPanel extends JPanel {
     private JPanel createAccountSummary() {
         JPanel summary = new JPanel(new GridLayout(1, 3, 14, 0));
         summary.setOpaque(false);
-        summary.setPreferredSize(new Dimension(0, 150));
+        summary.setPreferredSize(new Dimension(0, 112));
         String[] titles = {"TOTAL ACCOUNTS", "ACTIVE ACCOUNTS", "INACTIVE ACCOUNTS"};
         for (int i = 0; i < titles.length; i++) {
             JPanel card = new AdminCard(18);
@@ -105,7 +109,7 @@ public class AdminManageAccountsPanel extends JPanel {
     private void updateAccountSummary() {
         int[] counts = {accounts.size(), 0, 0};
         for (Object[] account : accounts) {
-            String status = String.valueOf(account[5]);
+            String status = String.valueOf(account[4]);
             if ("Active".equalsIgnoreCase(status)) counts[1]++;
             else if ("Inactive".equalsIgnoreCase(status)) counts[2]++;
         }
@@ -135,7 +139,6 @@ public class AdminManageAccountsPanel extends JPanel {
         south.setOpaque(false);
 
         south.add(createBottomPanel(), BorderLayout.NORTH);
-        south.add(createActionButtons(), BorderLayout.SOUTH);
 
         panel.add(south, BorderLayout.SOUTH);
 
@@ -204,24 +207,28 @@ public class AdminManageAccountsPanel extends JPanel {
         controls.add(cmbRole);
         controls.add(btnSearch);
 
-        panel.add(controls, BorderLayout.EAST);
+        controls.add(TableStyle.button("Add", true, this::addAccount));
+        controls.add(TableStyle.button("Print", false, this::printAccounts));
+
+        TableStyle.toolbar(panel, left, controls);
 
         return panel;
     }
 
     private JScrollPane createTable() {
 
-        String[] columns = {"ID", "Name", "Email", "Password", "Role", "Status"};
+        String[] columns = {"ID", "Name", "Email", "Role", "Status", "Reason for Status Change"};
 
         model =
                 new DefaultTableModel(columns, 0) {
 
                     @Override
                     public boolean isCellEditable(int row, int column) {
-                        return false;
+                        return column == 6;
                     }
                 };
 
+        model.addColumn("Actions");
         table = new JTable(model);
         table.setFont(new Font("SansSerif", Font.PLAIN, 12));
         table.setRowHeight(36);
@@ -233,14 +240,13 @@ public class AdminManageAccountsPanel extends JPanel {
         table.setSelectionBackground(new Color(240, 247, 255));
         table.setSelectionForeground(Color.BLACK);
         table.setDefaultRenderer(Object.class, new ModernTableCellRenderer());
-        table.getColumnModel().getColumn(5).setCellRenderer(new StatusRenderer());
+        table.getColumnModel().getColumn(4).setCellRenderer(new StatusRenderer(qpal.components.StatusDescriptions::account));
 
         table.getColumnModel().getColumn(0).setPreferredWidth(55);
         table.getColumnModel().getColumn(1).setPreferredWidth(170);
         table.getColumnModel().getColumn(2).setPreferredWidth(240);
-        table.getColumnModel().getColumn(3).setPreferredWidth(160);
-        table.getColumnModel().getColumn(4).setPreferredWidth(100);
-        table.getColumnModel().getColumn(5).setPreferredWidth(95);
+        table.getColumnModel().getColumn(3).setPreferredWidth(100);
+        table.getColumnModel().getColumn(4).setPreferredWidth(95);
 
         JTableHeader header = table.getTableHeader();
         header.setPreferredSize(new Dimension(0, 34));
@@ -249,11 +255,19 @@ public class AdminManageAccountsPanel extends JPanel {
         header.setForeground(new Color(90, 90, 90));
         header.setReorderingAllowed(false);
 
+        table.getColumn("Reason for Status Change").setPreferredWidth(240);
+        table.getColumn("Reason for Status Change").setCellRenderer(new qpal.components.StatusReasonRenderer());
+        TableStyle.apply(table);
+        TableActions.install(table, this::editAccount, this::deleteAccount);
+
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 
+        scroll.getViewport().setBackground(Color.WHITE);
+        AdminCard.styleScrollBar(scroll, Color.WHITE);
+        qpal.components.TableStyle.responsiveScroll(scroll);
         return scroll;
     }
 
@@ -265,18 +279,19 @@ public class AdminManageAccountsPanel extends JPanel {
 
         for (Account account : accountList) {
 
-            String password = "********************************";
-
             accounts.add(
                     new Object[] {
                         account.getID(),
                         account.getName(),
                         account.getEmail(),
-                        password,
                         account.getRole(),
-                        account.getStatus()
+                        account.getStatus(),
+                        qpal.model.StatusReason.display(account.getStatus(), account.getStatusReason())
                     });
         }
+
+        // The DAO returns ascending auto-increment IDs; reverse to show newest accounts first.
+        java.util.Collections.reverse(accounts);
 
         updateAccountSummary();
         currentPage = 1;
@@ -305,7 +320,7 @@ public class AdminManageAccountsPanel extends JPanel {
                             || row[1].toString().toLowerCase().contains(search)
                             || row[2].toString().toLowerCase().contains(search))
                     && (cmbRole.getSelectedItem().toString().equals("All Roles")
-                            || row[4].toString()
+                            || row[3].toString()
                                     .equalsIgnoreCase(cmbRole.getSelectedItem().toString()))) {
 
                 result.add(row);
@@ -461,62 +476,13 @@ public class AdminManageAccountsPanel extends JPanel {
         return panel;
     }
 
-    private JPanel createActionButtons() {
-
-        JPanel panel = new JPanel(new GridLayout(1, 4, 12, 0));
-
-        panel.setOpaque(false);
-        panel.setBorder(new EmptyBorder(20, 0, 0, 0));
-
-        JButton btnAdd = createButton("Add", new Color(34, 197, 94));
-        JButton btnEdit = createButton("Edit", new Color(245, 158, 11));
-        JButton btnPrint = createButton("Print", new Color(59, 130, 246));
-        JButton btnDelete = createButton("Delete", new Color(225, 29, 72));
-
-        btnAdd.addActionListener(
-                e -> {
-                    addAccount();
-                });
-
-        btnEdit.addActionListener(
-                e -> {
-                    editAccount();
-                });
-
-        btnPrint.addActionListener(
-                e -> {
-                    printAccounts();
-                });
-
-        btnDelete.addActionListener(
-                e -> {
-                    deleteAccount();
-                });
-
-        panel.add(btnAdd);
-        panel.add(btnEdit);
-        panel.add(btnPrint);
-        panel.add(btnDelete);
-
-        return panel;
-    }
-
     private void addAccount() {
 
         AddAccountPanel panel = new AddAccountPanel(accountDao, this);
         panel.showDialog();
     }
 
-    private void editAccount() {
-
-        int selectedRow = table.getSelectedRow();
-
-        if (selectedRow == -1) {
-
-            qpal.components.AppDialogs.showMessageDialog(
-                    this, "No selected account to edit.", "Warning", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    private void editAccount(int selectedRow) {
 
         int id = (int) model.getValueAt(selectedRow, 0);
 
@@ -524,16 +490,7 @@ public class AdminManageAccountsPanel extends JPanel {
         panel.showDialog();
     }
 
-    private void deleteAccount() {
-
-        int selectedRow = table.getSelectedRow();
-
-        if (selectedRow == -1) {
-
-            qpal.components.AppDialogs.showMessageDialog(
-                    this, "No selected account.", "Warning", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    private void deleteAccount(int selectedRow) {
 
         int id = (int) model.getValueAt(selectedRow, 0);
 
@@ -572,7 +529,7 @@ public class AdminManageAccountsPanel extends JPanel {
 
         try {
 
-            boolean complete = table.print();
+            boolean complete = TableStyle.print(table);
 
             if (complete) {
                 qpal.dao.ActivityLogDao.recordActivity(
@@ -596,19 +553,5 @@ public class AdminManageAccountsPanel extends JPanel {
                     this, "Unable to print the table.", "Print Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
-    }
-
-    private JButton createButton(String text, Color color) {
-
-        JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(145, 40));
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("SansSerif", Font.BOLD, 13));
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder());
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        return button;
     }
 }

@@ -34,6 +34,7 @@ CREATE TABLE `accounts` (
   `password` varchar(100) NOT NULL,
   `role` varchar(100) NOT NULL,
   `status` varchar(100) NOT NULL,
+  `status_reason` varchar(500) DEFAULT NULL,
   `profile_image` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -407,7 +408,8 @@ CREATE TABLE `buses` (
   `bus_number` varchar(20) NOT NULL,
   `seat_capacity` int(11) NOT NULL,
   `available_seats` int(11) NOT NULL,
-  `bus_status` varchar(20) NOT NULL
+  `bus_status` varchar(20) NOT NULL,
+  `status_reason` varchar(500) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

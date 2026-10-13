@@ -8,6 +8,15 @@ BUSSIN Database Setup
 6. Check DbConnection.java.
 7. Run the system.
 
+Status Change Reasons
+---------------------
+For an existing database, run migrations/status-reasons.sql once before starting
+this version. Fresh imports of qpal.sql already include the two new columns.
+The migration preserves existing records and leaves their reasons empty. The UI
+shows "Not recorded" for these records; a reason is required when saving a bus
+with Maintenance or Inactive status, or an Inactive account. Reasons are limited
+to 500 characters. Returning to Available or Active clears the current reason.
+
 Activity Log
 ------------
 For a new database, import activity_logs.sql into qpal (also included in qpal.sql).

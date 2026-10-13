@@ -1,19 +1,23 @@
 package qpal.view.Admin;
 
-import java.awt.*;
-import java.awt.print.PrinterException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
 import qpal.components.ModernTableCellRenderer;
 import qpal.components.StatusRenderer;
+import qpal.components.TableActions;
+import qpal.components.TableStyle;
 import qpal.dao.BusDao;
 import qpal.dao.RouteDao;
 import qpal.dao.TripDao;
 import qpal.model.Trip;
+
+import java.awt.*;
+import java.awt.print.PrinterException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 
 public class AdminRouteSchedPanel extends JPanel {
     private final boolean readOnly;
@@ -100,7 +104,7 @@ public class AdminRouteSchedPanel extends JPanel {
     private JPanel createTripSummary() {
         JPanel summary = new JPanel(new GridLayout(1, 4, 14, 0));
         summary.setOpaque(false);
-        summary.setPreferredSize(new Dimension(0, 150));
+        summary.setPreferredSize(new Dimension(0, 112));
         String[] titles = {
             "SCHEDULED TRIPS", "BOARDING TRIPS", "DEPARTED TRIPS", "CANCELLED TRIPS"
         };
@@ -149,7 +153,6 @@ public class AdminRouteSchedPanel extends JPanel {
         south.setOpaque(false);
 
         south.add(createBottomPanel(), BorderLayout.NORTH);
-        if (!readOnly) south.add(createActionButtons(), BorderLayout.SOUTH);
 
         panel.add(south, BorderLayout.SOUTH);
 
@@ -212,7 +215,10 @@ public class AdminRouteSchedPanel extends JPanel {
         controls.add(cmbStatus);
         controls.add(btnSearch);
 
-        panel.add(controls, BorderLayout.EAST);
+        if (!readOnly) controls.add(TableStyle.button("Add", true, this::addTrip));
+        controls.add(TableStyle.button("Print", false, this::printTrips));
+
+        TableStyle.toolbar(panel, left, controls);
 
         return panel;
     }
@@ -235,10 +241,11 @@ public class AdminRouteSchedPanel extends JPanel {
 
                     @Override
                     public boolean isCellEditable(int row, int column) {
-                        return false;
+                        return !readOnly && column == 8;
                     }
                 };
 
+        if (!readOnly) model.addColumn("Actions");
         table = new JTable(model);
 
         table.setFont(new Font("SansSerif", Font.PLAIN, 12));
@@ -275,14 +282,20 @@ public class AdminRouteSchedPanel extends JPanel {
         header.setForeground(new Color(90, 90, 90));
         header.setReorderingAllowed(false);
 
+        TableStyle.apply(table);
+        if (!readOnly) TableActions.install(table, this::editTrip, this::deleteTrip);
+
         JScrollPane scroll = new JScrollPane(table);
 
         scroll.setBorder(BorderFactory.createEmptyBorder());
 
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 
+        scroll.getViewport().setBackground(Color.WHITE);
+        AdminCard.styleScrollBar(scroll, Color.WHITE);
+        qpal.components.TableStyle.responsiveScroll(scroll);
         return scroll;
     }
 
@@ -580,32 +593,6 @@ public class AdminRouteSchedPanel extends JPanel {
         return panel;
     }
 
-    private JPanel createActionButtons() {
-
-        JPanel panel = new JPanel(new GridLayout(1, 4, 12, 0));
-
-        panel.setOpaque(false);
-
-        panel.setBorder(new EmptyBorder(20, 0, 0, 0));
-
-        JButton btnAdd = createButton("Add", new Color(34, 197, 94));
-        JButton btnEdit = createButton("Edit", new Color(245, 158, 11));
-        JButton btnPrint = createButton("Print", new Color(59, 130, 246));
-        JButton btnDelete = createButton("Delete", new Color(225, 29, 72));
-
-        btnAdd.addActionListener(e -> addTrip());
-        btnEdit.addActionListener(e -> editTrip());
-        btnPrint.addActionListener(e -> printTrips());
-        btnDelete.addActionListener(e -> deleteTrip());
-
-        panel.add(btnAdd);
-        panel.add(btnEdit);
-        panel.add(btnPrint);
-        panel.add(btnDelete);
-
-        return panel;
-    }
-
     private void addTrip() {
 
         AddTripPanel panel = new AddTripPanel(tripDao, busDao, routeDao, this);
@@ -613,17 +600,7 @@ public class AdminRouteSchedPanel extends JPanel {
         panel.showDialog();
     }
 
-    private void editTrip() {
-
-        int selectedRow = table.getSelectedRow();
-
-        if (selectedRow == -1) {
-
-            qpal.components.AppDialogs.showMessageDialog(
-                    this, "No selected trip to edit.", "Warning", JOptionPane.WARNING_MESSAGE);
-
-            return;
-        }
+    private void editTrip(int selectedRow) {
 
         int id = (int) model.getValueAt(selectedRow, 0);
 
@@ -632,17 +609,7 @@ public class AdminRouteSchedPanel extends JPanel {
         panel.showDialog();
     }
 
-    private void deleteTrip() {
-
-        int selectedRow = table.getSelectedRow();
-
-        if (selectedRow == -1) {
-
-            qpal.components.AppDialogs.showMessageDialog(
-                    this, "No selected trip.", "Warning", JOptionPane.WARNING_MESSAGE);
-
-            return;
-        }
+    private void deleteTrip(int selectedRow) {
 
         int id = (int) model.getValueAt(selectedRow, 0);
 
@@ -692,7 +659,7 @@ public class AdminRouteSchedPanel extends JPanel {
 
         try {
 
-            boolean complete = table.print();
+            boolean complete = TableStyle.print(table);
 
             if (complete) {
                 qpal.dao.ActivityLogDao.recordActivity(
@@ -717,25 +684,5 @@ public class AdminRouteSchedPanel extends JPanel {
 
             e.printStackTrace();
         }
-    }
-
-    private JButton createButton(String text, Color color) {
-
-        JButton button = new JButton(text);
-
-        button.setPreferredSize(new Dimension(145, 40));
-
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
-
-        button.setFont(new Font("SansSerif", Font.BOLD, 13));
-
-        button.setFocusPainted(false);
-
-        button.setBorder(BorderFactory.createEmptyBorder());
-
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        return button;
     }
 }

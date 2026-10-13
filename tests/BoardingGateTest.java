@@ -95,6 +95,20 @@ public class BoardingGateTest {
                         || !queue.boarding().get(0).status().equals("Awaiting Gate"))
                     throw new AssertionError("Paid queues missing");
                 gates.assign(1, 1);
+                // Gate 2 is empty: reject the same trip, not merely an occupied gate.
+                rejects(() -> gates.assign(2, 1));
+                if (gates.waitingTrips().stream().anyMatch(t -> t.id() == 1))
+                    throw new AssertionError("Assigned trip still offered for another gate");
+                try (Connection c = DbConnection.getConnection();
+                        Statement s = c.createStatement();
+                        ResultSet r = s.executeQuery("SELECT gate,trip_id FROM boarding_gates ORDER BY gate")) {
+                    r.next();
+                    if (r.getInt(1) != 1 || r.getInt(2) != 1)
+                        throw new AssertionError("Original assignment changed");
+                    r.next();
+                    if (r.getInt(1) != 2 || r.getObject(2) != null)
+                        throw new AssertionError("Duplicate assignment saved");
+                }
                 gates.assign(2, 2);
                 rejects(() -> gates.assign(1, 3));
                 rejects(() -> gates.assign(2, 1));

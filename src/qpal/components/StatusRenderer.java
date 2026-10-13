@@ -1,10 +1,21 @@
 package qpal.components;
 
 import java.awt.*;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 
 public class StatusRenderer extends DefaultTableCellRenderer {
+
+    private final java.util.function.Function<String, String> description;
+
+    public StatusRenderer() {
+        this(status -> null);
+    }
+
+    public StatusRenderer(java.util.function.Function<String, String> description) {
+        this.description = description;
+    }
 
     @Override
     public Component getTableCellRendererComponent(
@@ -19,6 +30,8 @@ public class StatusRenderer extends DefaultTableCellRenderer {
         label.setOpaque(true);
 
         String status = value == null ? "" : value.toString();
+        panel.setToolTipText(description.apply(status));
+        label.setToolTipText(panel.getToolTipText());
         Color background;
         Color foreground;
         switch (status) {
@@ -58,7 +71,8 @@ public class StatusRenderer extends DefaultTableCellRenderer {
         label.setForeground(foreground);
         label.setBorder(BorderFactory.createEmptyBorder(4, 12, 4, 12));
 
-        if (row % 2 == 0) panel.setBackground(Color.WHITE);
+        if (isSelected) panel.setBackground(table.getSelectionBackground());
+        else if (row % 2 == 0) panel.setBackground(Color.WHITE);
         else panel.setBackground(new Color(249, 249, 249));
 
         panel.add(label);

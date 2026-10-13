@@ -1,20 +1,22 @@
 package qpal.view.Admin;
 
+import qpal.components.ActivityActionRenderer;
+import qpal.components.ModernTableCellRenderer;
+import qpal.dao.ActivityLogDao;
+import qpal.model.Account;
+import qpal.model.ActivityLog;
+
 import java.awt.*;
 import java.awt.print.PrinterException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-import qpal.components.ModernTableCellRenderer;
-import qpal.components.ActivityActionRenderer;
-import qpal.dao.ActivityLogDao;
-import qpal.model.Account;
-import qpal.model.ActivityLog;
 
 public class AdminActivityLogPanel extends JPanel {
     private Account account;
@@ -95,7 +97,7 @@ public class AdminActivityLogPanel extends JPanel {
                     loading = false;
                     connectionStatus.setText(
                             "Unable to refresh activity logs. Check the database connection."
-                                + " Retrying in 5 seconds.");
+                                    + " Retrying in 5 seconds.");
                     connectionStatus.setVisible(true);
                 });
     }
@@ -150,7 +152,7 @@ public class AdminActivityLogPanel extends JPanel {
             daily.getAccessibleContext()
                     .setAccessibleName(
                             "Daily Staff Summary — View daily staff transactions, collections, and"
-                                + " boarding totals.");
+                                    + " boarding totals.");
             JPanel copy = new JPanel(new GridLayout(2, 1, 0, 3));
             copy.setOpaque(false);
             JLabel heading = new JLabel("Daily Staff Summary");
@@ -225,7 +227,7 @@ public class AdminActivityLogPanel extends JPanel {
         controls.add(cmbPeriod);
         controls.add(btnSearch);
         controls.add(btnPrint);
-        panel.add(controls, BorderLayout.EAST);
+        qpal.components.TableStyle.toolbar(panel, title, controls);
         return panel;
     }
 
@@ -271,6 +273,7 @@ public class AdminActivityLogPanel extends JPanel {
         int[] widths = {35, 150, 155, 75, 140, 90, 245};
         for (int i = 0; i < widths.length; i++)
             table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+        qpal.components.TableStyle.apply(table);
         JScrollPane scroll = new JScrollPane(table);
         scroll.setColumnHeaderView(header);
         scroll.setBorder(BorderFactory.createEmptyBorder());
@@ -474,9 +477,9 @@ public class AdminActivityLogPanel extends JPanel {
             snapshot.addRow(values);
         }
         JTable preview = new JTable(snapshot);
-        preview.setRowHeight(30);
+        qpal.components.TableStyle.apply(preview);
         // Lay out the detached snapshot before opening the printer dialog directly.
-        preview.setSize(900, Math.max(30, snapshot.getRowCount() * 30));
+        preview.setSize(900, Math.max(42, snapshot.getRowCount() * 42));
         preview.doLayout();
         try {
             if (preview.print(

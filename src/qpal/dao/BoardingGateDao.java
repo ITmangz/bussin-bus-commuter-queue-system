@@ -70,11 +70,15 @@ public class BoardingGateDao {
                                         "SELECT gate,trip_id FROM boarding_gates ORDER BY gate FOR"
                                             + " UPDATE");
                         ResultSet r = p.executeQuery()) {
-                    while (r.next())
-                        if ((r.getInt(1) == gate && r.getObject(2) != null)
-                                || (r.getObject(2) != null && r.getInt(2) == trip))
+                    while (r.next()) {
+                        if (r.getObject(2) != null && r.getInt(2) == trip)
                             throw new SQLException(
-                                    "Gate or trip is already assigned. Release the gate first.");
+                                    "This trip is already assigned to Gate " + r.getInt(1)
+                                            + ". Release that gate before moving the trip.");
+                        if (r.getInt(1) == gate && r.getObject(2) != null)
+                            throw new SQLException(
+                                    "Gate " + gate + " already has a trip. Release the gate first.");
+                    }
                 }
                 try (PreparedStatement p =
                                 statement(

@@ -1,14 +1,16 @@
 package qpal.view.Admin;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import qpal.dao.BookingDao;
 import qpal.dao.QueueBookingDao;
 import qpal.model.BookingData.*;
 import qpal.util.UiTask;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 final class QueueBookingDialog {
     private QueueBookingDialog() {}
@@ -68,7 +70,7 @@ final class QueueBookingDialog {
             top.add(
                     new JLabel(
                             "Edit passenger names. Category, queue position, seats and fare stay"
-                                + " the same."));
+                                    + " the same."));
         }
         form.add(top, BorderLayout.NORTH);
         DefaultTableModel model =
@@ -82,8 +84,16 @@ final class QueueBookingDialog {
         else
             for (var person : people)
                 model.addRow(new Object[] {person.name(), person.type(), "Unchanged"});
+        if (existing == null) model.addColumn("Actions");
         JTable table = new JTable(model);
-        table.setRowHeight(34);
+        if (existing == null)
+            qpal.components.TableActions.install(
+                    table,
+                    null,
+                    row -> {
+                        if (model.getRowCount() > 1) model.removeRow(row);
+                    });
+        table.setDefaultRenderer(Object.class, new qpal.components.ModernTableCellRenderer());
         table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         table.getColumnModel()
                 .getColumn(1)
@@ -94,6 +104,7 @@ final class QueueBookingDialog {
         JComboBox<String> seats = new JComboBox<>();
         if (existing == null)
             table.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(seats));
+        qpal.components.TableStyle.apply(table);
         JScrollPane scroll = new JScrollPane(table);
         scroll.setPreferredSize(new Dimension(620, 230));
         AdminCard.styleScrollBar(scroll, Color.WHITE);
@@ -111,22 +122,16 @@ final class QueueBookingDialog {
         if (existing == null) {
             JPanel rowButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
             rowButtons.setOpaque(false);
-            JButton add = new JButton("Add Passenger"), remove = new JButton("Remove Passenger");
+            JButton add = new JButton("Add Passenger");
+            qpal.components.TableStyle.styleButton(add, true);
             add.addActionListener(
                     e -> {
                         if (table.isEditing()) table.getCellEditor().stopCellEditing();
                         if (model.getRowCount() < 10)
                             model.addRow(new Object[] {"", "Regular", null});
                     });
-            remove.addActionListener(
-                    e -> {
-                        if (table.isEditing()) table.getCellEditor().stopCellEditing();
-                        if (table.getSelectedRow() >= 0 && model.getRowCount() > 1)
-                            model.removeRow(table.getSelectedRow());
-                    });
             rowButtons.add(add);
-            rowButtons.add(remove);
-            lower.add(rowButtons, BorderLayout.SOUTH);
+            middle.add(rowButtons, BorderLayout.NORTH);
         }
         middle.add(lower, BorderLayout.SOUTH);
         form.add(middle);
@@ -166,7 +171,7 @@ final class QueueBookingDialog {
                                         seats.addItem(BookingDao.seatLabel(seat));
                                 note.setText(
                                         "Select a different seat for each passenger. Maximum 10"
-                                            + " passengers.");
+                                                + " passengers.");
                                 save.setEnabled(seats.getItemCount() > 0);
                             },
                             ex -> {

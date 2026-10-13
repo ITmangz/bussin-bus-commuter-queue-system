@@ -1,10 +1,5 @@
 package qpal.view.Employee;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
-import javax.swing.*;
 import qpal.components.AppDialogs;
 import qpal.dao.*;
 import qpal.model.Account;
@@ -12,6 +7,13 @@ import qpal.model.EmployeeStation;
 import qpal.util.UiTask;
 import qpal.view.Admin.*;
 import qpal.view.Login.LoginPage;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+
+import javax.swing.*;
 
 public final class EmployeeDashboard extends JFrame {
     private final Account account;
@@ -35,8 +37,8 @@ public final class EmployeeDashboard extends JFrame {
         ActivityLogDao.setCurrentAccount(account);
         EmployeeStationDao.activate(null);
         qpal.util.DepartureService.start();
-        setSize(1200, 700);
-        setMinimumSize(new Dimension(1100, 700));
+        qpal.components.TableStyle.sizeWindow(this);
+
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -98,8 +100,8 @@ public final class EmployeeDashboard extends JFrame {
                     queue = new EmployeeQueuePanel(station);
                     content.add(AdminCard.scrollPage(dashboard, 880), "dashboard");
                     content.add(AdminCard.scrollPage(queue, 880), "queue");
-                    content.add(AdminCard.scrollPage(new EmployeeBusPanel(), 880), "bus");
-                    content.add(AdminCard.scrollPage(new EmployeeRouteSchedPanel(), 880), "route");
+                    content.add(AdminCard.scrollPage(new EmployeeBusPanel(), 780), "bus");
+                    content.add(AdminCard.scrollPage(new EmployeeRouteSchedPanel(), 780), "route");
                     content.add(new EmployeeActivityLogPanel(account), "activity");
                     AdminFormStyle.styleInputs(content);
                     heartbeat.start();
@@ -219,7 +221,7 @@ public final class EmployeeDashboard extends JFrame {
                     AppDialogs.showMessageDialog(
                             this,
                             "Could not save your logout summary. Check the connection and retry"
-                                + " logout.");
+                                    + " logout.");
                 });
     }
 

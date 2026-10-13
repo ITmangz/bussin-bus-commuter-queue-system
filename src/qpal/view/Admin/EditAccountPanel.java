@@ -200,6 +200,10 @@ public class EditAccountPanel {
         cmbStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
         cmbStatus.setSelectedItem(account.getStatus());
         panel.add(cmbStatus);
+        qpal.components.StatusReasonField statusReason = new qpal.components.StatusReasonField(cmbStatus, account.getStatusReason());
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(statusReason);
+        panel.add(qpal.components.StatusDescriptions.help(cmbStatus, qpal.components.StatusDescriptions::account));
         panel.add(Box.createVerticalStrut(25));
 
         JButton btnSave = new JButton("Save Changes");
@@ -266,6 +270,15 @@ public class EditAccountPanel {
                                 JOptionPane.ERROR_MESSAGE);
                         return;
                     }
+
+                    if (!password.isEmpty() && password.length() < 8) {
+                        qpal.components.AppDialogs.showMessageDialog(
+                                dialog,
+                                "Password must be at least 8 characters.",
+                                "Invalid Password",
+                                JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
                     if (email.isEmpty()) {
 
                         qpal.components.AppDialogs.showMessageDialog(
@@ -298,10 +311,12 @@ public class EditAccountPanel {
                         return;
                     }
 
+                    if (!statusReason.validateInput(dialog)) return;
                     account.setName(name);
                     account.setEmail(email);
                     account.setRole(role);
                     account.setStatus(status);
+                    account.setStatusReason(statusReason.reason());
 
                     if (!password.isEmpty()) {
 

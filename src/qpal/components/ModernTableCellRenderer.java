@@ -1,6 +1,7 @@
 package qpal.components;
 
 import java.awt.*;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -19,12 +20,14 @@ public class ModernTableCellRenderer extends DefaultTableCellRenderer {
 
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-        setFont(new Font("SansSerif", Font.PLAIN, 13));
+        setFont(table.getFont());
+        setBorder(new EmptyBorder(0, 12, 0, 12));
+        setToolTipText(value == null ? null : value.toString());
 
         if (isSelected) {
 
-            setBackground(new Color(235, 245, 255));
-            setForeground(Color.BLACK);
+            setBackground(table.getSelectionBackground());
+            setForeground(table.getSelectionForeground());
 
         } else {
 
@@ -38,8 +41,12 @@ public class ModernTableCellRenderer extends DefaultTableCellRenderer {
             setForeground(new Color(70, 70, 70));
         }
 
-        // Center ID, Role, Status
-        if (column == 0 || column == 4 || column == 5) {
+        String heading = table.getColumnName(column);
+        if (heading.equals("ID")
+                || heading.endsWith(" ID")
+                || heading.equals("#")
+                || heading.equals("Role")
+                || heading.contains("Status")) {
             setHorizontalAlignment(SwingConstants.CENTER);
         } else {
             setHorizontalAlignment(SwingConstants.LEFT);

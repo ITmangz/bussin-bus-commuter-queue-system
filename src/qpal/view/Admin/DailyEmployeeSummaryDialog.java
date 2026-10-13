@@ -1,16 +1,19 @@
 package qpal.view.Admin;
 
 import com.toedter.calendar.JDateChooser;
-import java.awt.*;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Calendar;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+
 import qpal.components.ModernTableCellRenderer;
 import qpal.dao.EmployeeSummaryDao;
 import qpal.model.Account;
 import qpal.util.UiTask;
+
+import java.awt.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Calendar;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 /** Date-specific report from durable work records; includes employees with no work. */
 final class DailyEmployeeSummaryDialog extends JDialog {
@@ -106,7 +109,8 @@ final class DailyEmployeeSummaryDialog extends JDialog {
         for (int column = 0; column < table.getColumnCount(); column++) {
             int width = minimumWidths[column];
             for (int row = 0; row < table.getRowCount(); row++) {
-                Component cell = table.prepareRenderer(table.getCellRenderer(row, column), row, column);
+                Component cell =
+                        table.prepareRenderer(table.getCellRenderer(row, column), row, column);
                 width = Math.max(width, cell.getPreferredSize().width + 24);
             }
             table.getColumnModel().getColumn(column).setPreferredWidth(width);
@@ -151,7 +155,7 @@ final class DailyEmployeeSummaryDialog extends JDialog {
         JLabel subtitle =
                 new JLabel(
                         "Completed counter transactions, collections, and passengers boarded by"
-                            + " employees and admins.");
+                                + " employees and admins.");
         subtitle.setFont(new Font("SansSerif", Font.PLAIN, 13));
         subtitle.setForeground(new Color(100, 100, 100));
         JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
@@ -173,7 +177,7 @@ final class DailyEmployeeSummaryDialog extends JDialog {
         controls.add(roles);
         JButton load = button("View / Refresh", new Color(228, 0, 70), Color.WHITE);
         controls.add(load);
-        toolbar.add(controls, BorderLayout.EAST);
+        qpal.components.TableStyle.toolbar(toolbar, listTitle, controls);
         JButton close = button("Close", new Color(245, 245, 245), new Color(90, 90, 90));
         close.setPreferredSize(new Dimension(72, 30));
         close.addActionListener(e -> dispose());
@@ -222,6 +226,7 @@ final class DailyEmployeeSummaryDialog extends JDialog {
         int[] widths = {200, 240, 100, 90, 185, 180, 175};
         for (int i = 0; i < widths.length; i++)
             table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+        qpal.components.TableStyle.apply(table);
         JScrollPane scroll = new JScrollPane(table);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         scroll.setBorder(BorderFactory.createLineBorder(new Color(232, 236, 242)));

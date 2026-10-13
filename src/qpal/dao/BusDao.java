@@ -50,7 +50,7 @@ public class BusDao {
                 bus.setBusNumber(rs.getString("bus_number"));
                 bus.setSeatCapacity(rs.getInt("seat_capacity"));
                 bus.setAvailableSeats(rs.getInt("available_seats"));
-                bus.setBusStatus(rs.getString("bus_status"));
+                bus.setBusStatus(rs.getString("bus_status")); bus.setStatusReason(rs.getString("status_reason"));
 
                 buses.add(bus);
             }
@@ -81,7 +81,7 @@ public class BusDao {
                 bus.setBusNumber(rs.getString("bus_number"));
                 bus.setSeatCapacity(rs.getInt("seat_capacity"));
                 bus.setAvailableSeats(rs.getInt("available_seats"));
-                bus.setBusStatus(rs.getString("bus_status"));
+                bus.setBusStatus(rs.getString("bus_status")); bus.setStatusReason(rs.getString("status_reason"));
 
                 return bus;
             }
@@ -96,8 +96,8 @@ public class BusDao {
     public boolean addBus(Bus bus) {
 
         String sql =
-                "INSERT INTO buses (bus_number, seat_capacity, available_seats, bus_status) VALUES"
-                    + " (?, ?, ?, ?)";
+                "INSERT INTO buses (bus_number, seat_capacity, available_seats, bus_status, status_reason) VALUES"
+                    + " (?, ?, ?, ?, ?)";
 
         try (Connection con = DbConnection.getConnection();
                 PreparedStatement pst = con.prepareStatement(sql)) {
@@ -106,6 +106,7 @@ public class BusDao {
             pst.setInt(2, bus.getSeatCapacity());
             pst.setInt(3, bus.getAvailableSeats());
             pst.setString(4, bus.getBusStatus());
+            pst.setString(5, qpal.model.StatusReason.normalize(bus.getBusStatus(), bus.getStatusReason()));
 
             boolean saved = pst.executeUpdate() > 0;
             if (saved)
@@ -138,7 +139,7 @@ public class BusDao {
     public boolean updateBusDetails(Bus bus) throws SQLException {
 
         String sql =
-                "UPDATE buses SET bus_number=?, seat_capacity=?, available_seats=?, bus_status=?"
+                "UPDATE buses SET bus_number=?, seat_capacity=?, available_seats=?, bus_status=?, status_reason=?"
                     + " WHERE bus_id=? AND (seat_capacity=? OR NOT EXISTS (SELECT 1 FROM trips t"
                     + " JOIN bookings bk ON bk.trip_id=t.trip_id WHERE t.bus_id=buses.bus_id AND"
                     + " t.status IN ('Scheduled','Boarding')))";
@@ -150,8 +151,9 @@ public class BusDao {
             pst.setInt(2, bus.getSeatCapacity());
             pst.setInt(3, bus.getAvailableSeats());
             pst.setString(4, bus.getBusStatus());
-            pst.setInt(5, bus.getBusID());
-            pst.setInt(6, bus.getSeatCapacity());
+            pst.setString(5, qpal.model.StatusReason.normalize(bus.getBusStatus(), bus.getStatusReason()));
+            pst.setInt(6, bus.getBusID());
+            pst.setInt(7, bus.getSeatCapacity());
 
             con.setAutoCommit(false);
             try {

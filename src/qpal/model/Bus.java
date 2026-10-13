@@ -7,6 +7,11 @@ public class Bus {
     private int seatCapacity;
     private int availableSeats;
     private String busStatus;
+    private String statusReason;
+
+    public String getStatusReason() { return statusReason; }
+
+    public void setStatusReason(String statusReason) { this.statusReason = statusReason; }
 
     public Bus() {}
 

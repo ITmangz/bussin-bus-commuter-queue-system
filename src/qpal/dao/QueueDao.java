@@ -322,6 +322,7 @@ public class QueueDao {
         try (Connection c = DbConnection.getConnection()) {
             ensureStations(c);
             QueuePaymentDao.ensureTable(c);
+            QueueSkipDao.ensureTable(c);
             c.setAutoCommit(false);
             try {
                 EmployeeStationDao.requireStation(c, "Payment", station);
@@ -330,6 +331,7 @@ public class QueueDao {
                         && !action.equals("Recall"))
                     EmployeeStationDao.requireQueue(c, "Payment", queueId);
                 if (action.equals("Mark as Paid")) PaymentDeadlineDao.requireOpen(c, queueId);
+                if (action.equals("Skip Queue")) QueueSkipDao.lockTrip(c, queueId);
                 // The day's counter is also a mutex for admin queue transitions.
                 update(
                         c,
@@ -444,10 +446,7 @@ public class QueueDao {
                     case "Skip Queue":
                         if (!status.equals("Serving"))
                             throw new SQLException("Only the serving queue can be skipped.");
-                        update(
-                                c,
-                                "UPDATE queue_entries SET status='Skipped' WHERE queue_entry_id=?",
-                                queueId);
+                        QueueSkipDao.skip(c, queueId, booking);
                         break;
                     case "Mark as Paid":
                         PaymentDeadlineDao.requireOpen(c, queueId);

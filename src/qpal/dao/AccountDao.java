@@ -47,7 +47,7 @@ public class AccountDao {
                 account.setEmail(result.getString("email"));
                 account.setPassword(result.getString("password"));
                 account.setRole(result.getString("role"));
-                account.setStatus(result.getString("status"));
+                account.setStatus(result.getString("status")); account.setStatusReason(result.getString("status_reason"));
                 account.setProfileImage(result.getString("profile_image"));
 
                 return account;
@@ -113,7 +113,7 @@ public class AccountDao {
         List<Account> accounts = new ArrayList<>();
 
         String sql =
-                "SELECT id, name, email, role, status, profile_image "
+                "SELECT id, name, email, role, status, status_reason, profile_image "
                         + "FROM accounts ORDER BY id";
 
         try (Connection connection = DbConnection.getConnection();
@@ -128,7 +128,7 @@ public class AccountDao {
                 account.setName(result.getString("name"));
                 account.setEmail(result.getString("email"));
                 account.setRole(result.getString("role"));
-                account.setStatus(result.getString("status"));
+                account.setStatus(result.getString("status")); account.setStatusReason(result.getString("status_reason"));
                 account.setProfileImage(result.getString("profile_image"));
 
                 accounts.add(account);
@@ -184,7 +184,7 @@ public class AccountDao {
 
         String sql =
                 "UPDATE accounts SET "
-                        + "name = ?, email = ?, password = ?, role = ?, status = ? "
+                        + "name = ?, email = ?, password = ?, role = ?, status = ?, status_reason = ? "
                         + "WHERE id = ?";
 
         try (Connection connection = DbConnection.getConnection();
@@ -195,7 +195,8 @@ public class AccountDao {
             statement.setString(3, account.getPassword());
             statement.setString(4, account.getRole());
             statement.setString(5, account.getStatus());
-            statement.setInt(6, account.getID());
+            statement.setString(6, qpal.model.StatusReason.normalize(account.getStatus(), account.getStatusReason()));
+            statement.setInt(7, account.getID());
 
             boolean saved = statement.executeUpdate() > 0;
             if (saved)
@@ -258,7 +259,7 @@ public class AccountDao {
                 account.setEmail(result.getString("email"));
                 account.setPassword(result.getString("password"));
                 account.setRole(result.getString("role"));
-                account.setStatus(result.getString("status"));
+                account.setStatus(result.getString("status")); account.setStatusReason(result.getString("status_reason"));
                 account.setProfileImage(result.getString("profile_image"));
 
                 return account;

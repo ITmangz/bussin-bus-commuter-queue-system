@@ -1,15 +1,17 @@
 package qpal.view.Admin;
 
+import qpal.components.ModernTableCellRenderer;
+
 import java.awt.*;
 import java.awt.print.PrinterException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-import qpal.components.ModernTableCellRenderer;
 
 public class AdminRevenuePanel extends JPanel {
     private final List<JLabel> summaryValues = new ArrayList<>();
@@ -223,7 +225,7 @@ public class AdminRevenuePanel extends JPanel {
         btnPrint = createButton("Print", new Color(59, 130, 246));
         btnPrint.addActionListener(e -> printRevenue());
         controls.add(btnPrint);
-        panel.add(controls, BorderLayout.EAST);
+        qpal.components.TableStyle.toolbar(panel, lblTitle, controls);
 
         return panel;
     }
@@ -262,11 +264,13 @@ public class AdminRevenuePanel extends JPanel {
         table.getColumnModel().getColumn(7).setPreferredWidth(50);
         table.moveColumn(7, 2);
 
+        qpal.components.TableStyle.apply(table);
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(Color.WHITE);
         AdminCard.styleScrollBar(scroll, Color.WHITE);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        qpal.components.TableStyle.responsiveScroll(scroll);
         return scroll;
     }
 

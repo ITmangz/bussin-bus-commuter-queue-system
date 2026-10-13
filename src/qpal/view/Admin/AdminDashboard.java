@@ -1,12 +1,14 @@
 package qpal.view.Admin;
 
+import qpal.view.Login.LoginPage;
+
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
-import qpal.view.Login.LoginPage;
 
 public class AdminDashboard {
     private JFrame dashpage;
@@ -33,8 +35,8 @@ public class AdminDashboard {
 
         dashpage = new JFrame("QPAL - Admin Dashboard");
 
-        dashpage.setSize(1200, 700);
-        dashpage.setResizable(false);
+        qpal.components.TableStyle.sizeWindow(dashpage);
+
         dashpage.setLocationRelativeTo(null);
         dashpage.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         dashpage.setLayout(new BorderLayout());
@@ -49,10 +51,10 @@ public class AdminDashboard {
         contentPanel.add(AdminCard.scrollPage(dashboardPanel, 880), "dashboard");
         queuePanel = new AdminQueuePanel();
         contentPanel.add(AdminCard.scrollPage(queuePanel, 880), "queue");
-        contentPanel.add(AdminCard.scrollPage(new AdminBusPanel(), 880), "bus");
-        contentPanel.add(AdminCard.scrollPage(new AdminRouteSchedPanel(), 880), "route");
+        contentPanel.add(AdminCard.scrollPage(new AdminBusPanel(), 780), "bus");
+        contentPanel.add(AdminCard.scrollPage(new AdminRouteSchedPanel(), 780), "route");
         contentPanel.add(new AdminRevenuePanel(), "revenue");
-        contentPanel.add(AdminCard.scrollPage(new AdminManageAccountsPanel(), 880), "accounts");
+        contentPanel.add(AdminCard.scrollPage(new AdminManageAccountsPanel(), 780), "accounts");
         contentPanel.add(new AdminActivityLogPanel(currentAccount), "activity");
 
         AdminFormStyle.styleInputs(contentPanel);

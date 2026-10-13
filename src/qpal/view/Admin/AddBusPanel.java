@@ -118,6 +118,9 @@ public class AddBusPanel {
         cmbStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         panel.add(cmbStatus);
+        qpal.components.StatusReasonField statusReason = new qpal.components.StatusReasonField(cmbStatus, null);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(statusReason);
         panel.add(Box.createVerticalStrut(25));
 
         JButton btnAdd = new JButton("Add Bus");
@@ -210,7 +213,9 @@ public class AddBusPanel {
                     // New bus starts with all seats available
                     bus.setAvailableSeats(seatCapacity);
 
+                    if (!statusReason.validateInput(dialog)) return;
                     bus.setBusStatus(status);
+                    bus.setStatusReason(statusReason.reason());
 
                     boolean success = busDao.addBus(bus);
 

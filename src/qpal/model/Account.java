@@ -8,6 +8,11 @@ public class Account {
     private String password;
     private String role;
     private String status;
+    private String statusReason;
+
+    public String getStatusReason() { return statusReason; }
+
+    public void setStatusReason(String statusReason) { this.statusReason = statusReason; }
     private String profileImage;
 
     public Account() {}
