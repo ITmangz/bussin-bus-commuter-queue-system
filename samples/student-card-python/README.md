@@ -1,5 +1,36 @@
 # Python live student-ID number reader
 
+## Kiosk integration
+
+Click **Scan ID** at the upper right of the Student passenger form. The live camera
+replaces the form inside Passenger Details; no second window opens. The header and
+steps remain visible. Hold one card steady: after three agreeing OCR
+jobs match a supported number format, the form returns and fills the existing
+Student ID field automatically. The field remains editable. There is no capture
+or confirmation button. Scanning does not advance the booking or verify eligibility.
+Closing/cancelling the scanner leaves the previous field value unchanged. The
+kiosk scan is limited to three minutes and offers manual entry if Python fails.
+
+The kiosk runs the windowless `embedded_scanner.py` worker. Python captures the
+camera and runs OCR; Java displays JPEG previews streamed through stdout in memory.
+There is no Tk window, Java camera capture, image file, or local HTTP server.
+Back becomes Cancel scan and Continue is disabled until the form returns. Cancel,
+Start Over, leaving the passenger screen, and completion terminate the worker;
+errors restore manual entry with an inline explanation. Three consecutive
+OCR jobs must agree (the standalone sample requires two). Nearby text boxes on
+the same printed line are reassembled to read split student numbers; low-confidence
+or distant fragments are never joined. Contradictory readings are withheld.
+Kiosk OCR requires a confidence score of at least 0.92 per text box, plus agreement
+across at least two image preprocessing passes in each of the three jobs. This is
+an OCR score threshold, not a 92% or 100% real-world accuracy guarantee. Commuters
+should review the editable field before continuing.
+
+Run Java from the QueueSystem directory. It uses the installed bundled Python
+when available, otherwise `python` on PATH. To use a different Python executable,
+set `QPAL_PYTHON` or pass `-Dqpal.python=C:/path/to/python.exe` to Java. Install
+the requirements below in that interpreter. The standalone Java camera demo has
+been removed; all camera capture and OCR run in Python.
+
 Double-click **run-camera.cmd**, click **Start camera**, and hold the student ID number
 clearly in view. The camera stays inside the window. Reading is automatic: the matching
 format and student number appear on the right. No Capture button is needed.
@@ -41,7 +72,7 @@ letters are not silently replaced with digits. Latest OCR text remains visible.
 
 Stopping/changing inputs clears results; old jobs cannot restore them. Live readings
 expire after four seconds without a fresh result. Camera images and numbers are not
-uploaded or saved. This Python/Tkinter sample is separate from the Java QueueSystem.
+uploaded or saved. Java receives preview frames and the detected number in memory, without temporary image or result files.
 
 ## Files and setup
 
@@ -67,6 +98,7 @@ Tests use synthetic data and do not open a physical camera:
 python test_detector.py
 python test_student_numbers.py
 python test_ocr_quality.py
+python test_kiosk_scanner.py
 ```
 
 The camera requests 1080p and autofocus when supported. OCR uses the original camera

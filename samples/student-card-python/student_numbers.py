@@ -42,9 +42,49 @@ def match_numbers(text):
     return found
 
 
+def reliable_text(rows, min_confidence=0.85):
+    """Rejoin nearby fragments on the same printed line without inventing characters.
+
+    Low-confidence boxes break a line, so an unreadable digit cannot disappear
+    between two accepted fragments. Keep original boxes too to expose conflicts.
+    """
+    result = [str(row[1]) for row in rows if float(row[2]) >= min_confidence]
+    boxes = []
+    for points, text, confidence in rows:
+        if len(points) != 4:
+            continue
+        xs, ys = [p[0] for p in points], [p[1] for p in points]
+        boxes.append((min(xs), min(ys), max(xs), max(ys), str(text), float(confidence)))
+    lines = []
+    for box in sorted(boxes, key=lambda b: (b[1], b[0])):
+        center = (box[1] + box[3]) / 2
+        for line in lines:
+            anchor = line[0]
+            if abs(center - (anchor[1] + anchor[3]) / 2) <= 0.35 * min(box[3] - box[1], anchor[3] - anchor[1]):
+                line.append(box)
+                break
+        else:
+            lines.append([box])
+    for line in lines:
+        fragments, previous = [], None
+        for box in sorted(line, key=lambda b: b[0]):
+            separated = previous is not None and box[0] - previous[2] > 1.5 * max(box[3] - box[1], previous[3] - previous[1])
+            if box[5] < min_confidence or separated:
+                if len(fragments) > 1:
+                    result.append(" ".join(fragments))
+                fragments = []
+            if box[5] >= min_confidence:
+                fragments.append(box[4])
+            previous = box
+        if len(fragments) > 1:
+            result.append(" ".join(fragments))
+    return "\n".join(result)
+
+
 class StudentNumberReader:
     """One OCR instance reused by a background worker; the camera stays responsive."""
-    def __init__(self):
+    def __init__(self, min_confidence=0.85):
+        self.min_confidence = min_confidence
         from rapidocr_onnxruntime import RapidOCR
         self.engine = RapidOCR(intra_op_num_threads=2, inter_op_num_threads=1)
 
@@ -70,7 +110,7 @@ class StudentNumberReader:
             rows, _ = self.engine(versions[index])
             rows = rows or []
             readings.append("\n".join(str(row[1]) for row in rows))
-            reliable = "\n".join(str(row[1]) for row in rows if float(row[2]) >= 0.85)
+            reliable = reliable_text(rows, getattr(self, "min_confidence", 0.85))
             votes.update(set(match_numbers(reliable)))
         # Disagreeing valid numbers stay ambiguous instead of guessing a winner.
         if len(votes) > 1:

@@ -60,7 +60,8 @@ public class DropPointPanel extends JPanel {
         clock.run();
         Timer time = new Timer(1000, e -> clock.run());
         JLabel reset = new JLabel("Start Over");
-        reset.setBounds(822, 28, 100, 35);
+        reset.setBounds(790, 25, 110, 40);
+        reset.setHorizontalAlignment(SwingConstants.RIGHT);
         reset.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         reset.setForeground(Color.WHITE);
         reset.setFont(new Font("Segoe UI", Font.BOLD, 16));

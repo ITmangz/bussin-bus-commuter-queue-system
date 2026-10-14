@@ -34,6 +34,11 @@ public class PassengerDetailsPanel extends JPanel {
     private final List<PassengerForm> passengers = new ArrayList<>();
     private boolean details;
     private int detailIndex;
+    private qpal.util.StudentIdScanner.Session scanner;
+    private JPanel cameraPanel;
+    private java.awt.image.BufferedImage cameraFrame;
+    private JLabel cameraStatus;
+    private JButton back;
     private JButton next;
     private final JLabel subtitle =
             new JLabel(
@@ -90,8 +95,9 @@ public class PassengerDetailsPanel extends JPanel {
         header.add(logo);
         JButton reset = button("Start Over", new Color(225, 0, 45), Color.WHITE);
         reset.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        reset.setBounds(822, 28, 83, 35);
-        reset.setHorizontalAlignment(SwingConstants.LEFT);
+        reset.setBounds(790, 25, 110, 40);
+        reset.setHorizontalAlignment(SwingConstants.RIGHT);
+        reset.setBorder(BorderFactory.createEmptyBorder());
         reset.setMargin(new Insets(0, 0, 0, 0));
         reset.setContentAreaFilled(false);
         reset.addActionListener(e -> Kiosk.startOver(this));
@@ -103,6 +109,7 @@ public class PassengerDetailsPanel extends JPanel {
                                 .getImage()
                                 .getScaledInstance(40, 40, Image.SCALE_SMOOTH)));
         refresh.setBounds(905, 25, 40, 40);
+        refresh.setBorder(BorderFactory.createEmptyBorder());
         refresh.setMargin(new Insets(0, 0, 0, 0));
         refresh.setContentAreaFilled(false);
         refresh.setToolTipText("Start Over");
@@ -132,7 +139,7 @@ public class PassengerDetailsPanel extends JPanel {
         addHierarchyListener(
                 e -> {
                     if (isShowing()) timer.start();
-                    else timer.stop();
+                    else { timer.stop(); stopScan(true); }
                 });
         add(header);
         JPanel steps = KioskStepsPanel.create(2);
@@ -210,11 +217,12 @@ public class PassengerDetailsPanel extends JPanel {
         forms.setLayout(new CardLayout());
         forms.setBackground(getBackground());
         pages.add(forms, "Details");
-        JButton back = button("Back", new Color(240, 243, 245), Color.BLACK);
+        back = button("Back", new Color(240, 243, 245), Color.BLACK);
         back.setBounds(0, 590, 500, 60);
         back.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         back.addActionListener(
                 e -> {
+                    if (cameraPanel != null) { stopScan(true); return; }
                     if (details && detailIndex > 0) showDetail(detailIndex - 1);
                     else if (details) showCounts();
                     else showPage("AvailableTrip");
@@ -252,6 +260,7 @@ public class PassengerDetailsPanel extends JPanel {
                     public void componentShown(ComponentEvent e) {
                         updatePassengerCounter();
                     }
+                    @Override public void componentHidden(ComponentEvent e) { stopScan(true); }
                 });
         updatePassengerCounter();
     }
@@ -272,6 +281,78 @@ public class PassengerDetailsPanel extends JPanel {
             g.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 16, 16);
             g.dispose();
         }
+    }
+
+    private void startScan(PassengerForm form) {
+        stopScan(false);
+        cameraFrame = null;
+        cameraPanel = new JPanel(new BorderLayout(0, 8));
+        cameraPanel.setOpaque(false);
+        JPanel preview = new JPanel() {
+            @Override protected void paintComponent(Graphics graphics) {
+                super.paintComponent(graphics);
+                if (cameraFrame != null) {
+                    double scale = Math.min((double) getWidth() / cameraFrame.getWidth(),
+                            (double) getHeight() / cameraFrame.getHeight());
+                    int w = (int) (cameraFrame.getWidth() * scale), h = (int) (cameraFrame.getHeight() * scale);
+                    graphics.drawImage(cameraFrame, (getWidth() - w) / 2, (getHeight() - h) / 2, w, h, null);
+                }
+            }
+        };
+        preview.setBackground(new Color(25, 35, 51));
+        cameraPanel.add(preview, BorderLayout.CENTER);
+        cameraStatus = new JLabel("Opening camera", SwingConstants.CENTER);
+        cameraStatus.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        cameraPanel.add(cameraStatus, BorderLayout.SOUTH);
+        pages.add(cameraPanel, "Camera");
+        pages.setBounds(70, 282, 860, 290);
+        ((CardLayout) pages.getLayout()).show(pages, "Camera");
+        subtitle.setText("Scan Student ID — hold the number clearly in view. It will fill in automatically.");
+        back.setText("Cancel scan");
+        next.setEnabled(false);
+        next.setText("Scanning");
+        pages.revalidate();
+        JPanel activePanel = cameraPanel;
+        scanner = openScanner(new qpal.util.StudentIdScanner.Listener() {
+            public void frame(java.awt.image.BufferedImage image) {
+                if (cameraPanel != activePanel) return;
+                cameraFrame = image;
+                preview.repaint();
+            }
+            public void status(String message) { if (cameraPanel == activePanel) cameraStatus.setText(message); }
+            public void result(String number) {
+                if (cameraPanel != activePanel) return;
+                stopScan(true);
+                form.id.setText(number);
+                form.id.setEditable(true);
+                form.id.requestFocusInWindow();
+                form.id.selectAll();
+                subtitle.setText("ID scanned — review the number and correct it if needed before continuing.");
+            }
+            public void error(String message) {
+                if (cameraPanel != activePanel) return;
+                stopScan(true);
+                subtitle.setText(message);
+            }
+        });
+    }
+
+    protected qpal.util.StudentIdScanner.Session openScanner(qpal.util.StudentIdScanner.Listener listener) {
+        return qpal.util.StudentIdScanner.start(listener);
+    }
+
+    private void stopScan(boolean restore) {
+        if (scanner != null) { scanner.close(); scanner = null; }
+        if (cameraPanel == null) return;
+        pages.remove(cameraPanel);
+        cameraPanel = null;
+        cameraFrame = null;
+        back.setText("Back");
+        next.setText("Continue  >");
+        next.setEnabled(true);
+        if (restore) showDetail(detailIndex);
+        pages.revalidate();
+        repaint();
     }
 
     private static JButton counterButton(String text, Color background, Color foreground) {
@@ -412,6 +493,7 @@ public class PassengerDetailsPanel extends JPanel {
     }
 
     public void resetInputs() {
+        stopScan(false);
         java.util.Arrays.fill(counts, 0);
         counts[0] = 1;
         passengers.clear();
@@ -423,7 +505,7 @@ public class PassengerDetailsPanel extends JPanel {
                 if (c instanceof SelectSeatsPanel seats) seats.resetInputs();
     }
 
-    private static class PassengerForm extends RoundedPanel {
+    private class PassengerForm extends RoundedPanel {
         final String type;
         final JLabel heading = new JLabel();
         final JTextField id = new JTextField();
@@ -469,6 +551,33 @@ public class PassengerDetailsPanel extends JPanel {
             hint.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             hint.setForeground(new Color(85, 94, 108));
             add(hint);
+            if (type.equals("Student")) {
+                heading.setBounds(24, 14, 600, 28);
+                hint.setBounds(24, 48, 620, 25);
+                JButton scan = button("Scan ID", new Color(225, 0, 45), Color.WHITE);
+                scan.setIcon(new Icon() {
+                    public int getIconWidth() { return 22; }
+                    public int getIconHeight() { return 20; }
+                    public void paintIcon(Component component, Graphics graphics, int x, int y) {
+                        Graphics2D g = (Graphics2D) graphics.create();
+                        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        g.setColor(component.getForeground());
+                        g.setStroke(new BasicStroke(1.6f));
+                        g.drawRoundRect(x + 1, y + 5, 20, 13, 4, 4);
+                        g.drawOval(x + 8, y + 8, 7, 7);
+                        g.drawPolyline(new int[]{x + 6, x + 8, x + 14, x + 16},
+                                new int[]{y + 5, y + 2, y + 2, y + 5}, 4);
+                        g.dispose();
+                    }
+                });
+                scan.setIconTextGap(8);
+                scan.setBounds(680, 20, 154, 44);
+                scan.setFont(new Font("Segoe UI", Font.BOLD, 15));
+                scan.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                scan.setToolTipText("Read your student ID number using the Python camera scanner");
+                scan.addActionListener(e -> startScan(this));
+                add(scan);
+            }
             if (!type.equals("Regular")) {
                 field(type + " ID Number *", id, 24, 94, type.equals("PWD") ? 390 : 810);
                 // PWD allows extra space for alternative formats checked by staff.

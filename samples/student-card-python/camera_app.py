@@ -18,7 +18,10 @@ from student_numbers import StudentNumberReader, NumberConsensus, EXAMPLES
 
 
 class CardCameraApp:
-    def __init__(self, root):
+    def __init__(self, root, kiosk=False):
+        self.kiosk = kiosk
+        self.accepted_number = None
+        self.result_sent = False
         self.root = root
         self.worker = None
         self.cancel = threading.Event()
@@ -35,8 +38,8 @@ class CardCameraApp:
         self.ocr_session = 0
         self.still_image = False
         self.last_result_time = 0
-        self.consensus = NumberConsensus()
-        root.title("Bussin · Student ID number detection — Python sample")
+        self.consensus = NumberConsensus(required=3 if kiosk else 2)
+        root.title("Bussin · Scan Student ID")
         root.geometry("1160x760")
         root.minsize(940, 680)
         root.configure(bg="#f4f6f9")
@@ -68,6 +71,9 @@ class CardCameraApp:
         self.demo_choice.pack(side="left", padx=(0, 8))
         self.image_button = ttk.Button(controls, text="Test image", command=self.open_image)
         self.image_button.pack(side="left")
+        if kiosk:
+            for control in (self.demo_button, self.demo_choice, self.image_button):
+                control.pack_forget()
         content = ttk.Frame(body)
         content.pack(fill="both", expand=True)
         content.columnconfigure(0, weight=3)
@@ -102,11 +108,61 @@ class CardCameraApp:
         self.raw_text = tk.Text(sidebar, height=4, width=30, wrap="word", font=("Segoe UI", 9), state="disabled")
         self.raw_text.grid(row=6, column=0, sticky="ew")
         ttk.Label(sidebar, text="Check the number against the card.\nFormat matching does not verify enrollment.", wraplength=270).grid(row=7, column=0, sticky="w", pady=(10, 0))
+        self.use_button = ttk.Button(controls, text="Use this number", command=self.use_number, state="disabled")
         self.status = tk.StringVar(value="Local processing · automatic number reading · no uploads or saved camera images")
         ttk.Label(body, textvariable=self.status, wraplength=1050).pack(anchor="w", pady=(16, 0))
+        if kiosk:
+            body.pack_forget()
+            self.build_kiosk(root)
         root.after(40, self.poll)
 
+    def build_kiosk(self, root):
+        """Commuter camera screen; diagnostic/demo controls stay out of the kiosk."""
+        red, background = "#e1002d", "#f8f8f8"
+        root.geometry("1000x720")
+        root.minsize(800, 650)
+        root.configure(bg=background)
+        root.bind("<Escape>", lambda event: self.close())
+        header = tk.Frame(root, bg=red, height=80)
+        header.pack(fill="x")
+        header.pack_propagate(False)
+        tk.Label(header, text="Bussin", bg=red, fg="white", font=("Segoe UI", 25, "bold")).pack(side="left", padx=32)
+        tk.Label(header, text="STUDENT ID", bg=red, fg="white", font=("Segoe UI", 12, "bold")).pack(side="right", padx=32)
+        body = tk.Frame(root, bg=background)
+        body.pack(fill="both", expand=True, padx=36, pady=(18, 10))
+        tk.Label(body, text="Scan Student ID", bg=background, fg=red,
+                 font=("Segoe UI", 27, "bold")).pack()
+        tk.Label(body, text="Hold one ID steady with the number clearly visible.", bg=background,
+                 fg="#555e6c", font=("Segoe UI", 12)).pack(pady=(5, 16))
+        video = tk.Frame(body, bg="#192333", highlightbackground="#dce1e8", highlightthickness=1)
+        video.pack(fill="both", expand=True)
+        self.preview = tk.Label(video, bg="#192333", fg="white", text="Opening camera…",
+                                font=("Segoe UI", 16))
+        self.preview.pack(fill="both", expand=True)
+        tk.Label(body, textvariable=self.number_result, bg=background, fg=red,
+                 font=("Segoe UI", 17, "bold")).pack(pady=(12, 3))
+        tk.Label(body, textvariable=self.reading_status, bg=background, fg="#555e6c",
+                 font=("Segoe UI", 11), wraplength=740).pack()
+        tk.Label(body, text="Your number will fill in automatically. You can edit it afterward.",
+                 bg=background, fg="#555e6c", font=("Segoe UI", 11)).pack(pady=(5, 8))
+        footer = tk.Frame(root, bg="#f0f3f5", height=58)
+        footer.pack(fill="x")
+        tk.Button(footer, text="Cancel", command=self.close, bg="#f0f3f5", fg="#263245",
+                  relief="flat", font=("Segoe UI", 13), pady=12, cursor="hand2").pack(side="left", fill="x", expand=True)
+        self.retry_button = tk.Button(footer, text="Try camera again", command=self.start_camera,
+                 bg=red, fg="white", relief="flat", font=("Segoe UI", 13, "bold"), pady=12, cursor="hand2")
+        root.after(150, lambda: (root.lift(), root.focus_force()) if not self.closing else None)
+
+    def use_number(self):
+        if self.closing or self.accepted_number is None or time.monotonic() - self.last_result_time > 4:
+            return
+        self.result_sent = True
+        print("BUSSIN_STUDENT_ID=" + self.accepted_number.number, flush=True)
+        self.close()
+
     def start_camera(self):
+        if self.kiosk:
+            self.retry_button.pack_forget()
         self.start(False)
 
     def start(self, demo=False):
@@ -215,6 +271,10 @@ class CardCameraApp:
                     self.state.set("Camera unavailable")
                     self.status.set(payload)
                     self.mode.configure(text="CAMERA OFF")
+                    if self.kiosk:
+                        self.number_result.set("Camera unavailable")
+                        self.reading_status.set("Close other camera apps, check camera permissions, then try again.")
+                        self.retry_button.pack(side="right", fill="x", expand=True)
                 else:
                     self.frame, self.crop, state, self.ocr_source = payload
                     self.state.set(state)
@@ -229,11 +289,12 @@ class CardCameraApp:
         self.show_image(self.preview, self.frame, "Click Start camera")
         self.show_image(self.card_preview, self.crop, "Waiting for a steady card")
         self.poll_numbers()
-        self.root.after(40, self.poll)
+        if not self.closing:
+            self.root.after(40, self.poll)
 
     def read_numbers(self, frame):
         if self.reader is None:
-            self.reader = StudentNumberReader()
+            self.reader = StudentNumberReader(min_confidence=0.92 if self.kiosk else 0.85)
         return self.reader.read(frame)
 
     def poll_numbers(self):
@@ -249,6 +310,8 @@ class CardCameraApp:
                     self.raw_text.insert("1.0", text or "No readable text yet")
                     self.raw_text.configure(state="disabled")
                     match = self.consensus.update(matches)
+                    self.accepted_number = match
+                    self.use_button.configure(state="normal" if match is not None else "disabled")
                     if match is not None:
                         self.school_result.set("Format: " + match.school)
                         self.number_result.set(match.number)
@@ -256,7 +319,7 @@ class CardCameraApp:
                     elif len(matches) == 1:
                         self.school_result.set("Checking number...")
                         self.number_result.set("Hold steady to confirm")
-                        self.reading_status.set("Waiting for a second matching reading.")
+                        self.reading_status.set("Keep still while repeated readings are checked.")
                     elif len(matches) > 1:
                         self.school_result.set("Multiple numbers found")
                         self.number_result.set("Show one student ID at a time")
@@ -266,13 +329,20 @@ class CardCameraApp:
                         self.number_result.set("No matching number yet")
                         self.reading_status.set("Hold the number closer, steady and well lit.")
                     self.last_result_time = now
+                    if self.kiosk and match is not None:
+                        self.use_number()
+                        return
                 except Exception as error:
+                    self.accepted_number = None
+                    self.use_button.configure(state="disabled")
                     self.consensus.reset()
                     self.school_result.set("Format: —")
                     self.number_result.set("Number reader unavailable")
                     self.reading_status.set(str(error)[:160])
         # Expire old readings instead of leaving a previous person's number visible.
         if not self.still_image and self.last_result_time and now - self.last_result_time > 4:
+            self.accepted_number = None
+            self.use_button.configure(state="disabled")
             self.consensus.reset()
             self.school_result.set("Format: —")
             self.number_result.set("Reading current frame...")
@@ -296,6 +366,8 @@ class CardCameraApp:
         label.configure(image=photo, text="")
 
     def clear_images(self):
+        self.accepted_number = None
+        self.use_button.configure(state="disabled")
         self.frame = self.crop = None
         self.consensus.reset()
         self.ocr_source = None
@@ -330,6 +402,10 @@ class CardCameraApp:
             messagebox.showerror("Cannot open image", str(error))
 
     def close(self):
+        if self.closing:
+            return
+        if self.kiosk and not self.result_sent:
+            print("BUSSIN_SCAN_CANCELLED", flush=True)
         self.closing = True
         self.cancel.set()
         self.session += 1
@@ -348,10 +424,15 @@ class CardCameraApp:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--demo", action="store_true", help="Use a synthetic moving card; camera stays off")
+    parser.add_argument("--kiosk", action="store_true", help="Scan for the kiosk; return a reviewed number via stdout")
     args = parser.parse_args()
+    if args.kiosk and args.demo:
+        parser.error("Demo mode is not available for kiosk scanning")
     root = tk.Tk()
-    app = CardCameraApp(root)
-    if args.demo:
+    app = CardCameraApp(root, kiosk=args.kiosk)
+    if args.kiosk:
+        root.after(100, app.start_camera)
+    elif args.demo:
         root.after(100, lambda: app.start(True))
     root.mainloop()
 

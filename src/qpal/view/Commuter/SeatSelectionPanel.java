@@ -133,7 +133,8 @@ public class SeatSelectionPanel extends JPanel {
         toppanel.add(lblTime);
 
         JLabel startover = new JLabel("Start Over");
-        startover.setBounds(822, 28, 100, 35);
+        startover.setBounds(790, 25, 110, 40);
+        startover.setHorizontalAlignment(SwingConstants.RIGHT);
         startover.setFont(new Font("Segoe UI", Font.BOLD, 16));
         startover.setForeground(Color.WHITE);
         startover.setCursor(new Cursor(Cursor.HAND_CURSOR));

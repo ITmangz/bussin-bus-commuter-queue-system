@@ -1,6 +1,7 @@
 package qpal;
 
 import javax.swing.SwingUtilities;
+
 import qpal.view.Commuter.Kiosk;
 
 public class MainKiosk {

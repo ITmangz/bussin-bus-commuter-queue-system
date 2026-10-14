@@ -3,7 +3,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from student_numbers import StudentNumberReader, EXAMPLES, StudentNumber
 from card_detector import demo_frame, find_card, crop_card, cv2, np
-reader=StudentNumberReader()
+reader=StudentNumberReader(min_confidence=0.92 if '--kiosk' in sys.argv else 0.85)
 counts = {'correct':0, 'withheld':0, 'wrong':0}
 for school, number in EXAMPLES.items():
     frame=demo_frame(0,school)
