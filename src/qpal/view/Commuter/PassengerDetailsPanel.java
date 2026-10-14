@@ -90,7 +90,10 @@ public class PassengerDetailsPanel extends JPanel {
         header.add(logo);
         JButton reset = button("Start Over", new Color(225, 0, 45), Color.WHITE);
         reset.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        reset.setBounds(805, 25, 115, 45);
+        reset.setBounds(822, 28, 83, 35);
+        reset.setHorizontalAlignment(SwingConstants.LEFT);
+        reset.setMargin(new Insets(0, 0, 0, 0));
+        reset.setContentAreaFilled(false);
         reset.addActionListener(e -> Kiosk.startOver(this));
         header.add(reset);
         JButton refresh = button("", new Color(225, 0, 45), Color.WHITE);
@@ -98,8 +101,12 @@ public class PassengerDetailsPanel extends JPanel {
                 new ImageIcon(
                         new ImageIcon("resources/icons/refresh.png")
                                 .getImage()
-                                .getScaledInstance(36, 36, Image.SCALE_SMOOTH)));
-        refresh.setBounds(920, 25, 45, 45);
+                                .getScaledInstance(40, 40, Image.SCALE_SMOOTH)));
+        refresh.setBounds(905, 25, 40, 40);
+        refresh.setMargin(new Insets(0, 0, 0, 0));
+        refresh.setContentAreaFilled(false);
+        refresh.setToolTipText("Start Over");
+        refresh.getAccessibleContext().setAccessibleName("Start Over");
         refresh.addActionListener(e -> Kiosk.startOver(this));
         header.add(refresh);
         JLabel date = new JLabel("", SwingConstants.CENTER),
