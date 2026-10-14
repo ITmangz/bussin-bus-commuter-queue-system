@@ -21,7 +21,7 @@ public class AddBusPanel {
 
         JPanel panel = new JPanel();
         panel.setBorder(new EmptyBorder(25, 30, 25, 30));
-        panel.setPreferredSize(new Dimension(360, 381));
+        panel.setPreferredSize(new Dimension(360, 461));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Color.WHITE);
 
@@ -100,6 +100,18 @@ public class AddBusPanel {
         panel.add(cmbSeatCapacity);
         panel.add(Box.createVerticalStrut(14));
 
+        JLabel layoutLabel = new JLabel("Seat Layout (left / aisle / right)");
+        layoutLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(layoutLabel);
+        panel.add(Box.createVerticalStrut(7));
+        JComboBox<qpal.model.SeatLayout> cmbLayout = new JComboBox<>(qpal.model.SeatLayout.values());
+        cmbLayout.setSelectedItem(qpal.model.SeatLayout.TWO_TWO);
+        cmbLayout.addActionListener(e -> ManagementComboBoxes.updateSeatCapacity(cmbSeatCapacity,
+                (qpal.model.SeatLayout) cmbLayout.getSelectedItem(), (Integer) cmbSeatCapacity.getSelectedItem()));
+        cmbLayout.setMaximumSize(new Dimension(300, 34));
+        cmbLayout.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(cmbLayout);
+        panel.add(Box.createVerticalStrut(14));
         JLabel lblStatus = new JLabel("Bus Status");
         lblStatus.setFont(new Font("SansSerif", Font.BOLD, 13));
         lblStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -181,7 +193,7 @@ public class AddBusPanel {
                     if (seatCapacity == null) {
                         qpal.components.AppDialogs.showMessageDialog(
                                 dialog,
-                                "Choose 24, 28, 32, 36, 40 or 44 seats.",
+                                "Choose a seat capacity for the selected layout. Every row must be complete.",
                                 "Warning",
                                 JOptionPane.WARNING_MESSAGE);
                         return;
@@ -209,6 +221,7 @@ public class AddBusPanel {
 
                     bus.setBusNumber(busNumber);
                     bus.setSeatCapacity(seatCapacity);
+                    bus.setSeatLayout((qpal.model.SeatLayout) cmbLayout.getSelectedItem());
 
                     // New bus starts with all seats available
                     bus.setAvailableSeats(seatCapacity);

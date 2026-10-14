@@ -168,10 +168,9 @@ final class QueueBookingDialog {
                                 if (trip.getSelectedItem() != selected) return;
                                 for (int seat = 1; seat <= selected.capacity(); seat++)
                                     if (!occupied.contains(seat))
-                                        seats.addItem(BookingDao.seatLabel(seat));
+                                        seats.addItem(selected.layout().label(seat));
                                 note.setText(
-                                        "Select a different seat for each passenger. Maximum 10"
-                                                + " passengers.");
+                                        "Front row: Senior/PWD only. Choose a different seat per passenger (max 10).");
                                 save.setEnabled(seats.getItemCount() > 0);
                             },
                             ex -> {
@@ -201,7 +200,7 @@ final class QueueBookingDialog {
                                         new Passenger(
                                                 name,
                                                 type,
-                                                BookingDao.seatNumber(
+                                                ((TripOption) trip.getSelectedItem()).layout().number(
                                                         model.getValueAt(i, 2).toString())));
                             } else
                                 edited.add(

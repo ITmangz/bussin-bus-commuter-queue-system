@@ -49,6 +49,7 @@ public class BusDao {
                 bus.setBusID(rs.getInt("bus_id"));
                 bus.setBusNumber(rs.getString("bus_number"));
                 bus.setSeatCapacity(rs.getInt("seat_capacity"));
+                bus.setSeatLayout(qpal.model.SeatLayout.fromCode(rs.getString("seat_layout")));
                 bus.setAvailableSeats(rs.getInt("available_seats"));
                 bus.setBusStatus(rs.getString("bus_status")); bus.setStatusReason(rs.getString("status_reason"));
 
@@ -80,6 +81,7 @@ public class BusDao {
                 bus.setBusID(rs.getInt("bus_id"));
                 bus.setBusNumber(rs.getString("bus_number"));
                 bus.setSeatCapacity(rs.getInt("seat_capacity"));
+                bus.setSeatLayout(qpal.model.SeatLayout.fromCode(rs.getString("seat_layout")));
                 bus.setAvailableSeats(rs.getInt("available_seats"));
                 bus.setBusStatus(rs.getString("bus_status")); bus.setStatusReason(rs.getString("status_reason"));
 
@@ -94,10 +96,11 @@ public class BusDao {
     }
 
     public boolean addBus(Bus bus) {
+        if (!bus.getSeatLayout().completeRows(bus.getSeatCapacity())) return false;
 
         String sql =
-                "INSERT INTO buses (bus_number, seat_capacity, available_seats, bus_status, status_reason) VALUES"
-                    + " (?, ?, ?, ?, ?)";
+                "INSERT INTO buses (bus_number, seat_capacity, available_seats, bus_status, status_reason, seat_layout) VALUES"
+                    + " (?, ?, ?, ?, ?, ?)";
 
         try (Connection con = DbConnection.getConnection();
                 PreparedStatement pst = con.prepareStatement(sql)) {
@@ -108,6 +111,7 @@ public class BusDao {
             pst.setString(4, bus.getBusStatus());
             pst.setString(5, qpal.model.StatusReason.normalize(bus.getBusStatus(), bus.getStatusReason()));
 
+            pst.setString(6, bus.getSeatLayout().code());
             boolean saved = pst.executeUpdate() > 0;
             if (saved)
                 ActivityLogDao.recordActivity(
@@ -137,10 +141,13 @@ public class BusDao {
     }
 
     public boolean updateBusDetails(Bus bus) throws SQLException {
+        if (!bus.getSeatLayout().completeRows(bus.getSeatCapacity()))
+            throw new SQLException("Seat capacity must be a multiple of " + bus.getSeatLayout().perRow()
+                    + " for this layout, so both sides end with a complete row.");
 
         String sql =
-                "UPDATE buses SET bus_number=?, seat_capacity=?, available_seats=?, bus_status=?, status_reason=?"
-                    + " WHERE bus_id=? AND (seat_capacity=? OR NOT EXISTS (SELECT 1 FROM trips t"
+                "UPDATE buses SET bus_number=?, seat_capacity=?, available_seats=?, bus_status=?, status_reason=?, seat_layout=?"
+                    + " WHERE bus_id=? AND ((seat_capacity=? AND seat_layout=?) OR NOT EXISTS (SELECT 1 FROM trips t"
                     + " JOIN bookings bk ON bk.trip_id=t.trip_id WHERE t.bus_id=buses.bus_id AND"
                     + " t.status IN ('Scheduled','Boarding')))";
 
@@ -152,8 +159,10 @@ public class BusDao {
             pst.setInt(3, bus.getAvailableSeats());
             pst.setString(4, bus.getBusStatus());
             pst.setString(5, qpal.model.StatusReason.normalize(bus.getBusStatus(), bus.getStatusReason()));
-            pst.setInt(6, bus.getBusID());
-            pst.setInt(7, bus.getSeatCapacity());
+            pst.setString(6, bus.getSeatLayout().code());
+            pst.setInt(7, bus.getBusID());
+            pst.setInt(8, bus.getSeatCapacity());
+            pst.setString(9, bus.getSeatLayout().code());
 
             con.setAutoCommit(false);
             try {
@@ -161,7 +170,7 @@ public class BusDao {
                 if (!saved)
                     throw new SQLException(
                             "This bus was removed, or a scheduled/boarding trip has bookings. Keep"
-                                + " its current seat capacity and try again.");
+                                + " its current seat capacity and layout and try again.");
                 // Unbooked active trips must use the updated bus capacity too.
                 try (PreparedStatement trips =
                         con.prepareStatement(

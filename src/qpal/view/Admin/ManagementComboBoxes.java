@@ -33,11 +33,20 @@ final class ManagementComboBoxes {
 
     static JComboBox<Integer> seatCapacity(int selected) {
         JComboBox<Integer> combo = new JComboBox<>();
-        for (int seats = 24; seats <= 44; seats += 4) combo.addItem(seats);
-        combo.setSelectedIndex(
-                selected >= 24 && selected <= 44 && selected % 4 == 0 ? (selected - 24) / 4 : -1);
+        updateSeatCapacity(combo, qpal.model.SeatLayout.TWO_TWO, selected);
         style(combo);
         return combo;
+    }
+
+    static void updateSeatCapacity(JComboBox<Integer> combo, qpal.model.SeatLayout layout, Integer selected) {
+        combo.removeAllItems();
+        for (int seats = 24; seats <= 45; seats++)
+            if (layout.completeRows(seats)) combo.addItem(seats);
+        // Preserve valid legacy capacities without offering incomplete rows.
+        if (selected != null && layout.completeRows(selected)
+                && (selected < 24 || selected > 45)) combo.addItem(selected);
+        combo.setSelectedIndex(-1);
+        if (selected != null && layout.completeRows(selected)) combo.setSelectedItem(selected);
     }
 
     static JComboBox<LocalTime> departureTime(String selected) {

@@ -65,6 +65,7 @@ public class BusEditTest {
                 bus.setAvailableSeats(32);
                 bus.setBusNumber("RENAMED");
                 bus.setBusStatus("Maintenance");
+                bus.setStatusReason("Scheduled maintenance");
                 if (!dao.updateBusDetails(bus))
                     throw new AssertionError("Details with unchanged capacity blocked");
                 s.executeUpdate(

@@ -47,7 +47,7 @@ public class PassengerDetailsPanel extends JPanel {
     private void showDetail(int index) {
         detailIndex = index;
         details = true;
-        pages.setBounds(70, 282, 860, 184);
+        resizeDetailPanel();
         ((CardLayout) forms.getLayout()).show(forms, Integer.toString(index));
         ((CardLayout) pages.getLayout()).show(pages, "Details");
         subtitle.setText(
@@ -56,6 +56,18 @@ public class PassengerDetailsPanel extends JPanel {
                         + " of "
                         + requiredForms().size()
                         + " — Enter the information shown on your ID.");
+    }
+
+    private void resizeDetailPanel() {
+        if (!details) return;
+        List<PassengerForm> required = requiredForms();
+        if (detailIndex < 0 || detailIndex >= required.size()) return;
+        PassengerForm form = required.get(detailIndex);
+        int height = form.type.equals("PWD") && "Other".equals(form.disability.getSelectedItem())
+                ? 282 : 184;
+        pages.setBounds(70, 282, 860, height);
+        pages.revalidate();
+        repaint();
     }
 
     // Kept as the regular counter for existing capacity checks.
@@ -342,7 +354,10 @@ public class PassengerDetailsPanel extends JPanel {
             List<PassengerForm> same = previous.stream().filter(p -> p.type.equals(type)).toList();
             for (int i = 0; i < counts[t]; i++) {
                 PassengerForm form = i < same.size() ? same.get(i) : new PassengerForm(type);
-                if (i >= same.size()) form.id.addActionListener(e -> next.doClick());
+                if (i >= same.size()) {
+                    form.id.addActionListener(e -> next.doClick());
+                    form.disability.addActionListener(e -> resizeDetailPanel());
+                }
                 passengers.add(form);
                 form.heading.setText(type + " passenger " + (i + 1) + " of " + counts[t]);
                 if (!type.equals("Regular"))
@@ -405,6 +420,8 @@ public class PassengerDetailsPanel extends JPanel {
         final String type;
         final JLabel heading = new JLabel();
         final JTextField id = new JTextField();
+        final JTextField otherDisability = new JTextField();
+        final JLabel otherDisabilityLabel = new JLabel("Please specify your disability *");
         String manuallyCheckedPwdId = "";
         boolean staffAssistanceRequested;
         final JComboBox<String> disability =
@@ -481,7 +498,26 @@ public class PassengerDetailsPanel extends JPanel {
                             }
                         });
 
-                if (type.equals("PWD")) field("Disability Type *", disability, 444, 94, 390);
+                if (type.equals("PWD")) {
+                    field("Disability Type *", disability, 444, 94, 390);
+                    otherDisabilityLabel.setBounds(24, 182, 810, 20);
+                    otherDisabilityLabel.setLabelFor(otherDisability);
+                    add(otherDisabilityLabel);
+                    otherDisability.setBounds(24, 208, 810, 44);
+                    otherDisability.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                    otherDisability.getAccessibleContext().setAccessibleName("Please specify your disability");
+                    add(otherDisability);
+                    otherDisabilityLabel.setVisible(false);
+                    otherDisability.setVisible(false);
+                    disability.addActionListener(e -> {
+                        boolean other = "Other".equals(disability.getSelectedItem());
+                        otherDisabilityLabel.setVisible(other);
+                        otherDisability.setVisible(other);
+                        if (other) otherDisability.requestFocusInWindow();
+                        revalidate();
+                        repaint();
+                    });
+                }
             }
         }
 
@@ -587,6 +623,13 @@ public class PassengerDetailsPanel extends JPanel {
                         "Passenger Details",
                         JOptionPane.ERROR_MESSAGE);
                 disability.requestFocusInWindow();
+                return false;
+            }
+            if (type.equals("PWD") && "Other".equals(disability.getSelectedItem())
+                    && otherDisability.getText().isBlank()) {
+                qpal.components.AppDialogs.showMessageDialog(this,
+                        "Please specify your disability.", "Passenger Details", JOptionPane.ERROR_MESSAGE);
+                otherDisability.requestFocusInWindow();
                 return false;
             }
             // Matching the format does not establish authenticity or discount eligibility.

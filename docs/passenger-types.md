@@ -6,7 +6,9 @@ No passenger names are requested; all passengers receive automatic booking label
 
 These checks establish completeness only, not identity or discount eligibility. The form reminds passengers to present valid ID at payment. Automatic passenger labels and individual passenger types use the existing booking storage. ID numbers and disability details remain in the current kiosk session and are not saved to the database. Fare calculations are unchanged.
 
-Run PassengerTypesTest for mixed counts, required-field validation, ordered types, back navigation data and reset; PassengerCapacityTest checks the trip seat limits.
+Selecting Other for a PWD passenger reveals a required "Please specify your disability" field. Blank or whitespace-only text blocks continuation. The answer is retained on back navigation and hidden when a named disability is chosen. Start Over clears it. See priority-seating.md for front-row seating and priority FIFO rules.
+
+Run SeatLayoutUiTest for Other-field validation, retention, seat layouts and mixed-passenger assignments; PassengerCapacityTest checks the trip seat limits.
 
 
 

@@ -38,7 +38,9 @@ public class SeatSelectionPanel extends JPanel {
     private int seatCapacity = 40;
     private int passengerCount = 1;
     private int currentPage = 1;
-    private final int seatsPerPage = 16;
+    private qpal.model.SeatLayout layout = qpal.model.SeatLayout.TWO_TWO;
+    private int seatsPerPage = 16;
+    private final JPanel columnHeaders = new JPanel(null);
     private boolean databaseSeatsLoaded;
 
     private final List<SeatData> seats = new ArrayList<>();
@@ -260,7 +262,7 @@ public class SeatSelectionPanel extends JPanel {
                     }
                 });
         summary.add(btnPassengerNext);
-        JLabel lblFront = new JLabel("DRIVER", SwingConstants.LEFT);
+        JLabel lblFront = new JLabel("FRONT / DRIVER", SwingConstants.LEFT);
         lblFront.setBounds(350, 281, 200, 22);
         lblFront.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblFront.setForeground(new Color(100, 100, 100));
@@ -272,20 +274,12 @@ public class SeatSelectionPanel extends JPanel {
         lblEntrance.setForeground(new Color(100, 100, 100));
         add(lblEntrance);
 
-        String[] columns = {"A", "B", "AISLE", "C", "D"};
-        int[] positions = {350, 460, 565, 670, 780};
-
-        for (int i = 0; i < columns.length; i++) {
-
-            JLabel lblColumn = new JLabel(columns[i], SwingConstants.CENTER);
-            lblColumn.setBounds(positions[i], 305, 90, 18);
-            lblColumn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            lblColumn.setForeground(Color.GRAY);
-            add(lblColumn);
-        }
+        columnHeaders.setBounds(330, 305, 550, 18);
+        columnHeaders.setOpaque(false);
+        add(columnHeaders);
 
         seatsPanel = new JPanel(null);
-        seatsPanel.setBounds(330, 330, 620, 190);
+        seatsPanel.setBounds(330, 330, 550, 190);
         seatsPanel.setOpaque(false);
         add(seatsPanel);
 
@@ -322,8 +316,8 @@ public class SeatSelectionPanel extends JPanel {
         legendPanel.setOpaque(false);
         add(legendPanel);
 
-        String[] legendText = {"Available", "Selected", "Occupied / Reserved"};
-        Color[] legendColors = {Color.WHITE, new Color(225, 0, 45), new Color(220, 220, 220)};
+        String[] legendText = {"Available", "Selected", "Occupied", "P: Senior / PWD"};
+        Color[] legendColors = {Color.WHITE, new Color(225, 0, 45), new Color(220, 220, 220), new Color(255, 224, 153)};
 
         for (int i = 0; i < legendText.length; i++) {
 
@@ -426,6 +420,11 @@ public class SeatSelectionPanel extends JPanel {
     // Call on the Swing event thread after retrieving records from your DAO.
     // Supply records in bus row order: 1A, 1B, 1C, 1D, 2A...
     public void setSeatData(int tripID, String busName, int capacity, List<SeatData> records) {
+        setSeatData(tripID, busName, capacity, records, qpal.model.SeatLayout.TWO_TWO);
+    }
+
+    public void setSeatData(int tripID, String busName, int capacity, List<SeatData> records,
+            qpal.model.SeatLayout seatLayout) {
 
         if (records == null || capacity < 1 || records.size() != capacity) {
             throw new IllegalArgumentException("Provide one seat record for each seat in the bus.");
@@ -443,13 +442,15 @@ public class SeatSelectionPanel extends JPanel {
             }
         }
 
-        if (this.tripID != tripID) {
+        if (this.tripID != tripID || layout != seatLayout) {
 
             selectedSeats.clear();
             currentPage = 1;
         }
 
         this.tripID = tripID;
+        layout = seatLayout;
+        seatsPerPage = layout.perRow() * 4;
         seatCapacity = capacity;
         databaseSeatsLoaded = true;
         selectedTrip = TripCardPanel.getSelectedCard();
@@ -494,9 +495,9 @@ public class SeatSelectionPanel extends JPanel {
                     for (int i = 1; i <= trip.capacity(); i++)
                         records.add(
                                 new SeatData(
-                                        qpal.dao.BookingDao.seatLabel(i),
+                                        trip.layout().label(i),
                                         occupied.contains(i) ? "Reserved" : "Available"));
-                    setSeatData(trip.id(), trip.bus(), trip.capacity(), records);
+                    setSeatData(trip.id(), trip.bus(), trip.capacity(), records, trip.layout());
                 },
                 ex -> {
                     if (TripCardPanel.getSelectedCard() != card) return;
@@ -510,6 +511,12 @@ public class SeatSelectionPanel extends JPanel {
         passengerCount = passengerPanel.getPassengerCount();
         while (selectedSeats.size() > passengerCount)
             selectedSeats.remove(selectedSeats.size() - 1);
+        while (selectedSeats.stream().filter(s -> layout.prioritySeat(layout.number(s))).count() > priorityPassengers())
+            for (int i = selectedSeats.size() - 1; i >= 0; i--)
+                if (layout.prioritySeat(layout.number(selectedSeats.get(i)))) {
+                    selectedSeats.remove(i);
+                    break;
+                }
         lblPassengers.setText("Passengers: " + passengerCount);
         lblInstruction.setText("Select " + passengerCount + " seats");
         currentPage = Math.min(currentPage, getTotalPages());
@@ -525,15 +532,33 @@ public class SeatSelectionPanel extends JPanel {
         seatsPanel.removeAll();
         int start = (currentPage - 1) * seatsPerPage;
         int end = Math.min(start + seatsPerPage, seats.size());
-        int[] positions = {20, 130, 340, 450};
+        columnHeaders.removeAll();
+        for (int column = 0; column < layout.perRow(); column++) {
+            JLabel label = new JLabel("" + (char) ('A' + column), SwingConstants.CENTER);
+            label.setBounds(seatX(column), 0, seatWidth(column), 18);
+            columnHeaders.add(label);
+        }
+        JLabel aisle = new JLabel("AISLE", SwingConstants.CENTER);
+        int aisleStart = seatX(layout.left() - 1) + seatWidth(layout.left() - 1);
+        aisle.setBounds(aisleStart, 0, seatX(layout.left()) - aisleStart, 18);
+        columnHeaders.add(aisle);
+        columnHeaders.revalidate();
+        columnHeaders.repaint();
+        long selectedPriority = selectedSeats.stream().filter(s -> layout.prioritySeat(layout.number(s))).count();
 
         for (int i = start; i < end; i++) {
 
             SeatData seat = seats.get(i);
-            int row = (i - start) / 4;
-            int column = (i - start) % 4;
-            JButton btnSeat = createButton(seat.getSeatNumber());
-            btnSeat.setBounds(positions[column], row * 47, 90, 38);
+            int row = (i - start) / layout.perRow();
+            int column = (i - start) % layout.perRow();
+            boolean priority = layout.prioritySeat(i + 1);
+            JButton btnSeat = createButton(seat.getSeatNumber() + (priority ? " P" : ""));
+            btnSeat.setBounds(seatX(column), row * 47, seatWidth(column), 38);
+            if (priority) {
+                btnSeat.setBackground(new Color(255, 224, 153));
+                btnSeat.setToolTipText("Front-row priority seat: Senior and PWD passengers only");
+                btnSeat.setEnabled(selectedSeats.contains(seat.getSeatNumber()) || selectedPriority < priorityPassengers());
+            }
 
             if (!"Available".equalsIgnoreCase(seat.getStatus())) {
 
@@ -584,12 +609,14 @@ public class SeatSelectionPanel extends JPanel {
 
             int passenger = (passengerPage - 1) * 3 + i;
             passengerCards[i].setVisible(passenger < passengerCount);
-            lblPassengerNames[i].setText("Passenger " + (passenger + 1));
+            List<String> types = passengerPanel.getPassengerTypes();
+            lblPassengerNames[i].setText("P" + (passenger + 1) + " · " + (passenger < types.size() ? types.get(passenger) : "Regular"));
             String number = "—";
 
-            if (passenger < selectedSeats.size()) {
+            List<String> assigned = assignedSeats();
+            if (passenger < assigned.size() && assigned.get(passenger) != null) {
 
-                number = selectedSeats.get(passenger);
+                number = assigned.get(passenger);
                 passengerCards[i].setBorder(
                         BorderFactory.createLineBorder(new Color(225, 0, 45), 2));
 
@@ -610,11 +637,45 @@ public class SeatSelectionPanel extends JPanel {
     }
 
     public String getSelectedSeats() {
-        return String.join(", ", selectedSeats);
+        return String.join(", ", getSelectedSeatNumbers());
     }
 
     public List<String> getSelectedSeatNumbers() {
-        return new ArrayList<>(selectedSeats);
+        return assignedSeats().stream().filter(java.util.Objects::nonNull).toList();
+    }
+
+    private int seatX(int column) {
+        return 20 + column * (520 - 64 + 8) / layout.perRow()
+                + (column >= layout.left() ? 64 : 0);
+    }
+
+    private int seatWidth(int column) {
+        // Distribute rounding across columns so every layout fills the same width.
+        int stride = 520 - 64 + 8;
+        return (column + 1) * stride / layout.perRow() - column * stride / layout.perRow() - 8;
+    }
+
+    private long priorityPassengers() {
+        return passengerPanel.getPassengerTypes().stream().filter(qpal.model.SeatLayout::eligible).count();
+    }
+
+    private List<String> assignedSeats() {
+        List<String> types = passengerPanel.getPassengerTypes();
+        List<String> assigned = new ArrayList<>(java.util.Collections.nCopies(passengerCount, null));
+        for (String seat : selectedSeats) {
+            if (!layout.prioritySeat(layout.number(seat))) continue;
+            for (int i = 0; i < Math.min(types.size(), assigned.size()); i++)
+                if (assigned.get(i) == null && qpal.model.SeatLayout.eligible(types.get(i))) {
+                    assigned.set(i, seat);
+                    break;
+                }
+        }
+        for (String seat : selectedSeats) {
+            if (layout.prioritySeat(layout.number(seat))) continue;
+            int index = assigned.indexOf(null);
+            if (index >= 0) assigned.set(index, seat);
+        }
+        return assigned;
     }
 
     public int getTripID() {

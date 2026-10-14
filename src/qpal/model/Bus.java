@@ -8,6 +8,10 @@ public class Bus {
     private int availableSeats;
     private String busStatus;
     private String statusReason;
+    private SeatLayout seatLayout = SeatLayout.TWO_TWO;
+
+    public SeatLayout getSeatLayout() { return seatLayout; }
+    public void setSeatLayout(SeatLayout layout) { seatLayout = java.util.Objects.requireNonNull(layout); }
 
     public String getStatusReason() { return statusReason; }
 

@@ -211,6 +211,7 @@ public final class QueueMonitor extends JPanel {
                 JPanel queue = new JPanel(new GridBagLayout());
                 queue.setOpaque(false);
                 addDetail(queue, "Gate " + gate + " • Boarding Queue", 18, MUTED, 0);
+                addDetail(queue, "* Senior / PWD priority", 12, MUTED, 4);
                 Integer assignedTrip = gates.get(gate);
                 var waiting =
                         rows.stream()
@@ -227,12 +228,12 @@ public final class QueueMonitor extends JPanel {
                     String numbers =
                             waiting.stream()
                                     .limit(5)
-                                    .map(r -> String.format("B-%03d", r.number()))
+                                    .map(r -> String.format("B-%03d", r.number()) + (r.priority() ? "*" : ""))
                                     .collect(java.util.stream.Collectors.joining(" • "));
                     addDetail(
                             queue,
                             numbers + (waiting.size() > 5 ? " • +" + (waiting.size() - 5) : ""),
-                            20,
+                            16,
                             RED,
                             12);
                     QueueRow first = waiting.get(0);
@@ -261,7 +262,7 @@ public final class QueueMonitor extends JPanel {
                         .toList();
         JPanel line = new JPanel(new GridBagLayout());
         line.setOpaque(false);
-        JLabel heading = text(boarding ? "Boarding Queue" : "Waiting Queue", 18, MUTED);
+        JLabel heading = text(boarding ? "Boarding Queue · Senior/PWD priority" : "Waiting Queue · Senior/PWD priority", 18, MUTED);
         heading.setHorizontalAlignment(SwingConstants.CENTER);
         GridBagConstraints headingCell = new GridBagConstraints();
         headingCell.gridx = 0;
@@ -308,7 +309,9 @@ public final class QueueMonitor extends JPanel {
                 trip.setMinimumSize(new Dimension(0, trip.getPreferredSize().height));
                 line.add(trip, cell);
             } else {
-                JLabel queue = text(String.format("P%03d", row.number()), 34, RED);
+                JLabel queue = text("<html><center>" + String.format("P%03d", row.number())
+                        + (row.priority() ? "<br><span style='font-size:12pt'>Priority</span>" : "")
+                        + "</center></html>", 34, RED);
                 queue.setHorizontalAlignment(SwingConstants.CENTER);
                 line.add(queue, cell);
             }

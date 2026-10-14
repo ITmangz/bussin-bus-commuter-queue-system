@@ -17,7 +17,12 @@ public final class BookingData {
             LocalTime time,
             BigDecimal fare,
             int capacity,
-            int available) {
+            int available,
+            SeatLayout layout) {
+        public TripOption(int id, String bus, String origin, String destination, LocalDate date,
+                LocalTime time, BigDecimal fare, int capacity, int available) {
+            this(id, bus, origin, destination, date, time, fare, capacity, available, SeatLayout.TWO_TWO);
+        }
         public String route() {
             return origin + " - " + destination;
         }
@@ -152,7 +157,17 @@ public final class BookingData {
             String passenger,
             String payment,
             String status,
-            int passengers) {}
+            int passengers,
+            boolean priority) {
+        public QueueRow(int id, int bookingId, int number, String route, String bus, String schedule,
+                String passenger, String payment, String status, int passengers) {
+            this(id, bookingId, number, route, bus, schedule, passenger, payment, status, passengers, false);
+        }
+        public String queueLabel(String prefix) {
+            return String.format(java.util.Locale.ROOT, "%s%03d", prefix, number)
+                    + (priority ? " · Priority" : "");
+        }
+    }
 
     public record RevenueData(
             List<Object[]> rows,

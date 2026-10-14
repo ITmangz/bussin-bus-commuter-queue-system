@@ -24,7 +24,7 @@ public class QueueMonitorLayoutTest {
    for(int count:new int[]{0,1,2,5}) for(int[] size:new int[][]{{780,540},{980,600},{1200,720}}) {
     QueueMonitor monitor=new QueueMonitor(false);
     var rows=new ArrayList<QueueRow>();
-    for(int i=0;i<count;i++)rows.add(new QueueRow(i+1,i+1,21+i,"Route","Bus","Today","Passenger","Pending","Waiting",1));
+    for(int i=0;i<count;i++)rows.add(new QueueRow(i+1,i+1,21+i,"Route","Bus","Today","Passenger","Pending","Waiting",1,i<2));
     render.invoke(monitor,rows,Map.of(),Map.of(),Map.of());
     monitor.setSize(size[0],size[1]);layout(monitor);
     checkLabels((JPanel)field.get(monitor),(JPanel)field.get(monitor));

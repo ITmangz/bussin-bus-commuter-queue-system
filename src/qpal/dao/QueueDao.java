@@ -36,8 +36,8 @@ public class QueueDao {
 
     public void callBoarding(int queueId, int station, boolean skip) throws SQLException {
         if (station < 1 || station > 2) throw new SQLException("Select a gate first.");
-        // Fetch eligibility before taking the shared transition mutex.
-        var eligible = boarding();
+        // Reconcile and create support tables before starting a transaction.
+        boarding();
         try (Connection c = DbConnection.getConnection()) {
             ensureStations(c);
             c.setAutoCommit(false);
@@ -71,6 +71,7 @@ public class QueueDao {
                             "DELETE FROM queue_stations WHERE kind='Boarding' AND station=?",
                             station);
                 } else {
+                    var eligible = boarding(c);
                     Integer current = assigned.get(station);
                     if (eligible.stream().anyMatch(r -> Objects.equals(current, r.id())))
                         throw new SQLException("Complete or skip the current gate queue first.");
@@ -92,16 +93,15 @@ public class QueueDao {
                     var next =
                             eligible.stream()
                                     .filter(r -> tripQueues.contains(r.id()))
-                                    .filter(
-                                            r ->
-                                                    !assigned.containsValue(r.id())
-                                                            && (queueId == 0 || queueId == r.id()))
+                                    .filter(r -> !assigned.containsValue(r.id()))
                                     .findFirst()
                                     .orElseThrow(
                                             () ->
                                                     new SQLException(
                                                             "No unassigned boarding queues are"
                                                                 + " available."));
+                    if (queueId != 0 && queueId != next.id())
+                        throw new SQLException("Call the next eligible boarding queue first to preserve priority FIFO.");
                     update(
                             c,
                             "REPLACE INTO queue_stations(kind,station,queue_entry_id)"
@@ -141,11 +141,17 @@ public class QueueDao {
             ensureBoardingTable(c);
             BoardingGateDao.ensure(c);
             qpal.util.DepartureService.reconcile(c);
+            return boarding(c);
+        }
+    }
+
+    private List<QueueRow> boarding(Connection c) throws SQLException {
             String sql =
                     "SELECT"
                         + " q.queue_entry_id,q.booking_id,q.queue_number,MIN(bp.passenger_name),r.origin,r.destination,b.bus_number,t.departure_date,t.departure_time,COUNT(*),CASE"
                         + " WHEN EXISTS(SELECT 1 FROM boarding_gates g WHERE g.trip_id=t.trip_id)"
-                        + " THEN 'Boarding' ELSE 'Awaiting Gate' END AS boarding_status FROM"
+                        + " THEN 'Boarding' ELSE 'Awaiting Gate' END AS boarding_status,"
+                        + QueueOrder.priority("q") + " AS priority_rank FROM"
                         + " queue_entries q JOIN bookings bk ON bk.booking_id=q.booking_id JOIN"
                         + " trips t ON t.trip_id=bk.trip_id JOIN routes r ON r.route_id=t.route_id"
                         + " JOIN buses b ON b.bus_id=t.bus_id JOIN booking_passengers bp ON"
@@ -156,7 +162,7 @@ public class QueueDao {
                         + " p.status FROM payments p WHERE p.booking_id=bk.booking_id ORDER BY"
                         + " p.payment_id DESC LIMIT 1)='Paid' GROUP BY"
                         + " q.queue_entry_id,q.booking_id,q.queue_number,r.origin,r.destination,b.bus_number,t.departure_date,t.departure_time"
-                        + " ORDER BY t.departure_date,t.departure_time,t.trip_id,COALESCE((SELECT"
+                        + " ORDER BY t.departure_date,t.departure_time,t.trip_id," + QueueOrder.priority("q") + ",COALESCE((SELECT"
                         + " skipped_at FROM boarding_skips bs WHERE"
                         + " bs.queue_entry_id=q.queue_entry_id),(SELECT MAX(paid_at) FROM payments"
                         + " p WHERE p.booking_id=bk.booking_id)),q.queue_entry_id";
@@ -175,10 +181,9 @@ public class QueueDao {
                                     r.getString(4),
                                     "Paid",
                                     r.getString("boarding_status"),
-                                    r.getInt(10)));
+                                    r.getInt(10), r.getInt("priority_rank") == 0));
             }
             return rows;
-        }
     }
 
     public void recallBoarding(int queueId, int station) throws SQLException {
@@ -284,11 +289,12 @@ public class QueueDao {
                     + " MIN(passenger_name) FROM booking_passengers WHERE booking_id=q.booking_id)"
                     + " AS passenger,(SELECT COUNT(*) FROM booking_passengers WHERE"
                     + " booking_id=q.booking_id) AS passengers,(SELECT status FROM payments WHERE"
-                    + " booking_id=q.booking_id ORDER BY payment_id DESC LIMIT 1) AS payment FROM"
+                    + " booking_id=q.booking_id ORDER BY payment_id DESC LIMIT 1) AS payment,"
+                    + QueueOrder.priority("q") + " AS priority_rank FROM"
                     + " queue_entries q JOIN bookings bk ON bk.booking_id=q.booking_id JOIN trips t"
                     + " ON t.trip_id=bk.trip_id JOIN routes r ON r.route_id=t.route_id JOIN buses b"
-                    + " ON b.bus_id=t.bus_id WHERE q.queue_date=CURRENT_DATE ORDER BY"
-                    + " q.queue_number";
+                    + " ON b.bus_id=t.bus_id WHERE q.queue_date=CURRENT_DATE ORDER BY "
+                    + QueueOrder.payment("q");
         try (Connection c = DbConnection.getConnection();
                 PreparedStatement p = c.prepareStatement(sql);
                 ResultSet r = p.executeQuery()) {
@@ -308,7 +314,7 @@ public class QueueDao {
                                         ? "Unpaid"
                                         : r.getString("payment"),
                                 r.getString("display_status"),
-                                r.getInt("passengers")));
+                                r.getInt("passengers"), r.getInt("priority_rank") == 0));
             return rows;
         }
     }
@@ -357,10 +363,9 @@ public class QueueDao {
                 if (action.equals("Call Next Queue")) {
                     try (PreparedStatement p =
                                     c.prepareStatement(
-                                            "SELECT queue_entry_id FROM queue_entries WHERE"
-                                                + " queue_date=CURRENT_DATE AND status IN"
-                                                + " ('Waiting','Skipped') ORDER BY CASE WHEN"
-                                                + " status='Waiting' THEN 0 ELSE 1 END,queue_number"
+                                            "SELECT q.queue_entry_id FROM queue_entries q WHERE"
+                                                + " q.queue_date=CURRENT_DATE AND q.status IN"
+                                                + " ('Waiting','Skipped') ORDER BY " + QueueOrder.payment("q")
                                                 + " LIMIT 1 FOR UPDATE");
                             ResultSet r = p.executeQuery()) {
                         if (!r.next())
@@ -411,15 +416,15 @@ public class QueueDao {
                             try (PreparedStatement p =
                                             statement(
                                                     c,
-                                                    "SELECT queue_entry_id FROM queue_entries WHERE"
-                                                        + " queue_date=CURRENT_DATE AND status IN"
-                                                        + " ('Waiting','Skipped') ORDER BY"
-                                                        + " queue_number LIMIT 1 FOR UPDATE");
+                                                    "SELECT q.queue_entry_id FROM queue_entries q WHERE"
+                                                        + " q.queue_date=CURRENT_DATE AND q.status IN"
+                                                        + " ('Waiting','Skipped') ORDER BY "
+                                                        + QueueOrder.payment("q") + " LIMIT 1 FOR UPDATE");
                                     ResultSet r = p.executeQuery()) {
                                 if (!r.next() || r.getInt(1) != queueId)
                                     throw new SQLException(
                                             "Recall the earliest waiting or skipped queue first to"
-                                                + " preserve FIFO.");
+                                                + " preserve priority FIFO.");
                             }
                         }
                         update(
@@ -529,12 +534,12 @@ public class QueueDao {
         java.util.Set<Integer> pendingPayments = new java.util.HashSet<>();
         String sql =
                 "SELECT"
-                    + " p.*,b.bus_number,r.origin,r.destination,bp.passenger_name,bp.fare,q.queue_number,(SELECT"
+                    + " p.*,bk.seat_layout,b.bus_number,r.origin,r.destination,bp.passenger_name,bp.fare,q.queue_number,(SELECT"
                     + " sr.seat_number FROM seat_reservations sr WHERE"
                     + " sr.booking_passenger_id=bp.booking_passenger_id ORDER BY"
                     + " sr.seat_reservation_id DESC LIMIT 1) AS"
                     + " seat_number,DATE(p.paid_at)=CURRENT_DATE AS paid_today FROM payments p JOIN"
-                    + " trips t ON t.trip_id=p.trip_id JOIN buses b ON b.bus_id=t.bus_id JOIN"
+                    + " trips t ON t.trip_id=p.trip_id LEFT JOIN bookings bk ON bk.booking_id=p.booking_id JOIN buses b ON b.bus_id=t.bus_id JOIN"
                     + " routes r ON r.route_id=t.route_id LEFT JOIN booking_passengers bp ON"
                     + " bp.booking_id=p.booking_id LEFT JOIN queue_entries q ON"
                     + " q.booking_id=p.booking_id WHERE (p.status<>'Pending' OR"
@@ -556,7 +561,7 @@ public class QueueDao {
                 String seat =
                         r.getObject("seat_number") == null
                                 ? "—"
-                                : BookingDao.seatLabel(r.getInt("seat_number"));
+                                : qpal.model.SeatLayout.fromCode(r.getString("seat_layout")).label(r.getInt("seat_number"));
                 rows.add(
                         new Object[] {
                             r.getInt("payment_id"),

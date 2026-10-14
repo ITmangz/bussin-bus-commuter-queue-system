@@ -80,7 +80,7 @@ public class HomePanel extends JPanel {
                 new JLabel(
                         "<html>Designed for the Parañaque Integrated Terminal Exchange<br>"
                                 + "(PITX), Bussin streamlines boarding across all CALABARZON<br>"
-                                + "routes through a First-In, First-Out (FIFO) queue system,<br>"
+                                + "routes through priority FIFO for Senior and PWD passengers,<br>"
                                 + "enabling faster, more organized, and efficient terminal<br>"
                                 + "operations.</html>");
         bussintext.setBounds(80, 310, 435, 130);

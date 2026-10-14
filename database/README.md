@@ -8,6 +8,18 @@ BUSSIN Database Setup
 6. Check DbConnection.java.
 7. Run the system.
 
+Seat layouts and priority seats
+------------------------------
+For an existing database, run migrations/seat-layout-priority.sql once before
+starting this version. Fresh qpal.sql imports already include these columns.
+The migration preserves existing buses and booking labels as 2+2. Add/Edit Bus
+supports 3+2, 2+3 and 2+2. Bookings save the chosen layout so receipts and revenue
+seat labels remain correct after later bus edits. Layout/capacity changes are
+blocked while the bus has bookings on a Scheduled or Boarding trip.
+
+New bookings reserve the front row for Senior/PWD passengers. Existing seat
+reservations are retained. See ../docs/priority-seating.md for queue rules and tests.
+
 Status Change Reasons
 ---------------------
 For an existing database, run migrations/status-reasons.sql once before starting

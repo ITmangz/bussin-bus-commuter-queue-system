@@ -35,7 +35,7 @@ public class EditBusPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(25, 30, 25, 30));
-        panel.setPreferredSize(new Dimension(360, 454));
+        panel.setPreferredSize(new Dimension(360, 534));
 
         JLabel title = new JLabel("Edit Bus Details");
 
@@ -80,27 +80,22 @@ public class EditBusPanel {
 
         JComboBox<Integer> cmbSeatCapacity =
                 ManagementComboBoxes.seatCapacity(bus.getSeatCapacity());
-        if (cmbSeatCapacity.getSelectedIndex() < 0) {
-            cmbSeatCapacity.setRenderer(
-                    new DefaultListCellRenderer() {
-                        @Override
-                        public Component getListCellRendererComponent(
-                                JList<?> list,
-                                Object value,
-                                int index,
-                                boolean selected,
-                                boolean focused) {
-                            super.getListCellRendererComponent(
-                                    list, value, index, selected, focused);
-                            if (value == null)
-                                setText("Keep current (" + bus.getSeatCapacity() + " seats)");
-                            return this;
-                        }
-                    });
-        }
+        ManagementComboBoxes.updateSeatCapacity(cmbSeatCapacity, bus.getSeatLayout(), bus.getSeatCapacity());
         panel.add(cmbSeatCapacity);
         panel.add(Box.createVerticalStrut(14));
 
+        JLabel layoutLabel = new JLabel("Seat Layout (left / aisle / right)");
+        layoutLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(layoutLabel);
+        panel.add(Box.createVerticalStrut(7));
+        JComboBox<qpal.model.SeatLayout> cmbLayout = new JComboBox<>(qpal.model.SeatLayout.values());
+        cmbLayout.setSelectedItem(bus.getSeatLayout());
+        cmbLayout.addActionListener(e -> ManagementComboBoxes.updateSeatCapacity(cmbSeatCapacity,
+                (qpal.model.SeatLayout) cmbLayout.getSelectedItem(), (Integer) cmbSeatCapacity.getSelectedItem()));
+        cmbLayout.setMaximumSize(new Dimension(300, 34));
+        cmbLayout.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(cmbLayout);
+        panel.add(Box.createVerticalStrut(14));
         JLabel lblStatus = new JLabel("Bus Status");
         lblStatus.setFont(new Font("SansSerif", Font.BOLD, 13));
         lblStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -181,7 +176,10 @@ public class EditBusPanel {
                     }
 
                     if (seatCapacity == null) {
-                        seatCapacity = bus.getSeatCapacity();
+                        qpal.components.AppDialogs.showMessageDialog(dialog,
+                                "Choose a capacity that makes complete rows for this layout.",
+                                "Seat Capacity", JOptionPane.WARNING_MESSAGE);
+                        return;
                     }
                     if (!busNumber.equals(bus.getBusNumber()) && busDao.checkBusNumber(busNumber)) {
 
@@ -198,6 +196,7 @@ public class EditBusPanel {
                     updated.setBusID(bus.getBusID());
                     updated.setBusNumber(busNumber);
                     updated.setSeatCapacity(seatCapacity);
+                    updated.setSeatLayout((qpal.model.SeatLayout) cmbLayout.getSelectedItem());
                     updated.setAvailableSeats(
                             seatCapacity == bus.getSeatCapacity()
                                     ? bus.getAvailableSeats()

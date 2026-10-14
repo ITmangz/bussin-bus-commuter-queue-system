@@ -195,7 +195,7 @@ public class PaymentPanel extends JPanel {
                                 new qpal.model.BookingData.Passenger(
                                         names.get(i),
                                         types.get(i),
-                                        qpal.dao.BookingDao.seatNumber(seats.get(i))));
+                                        TripCardPanel.getSelectedCard().getTrip().layout().number(seats.get(i))));
                     String method = selectedPayment.equals("E-Wallet") ? "GCash" : selectedPayment;
                     PrintTicketPanel target = ticketPanel;
                     continuebtn.setEnabled(false);

@@ -125,6 +125,7 @@ CREATE TABLE `boarding_skips` (
 CREATE TABLE `bookings` (
   `booking_id` int(11) NOT NULL,
   `booking_reference` varchar(30) NOT NULL,
+  `seat_layout` enum('3+2','2+3','2+2') NOT NULL DEFAULT '2+2',
   `trip_id` int(11) NOT NULL,
   `total_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `status` varchar(20) NOT NULL DEFAULT 'Pending',
@@ -407,6 +408,7 @@ CREATE TABLE `buses` (
   `bus_id` int(11) NOT NULL,
   `bus_number` varchar(20) NOT NULL,
   `seat_capacity` int(11) NOT NULL,
+  `seat_layout` enum('3+2','2+3','2+2') NOT NULL DEFAULT '2+2',
   `available_seats` int(11) NOT NULL,
   `bus_status` varchar(20) NOT NULL,
   `status_reason` varchar(500) DEFAULT NULL

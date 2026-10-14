@@ -25,7 +25,7 @@ public class BookingDao {
     }
 
     private static final String TRIP_SELECT =
-            "SELECT t.*, b.bus_number, b.seat_capacity, r.origin, r.destination, r.fare FROM trips"
+            "SELECT t.*, b.bus_number, b.seat_capacity, b.seat_layout, r.origin, r.destination, r.fare FROM trips"
                 + " t JOIN buses b ON b.bus_id=t.bus_id JOIN routes r ON r.route_id=t.route_id ";
     private static final String BOOKABLE =
             "t.status IN ('Scheduled','Boarding') AND r.status='Active' AND"
@@ -42,7 +42,8 @@ public class BookingDao {
                 r.getTime("departure_time").toLocalTime(),
                 r.getBigDecimal("fare"),
                 r.getInt("seat_capacity"),
-                r.getInt("available_seats"));
+                r.getInt("available_seats"),
+                qpal.model.SeatLayout.fromCode(r.getString("seat_layout")));
     }
 
     public List<TripOption> availableTrips() throws SQLException {
@@ -163,7 +164,8 @@ public class BookingDao {
                         || !live.time().equals(selected.time())
                         || !live.bus().equals(selected.bus())
                         || !live.route().equals(selected.route())
-                        || live.fare().compareTo(selected.fare()) != 0)
+                        || live.fare().compareTo(selected.fare()) != 0
+                        || live.layout() != selected.layout())
                     throw new SQLException(
                             "The trip details or fare changed. Please select the trip again.");
                 if (live.available() < passengers.size())
@@ -172,6 +174,10 @@ public class BookingDao {
                     if (p.seat() < 1 || p.seat() > live.capacity())
                         throw new SQLException(
                                 "The bus seat layout changed. Please select your seats again.");
+                for (Passenger p : passengers)
+                    if (live.layout().prioritySeat(p.seat()) && !qpal.model.SeatLayout.eligible(p.type()))
+                        throw new SQLException("Front-row priority seats are reserved for Senior and PWD passengers."
+                                + " Please choose a standard seat for " + p.name() + ".");
                 if (!qpal.model.RouteDropPoints.valid(live.origin(), live.destination(), dropPoint))
                     throw new SQLException("Please select a valid drop-off for this route.");
                 BigDecimal passengerFare =
@@ -183,11 +189,12 @@ public class BookingDao {
                         insert(
                                 c,
                                 "INSERT INTO bookings"
-                                    + " (booking_reference,trip_id,total_amount,status) VALUES"
-                                    + " (?,?,?,'Pending')",
+                                    + " (booking_reference,trip_id,total_amount,status,seat_layout) VALUES"
+                                    + " (?,?,?,'Pending',?)",
                                 reference,
                                 live.id(),
-                                total);
+                                total,
+                                live.layout().code());
                 update(
                         c,
                         "INSERT INTO booking_dropoffs (booking_id,drop_off) VALUES (?,?)",
@@ -325,14 +332,14 @@ public class BookingDao {
         try (PreparedStatement p =
                         statement(
                                 c,
-                                "SELECT s.seat_number FROM seat_reservations s JOIN"
+                                "SELECT s.seat_number,bk.seat_layout FROM seat_reservations s JOIN"
                                     + " booking_passengers bp ON"
-                                    + " bp.booking_passenger_id=s.booking_passenger_id WHERE"
+                                    + " bp.booking_passenger_id=s.booking_passenger_id JOIN bookings bk ON bk.booking_id=bp.booking_id WHERE"
                                     + " bp.booking_id=? AND s.status='Active' ORDER BY"
                                     + " bp.booking_passenger_id",
                                 booking);
                 ResultSet r = p.executeQuery()) {
-            while (r.next()) labels.add(seatLabel(r.getInt(1)));
+            while (r.next()) labels.add(qpal.model.SeatLayout.fromCode(r.getString(2)).label(r.getInt(1)));
         }
         try (PreparedStatement p = statement(c, sql, booking);
                 ResultSet r = p.executeQuery()) {

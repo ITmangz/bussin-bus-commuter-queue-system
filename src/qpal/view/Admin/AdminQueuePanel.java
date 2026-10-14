@@ -583,7 +583,7 @@ public class AdminQueuePanel extends JPanel {
                     for (var row : boardingRows)
                         boardingModel.addRow(
                                 new Object[] {
-                                    String.format("B%03d", row.number()),
+                                    row.queueLabel("B"),
                                     row.route(),
                                     row.bus(),
                                     row.schedule(),
@@ -604,7 +604,7 @@ public class AdminQueuePanel extends JPanel {
                     for (var row : rows) {
                         queueModel.addRow(
                                 new Object[] {
-                                    String.format("P%03d", row.number()),
+                                    row.queueLabel("P"),
                                     row.route(),
                                     row.bus(),
                                     row.schedule(),
