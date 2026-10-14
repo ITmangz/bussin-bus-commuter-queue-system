@@ -41,7 +41,7 @@ public final class StudentIdScanner {
     }
 
     public static Session start(Listener listener) {
-        Path script = Path.of("samples", "student-card-python", "embedded_scanner.py").toAbsolutePath();
+        Path script = Path.of("modules", "student-id-scanner", "embedded_scanner.py").toAbsolutePath();
         String configured = System.getProperty("qpal.python", System.getenv("QPAL_PYTHON"));
         Path bundled = Path.of(System.getProperty("user.home"), ".cache", "codex-runtimes",
                 "codex-primary-runtime", "dependencies", "python", "python.exe");

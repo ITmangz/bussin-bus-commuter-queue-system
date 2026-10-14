@@ -39,6 +39,7 @@ The system is designed to provide an organized and efficient way for commuters a
 QueueSystem/
 ├── docs/
 ├── lib/
+├── modules/student-id-scanner/
 ├── resources/
 ├── src/
 ├── tests/
